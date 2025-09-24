@@ -1,0 +1,28 @@
+{
+  "name": "sudokumaker-mcp",
+  "version": "0.0.4",
+  "type": "module",
+  "main": "./dist/client.js",
+  "exports": {
+    "./client": "./dist/client.js",
+    "./worker": "./dist/worker.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite --cors",
+    "build": "tsc && vite build",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.1",
+    "@sitnikov/tab-sync": "^1.0.0",
+    "websocket-mcp": "^1.1.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.7"
+  }
+}
