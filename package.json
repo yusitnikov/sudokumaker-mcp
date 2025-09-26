@@ -13,12 +13,13 @@
   "scripts": {
     "dev": "vite --cors",
     "build": "tsc && vite build",
+    "server": "websocket-mcp sudokumaker",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.1",
     "@sitnikov/tab-sync": "^1.0.0",
-    "websocket-mcp": "^1.1.1"
+    "websocket-mcp": "^1.1.2"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
