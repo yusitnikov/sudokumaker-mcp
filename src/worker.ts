@@ -8,6 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { getTabsToolName, type Tool } from "./shared.ts";
 
+// TODO: extract this file as a generic package
 // noinspection JSUnusedGlobalSymbols
 export const run = (serverName: string, appName: string) => {
   const mcpTransport = new WebSocketClientTransport({
@@ -86,7 +87,7 @@ export const run = (serverName: string, appName: string) => {
   const listTabs = async () => {
     const activeTabs = tabSyncServer.activeTabs;
 
-    let text = `There are ${activeTabs.length} active Sudoku Maker tabs.`;
+    let text = `There are ${activeTabs.length} active ${appName} tabs.`;
 
     for (const tab of activeTabs) {
       text += `\n- Tab ID: ${tab.id}; Tab title: "${tab.dynamicInfo.title}"`;
