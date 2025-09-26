@@ -314,10 +314,15 @@ tabSyncClient.onCustomMessage<undefined, Tool[]>("listTools", () =>
   tools.map(({ definition }) => definition),
 );
 
-tabSyncClient.onCustomMessage(
+tabSyncClient.onCustomMessage<{ name: string; params: any }, CallToolResult>(
   "callTool",
-  ({ name, params }: { name: string; params: any }) =>
-    tools.find((tool) => tool.name === name)!.run(params),
+  ({ name, params }) => {
+    const tool = tools.find((tool) => tool.name === name);
+    if (!tool) {
+      throw new Error(`Tool ${name} not found`);
+    }
+    return tool.run(params);
+  },
 );
 
 tabSyncClient.start();
