@@ -5,7 +5,6 @@ import { Api, type Puzzle } from "./SudokuMaker.ts";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Tool } from "./shared.ts";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -50,7 +49,7 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
       ...this.tool,
       definition: {
         ...this.tool.definition,
-        inputSchema: zodToJsonSchema(this.inputSchema),
+        inputSchema: z.toJSONSchema(this.inputSchema),
       } as Tool["definition"],
     };
   }
