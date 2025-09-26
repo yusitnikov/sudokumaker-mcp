@@ -1,5 +1,11 @@
+// noinspection SqlNoDataSourceInspection
+
 import { TabSyncClient } from "@sitnikov/tab-sync";
-import type { ToolImplementation } from "./shared.ts";
+import { Api, type Puzzle } from "./SudokuMaker.ts";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { Tool } from "./shared.ts";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -15,26 +21,57 @@ const tabSyncClient = new TabSyncClient<{ connected: boolean }>({
 tabSyncClient.onExtraPingDataChanged = ({ connected }) =>
   console.log("Connection status changed:", { connected });
 
-const getPuzzle = () => {
-  let puzzle = (window as any).Api.getPuzzle();
-  puzzle = JSON.parse(JSON.stringify(puzzle));
+const getPuzzle = (): Puzzle => {
+  let puzzle = Api.getPuzzle();
+  puzzle = JSON.parse(JSON.stringify(puzzle)) as Puzzle;
   delete puzzle.helpers;
   return puzzle;
 };
 
 tabSyncClient.onCustomMessage("getPuzzle", getPuzzle);
 
-const getTypesWikiTool: ToolImplementation = {
-  definition: {
-    name: "get_types_wiki",
-    title: "Get Sudoku Maker typescript definitions",
-    inputSchema: {
-      type: "object",
-      properties: {},
+export class ToolImplementation<SchemaT extends z.ZodSchema> {
+  constructor(
+    private readonly tool: Omit<Tool, "definition"> & {
+      definition: Omit<Tool["definition"], "inputSchema">;
     },
+    private readonly inputSchema: SchemaT,
+    private readonly _run: (
+      params: z.infer<SchemaT>,
+    ) => CallToolResult | Promise<CallToolResult>,
+  ) {}
+
+  get name() {
+    return this.tool.definition.name;
+  }
+
+  get definition(): Tool {
+    return {
+      ...this.tool,
+      definition: {
+        ...this.tool.definition,
+        inputSchema: zodToJsonSchema(this.inputSchema),
+      } as Tool["definition"],
+    };
+  }
+
+  run(params: unknown) {
+    const validatedParams = this.inputSchema.parse(params) as z.infer<SchemaT>;
+
+    return this._run(validatedParams);
+  }
+}
+
+const getTypesWikiTool = new ToolImplementation(
+  {
+    definition: {
+      name: "get_types_wiki",
+      title: "Get Sudoku Maker typescript definitions",
+    },
+    global: true,
   },
-  global: true,
-  run: async () => {
+  z.object({}),
+  async () => {
     const response = await fetch(
       "https://raw.githubusercontent.com/yusitnikov/puzzletv/refs/heads/main/src/types/SudokuMaker.ts",
     );
@@ -53,18 +90,18 @@ const getTypesWikiTool: ToolImplementation = {
       ],
     };
   },
-};
-const getPuzzleTool: ToolImplementation = {
-  definition: {
-    name: "get_puzzle",
-    title: "Get puzzle contents for tab",
-    description: `Get full puzzle definition per tab ID. You MUST call the ${getTypesWikiTool} tool to understand the puzzle's data.`,
-    inputSchema: {
-      type: "object",
-      properties: {},
+);
+
+const getPuzzleTool = new ToolImplementation(
+  {
+    definition: {
+      name: "get_puzzle",
+      title: "Get puzzle contents for tab",
+      description: `Get full puzzle definition per tab ID. You MUST call the ${getTypesWikiTool} tool to understand the puzzle's data.`,
     },
   },
-  run: () => ({
+  z.object({}),
+  () => ({
     content: [
       {
         type: "resource",
@@ -76,23 +113,180 @@ const getPuzzleTool: ToolImplementation = {
       },
     ],
   }),
-};
-const tools = [getTypesWikiTool, getPuzzleTool];
+);
 
-tabSyncClient.onCustomMessage("getInfo", () => {
+const updatePuzzleTool = new ToolImplementation(
+  {
+    definition: {
+      name: "update_puzzle",
+      title: "Update puzzle contents for tab",
+      description: "Get full puzzle definition per tab ID.",
+    },
+  },
+  z.object({
+    operationDescription: z
+      .string()
+      .optional()
+      .describe("Human-readable summary of the puzzle update operation"),
+    updates: z
+      .array(
+        z.object({
+          path: z
+            .array(
+              z.union([
+                z.string().describe("Object property name"),
+                z.number().describe("Zero-based array index"),
+              ]),
+            )
+            .describe(
+              'The affected path of the puzzle object, e.g. ["allConstraints", 0, "config"] to modify puzzle.allConstraints[0].config',
+            ),
+          update: z
+            .union([
+              z.object({
+                type: z
+                  .literal("set")
+                  .describe(
+                    "Set the specified path of the puzzle to the given value. The previous value will be overridden",
+                  ),
+                value: z
+                  .any()
+                  .optional()
+                  .describe(
+                    "New value to put into the specified place. Skipping this parameter will set the value to undefined",
+                  ),
+              }),
+              z.object({
+                type: z
+                  .literal("modifyItems")
+                  .describe(
+                    "Insert/delete/replace array items or string lines at the specified path and index",
+                  ),
+                index: z.union([
+                  z
+                    .number()
+                    .int()
+                    .min(1)
+                    .describe(
+                      "Insert/delete/replace items/lines at this specific one-based index (notice: AT this index, not AFTER this index)",
+                    ),
+                  z
+                    .literal("end")
+                    .describe(
+                      "Insert items/lines to the end of the array/text (not applicable for items/lines deletion)",
+                    ),
+                ]),
+                insertItems: z
+                  .array(z.any())
+                  .optional()
+                  .describe(
+                    "New items/lines to insert. Skip this parameter to just delete items/lines without inserting new ones",
+                  ),
+                deleteItemsCount: z
+                  .number()
+                  .int()
+                  .min(0)
+                  .optional()
+                  .describe(
+                    "Amount of items/lines that would be removed starting from the specified index. For instance, in order to delete items 4-9 from the array, specify index = 4 and deleteItemsCount = 6. Skip this parameter to just add new items/lines without deleting old ones",
+                  ),
+              }),
+            ])
+            .describe(
+              "Operation performed to the specified path of the object",
+            ),
+        }),
+      )
+      .describe(
+        "Update operations list. IMPORTANT: operations will be applied to the puzzle object in the order of definition. " +
+          "All update paths are relevant to the state of the puzzle AFTER performing all previous updates. " +
+          'So, for instance, if we have an array ["A", "B", "C"], and the operations are "insert D at position 2" and "insert E at position 4", ' +
+          'then the result would be ["A", "D", "B", "E", "C"], not ["A", "D", "B", "C", "E"], because it\'s position 4 AFTER inserting D.',
+      ),
+  }),
+  ({ updates, operationDescription }) => {
+    Api.updatePuzzle((puzzle) => {
+      for (const { path, update } of updates) {
+        let ref = {
+          value: puzzle as any,
+          set: (value: any) => {
+            Object.assign(puzzle, value);
+          },
+        };
+
+        for (const key of path) {
+          const prev = ref.value;
+          ref = {
+            value: prev[key],
+            set: (value: any) => {
+              prev[key] = value;
+            },
+          };
+        }
+
+        switch (update.type) {
+          case "set":
+            ref.set(update.value);
+            break;
+
+          case "modifyItems":
+            if (typeof ref.value === "string") {
+              const lines = ref.value.split("\n");
+              const textRef = ref;
+              ref = {
+                value: lines,
+                set: (value: any[]) => textRef.set(value.join("\n")),
+              };
+            }
+
+            if (!Array.isArray(ref.value)) {
+              throw new Error(
+                `${["puzzle", ...path].join(".")} is not an array, it's ${typeof ref.value}`,
+              );
+            }
+
+            ref.value.splice(
+              update.index === "end" ? ref.value.length : update.index - 1,
+              update.deleteItemsCount ?? 0,
+              ...(update.insertItems ?? []),
+            );
+            /*
+             * ref.value is modified in place,
+             * but we still need to call the setter for the case of updating text lines
+             */
+            ref.set(ref.value);
+            break;
+        }
+      }
+    }, operationDescription);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: "Updated successfully",
+        },
+      ],
+    };
+  },
+);
+
+const tools = [getTypesWikiTool, getPuzzleTool, updatePuzzleTool];
+
+tabSyncClient.onCustomMessage<undefined, string>("getInfo", () => {
   const puzzle = getPuzzle();
 
-  return `Puzzle author: "${puzzle.author}"; Puzzle spec: ${JSON.stringify(puzzle.spec)}; Puzzle constraints count: ${puzzle.allConstraints.length}; In order to get and UNDERSTAND the full puzzle contents, use wiki tools first, and ONLY THEN call the ${getPuzzleTool.definition.name} tool.`;
+  return `Puzzle author: "${puzzle.author}"; Puzzle spec: ${JSON.stringify(puzzle.spec)}; Puzzle constraints count: ${puzzle.allConstraints.length}; In order to get and UNDERSTAND the full puzzle contents, use wiki tools first, and ONLY THEN call the ${getPuzzleTool.name} tool.`;
 });
 
-tabSyncClient.onCustomMessage("listTools", () =>
-  tools.map(({ run, ...tool }) => tool),
+tabSyncClient.onCustomMessage<undefined, Tool[]>("listTools", () =>
+  tools.map(({ definition }) => definition),
 );
 
 tabSyncClient.onCustomMessage(
   "callTool",
   ({ name, params }: { name: string; params: any }) =>
-    tools.find(({ definition }) => definition.name === name)!.run(params),
+    tools.find((tool) => tool.name === name)!.run(params),
 );
 
 tabSyncClient.start();
