@@ -1,5 +1,5 @@
 import { TabSyncClient } from "@sitnikov/tab-sync";
-import { type Tool } from "./shared.ts";
+import type { ToolImplementation } from "./shared.ts";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -24,7 +24,7 @@ const getPuzzle = () => {
 
 tabSyncClient.onCustomMessage("getPuzzle", getPuzzle);
 
-const getTypesWikiTool: Tool = {
+const getTypesWikiTool: ToolImplementation = {
   definition: {
     name: "get_types_wiki",
     title: "Get Sudoku Maker typescript definitions",
@@ -54,7 +54,7 @@ const getTypesWikiTool: Tool = {
     };
   },
 };
-const getPuzzleTool: Tool = {
+const getPuzzleTool: ToolImplementation = {
   definition: {
     name: "get_puzzle",
     title: "Get puzzle contents for tab",

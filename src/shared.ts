@@ -7,6 +7,9 @@ export interface Tool {
   definition: ListToolsResult["tools"][0];
   global?: boolean;
   timeout?: number;
+}
+
+export interface ToolImplementation extends Tool {
   run: (params: any) => CallToolResult | Promise<CallToolResult>;
 }
 
