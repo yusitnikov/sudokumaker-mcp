@@ -1,5 +1,36 @@
 import { z } from "zod";
 
+/*
+  AI comment about critical documentation investment areas:
+  =========================================================
+
+  Critical Ambiguities
+
+  1. CornerId, EdgeId, OuterCellId (lines 68-79) - These have empty descriptions. I can't understand what these represent or how they map to the grid coordinate system.
+  2. DiagonalType naming (lines 85-89) - The comment mentions the names don't align with the actual coordinate system and were named for "historical reasons." This could cause confusion when users
+  refer to diagonals.
+  3. Cell ID calculation (lines 63-67) - While the formula is given (row * width + column), the example calculation seems off: "cell in row 2 column 3 of a 6x6 puzzle would be 8 (1 * 6 + 2 = 8)" -
+  this suggests 1-based rows but 0-based columns, which is inconsistent.
+  4. Candidates/Corner marks bitmap (lines 950-954) - The example shows digits 0, 3, 4 for number 25, but sudoku typically uses digits 1-9. Are these 0-based digit indices?
+  5. Color palette mapping (lines 955-959) - The long description of color indices is complex and the logic for choosing between main/secondary palettes when colors exist in both is unclear.
+
+  Missing Context
+
+  6. Custom constraint structure (lines 9-39) - The relationship between CustomConstraintInput, CustomConstraintBackend, and CustomConstraintComponent is unclear. How do these pieces work together?
+  7. Regions array (line 326) - What do the numbers in the regions array represent? Cell IDs? Region IDs?
+  8. Global entropy groups (line 384) - What do these group numbers represent?
+  9. Arrow bulb indexing (line 131) - "index 0 is 1s, index 1 is 10s, etc" - this seems to refer to digit place values but isn't clearly explained.
+  10. Fog clearing patterns (lines 709-751) - The relationship between patterns, overrides, triggers, and effects in custom fog clearing is complex and underdocumented.
+
+  Minor Clarifications Needed
+
+  11. Rectangle coordinates (lines 41-50) - Uses center point coordinates, which differs from typical top-left coordinate systems.
+  12. SudokuLayer enum (lines 204-213) - The layer ordering and when each layer is used isn't clear.
+  13. Export settings (lines 1042-1062) - The SudokuPad export settings structure seems incomplete (TODO comment on line 1050).
+
+  These are the areas where additional documentation would be most valuable for understanding how to properly construct and manipulate puzzle objects.
+ */
+
 export const RawInput = z
   .object({
     type: z.literal("raw").describe(""),
