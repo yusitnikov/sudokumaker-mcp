@@ -1,3 +1,5 @@
+import type { ConstraintType } from "./SudokuMakerSchemas.ts";
+
 export interface Puzzle {
   author: string;
   spec: unknown;
@@ -9,13 +11,17 @@ export interface Constraint {
   // TODO
 }
 
-export const Api = (window as any).Api as {
-  getPuzzle(): Puzzle;
+declare global {
+  interface Window {
+    Api: {
+      getPuzzle(): Puzzle;
 
-  updatePuzzle(
-    updater: (puzzle: Puzzle) => void,
-    operationDescription?: string,
-  ): void;
+      updatePuzzle(
+        updater: (puzzle: Puzzle) => void,
+        operationDescription?: string,
+      ): void;
 
-  PuzzleElementType: Record<number, string>;
-};
+      PuzzleElementType: typeof ConstraintType;
+    };
+  }
+}
