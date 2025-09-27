@@ -320,8 +320,8 @@ export enum ConstraintType {
   SudokuRules,
 
   // Misc
-  Fog = 4000,
-  CustomFogClearing,
+  FogLights = 4000,
+  FogTriggers,
 }
 
 export const LineConstraintConfigBase = z
@@ -637,7 +637,7 @@ export const SequenceConstraintConfig = z
   )
   .describe("");
 
-export const EntropyLineConstraintConfig = z
+export const EntropyLinesConstraintConfig = z
   .intersection(
     LineConstraintConfigBase,
     z.object({
@@ -647,7 +647,7 @@ export const EntropyLineConstraintConfig = z
   )
   .describe("");
 
-export const LockoutLineConstraintConfig = z
+export const LockoutLinesConstraintConfig = z
   .intersection(
     LineWithEndPointsConfigBase,
     z.object({
@@ -730,10 +730,10 @@ export const BetweenLinesConstraintConfig = z
   )
   .describe("");
 
-export const FogConfig = z
+export const FogLightsConstraintConfig = z
   .object({
-    type: z.literal(ConstraintType.Fog).describe("Fog"),
-    cells: z.array(CellId).describe(""),
+    type: z.literal(ConstraintType.FogLights).describe("FogLights"),
+    lightCells: z.array(CellId).describe(""),
   })
   .describe("");
 
@@ -749,11 +749,9 @@ export const CustomFogClearingPattern = z
   .enum(CustomFogClearingPatternNative)
   .describe("");
 
-export const CustomFogClearingConfig = z
+export const FogTriggersConstraintConfig = z
   .object({
-    type: z
-      .literal(ConstraintType.CustomFogClearing)
-      .describe("CustomFogClearing"),
+    type: z.literal(ConstraintType.FogTriggers).describe("FogTriggers"),
     patterns: z.array(CustomFogClearingPattern).optional().describe(""),
     overrides: z.array(CellId).optional().describe(""),
     triggers: z
@@ -928,14 +926,14 @@ export const ConstraintConfigMap = {
   [ConstraintType.Difference]: DifferenceConstraintConfig,
   [ConstraintType.DisjointGroups]: DisjointGroupsConstraintConfig,
   [ConstraintType.DoubleArrow]: DoubleArrowConstraintConfig,
-  [ConstraintType.EntropyLines]: EntropyLineConstraintConfig,
+  [ConstraintType.EntropyLines]: EntropyLinesConstraintConfig,
   [ConstraintType.Even]: EvenConstraintConfig,
   [ConstraintType.DifferentValues]: DifferentValuesConstraintConfig,
   [ConstraintType.Givens]: GivensConstraintConfig,
   [ConstraintType.GlobalEntropy]: GlobalEntropyConstraintConfig,
   [ConstraintType.KillerCages]: KillerCagesConstraintConfig,
   [ConstraintType.LittleKillers]: LittleKillersConstraintConfig,
-  [ConstraintType.LockoutLines]: LockoutLineConstraintConfig,
+  [ConstraintType.LockoutLines]: LockoutLinesConstraintConfig,
   [ConstraintType.LookAndSayCages]: LookAndSayCagesConstraintConfig,
   [ConstraintType.Maximum]: MaximumConstraintConfig,
   [ConstraintType.Minimum]: MinimumConstraintConfig,
@@ -957,8 +955,8 @@ export const ConstraintConfigMap = {
   [ConstraintType.Whisper]: WhisperConstraintConfig,
   [ConstraintType.XSums]: XSumsConstraintConfig,
   [ConstraintType.XV]: XVConstraintConfig,
-  [ConstraintType.Fog]: FogConfig,
-  [ConstraintType.CustomFogClearing]: CustomFogClearingConfig,
+  [ConstraintType.FogLights]: FogLightsConstraintConfig,
+  [ConstraintType.FogTriggers]: FogTriggersConstraintConfig,
 };
 
 export const ConstraintConfig = z
