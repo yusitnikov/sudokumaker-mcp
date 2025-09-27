@@ -1,15 +1,12 @@
-import type { ConstraintType } from "./SudokuMakerSchemas.ts";
+import type {
+  Puzzle as PuzzleSchema,
+  ConstraintType,
+} from "./SudokuMakerSchemas.ts";
+import { z } from "zod";
 
-export interface Puzzle {
-  author: string;
-  spec: unknown;
-  allConstraints: Constraint[];
+export type Puzzle = z.infer<typeof PuzzleSchema> & {
   helpers: unknown;
-}
-
-export interface Constraint {
-  // TODO
-}
+};
 
 declare global {
   interface Window {
