@@ -1,9 +1,8 @@
 // noinspection SqlNoDataSourceInspection
 
 import { TabSyncClient } from "@sitnikov/tab-sync";
-import { type Puzzle } from "./SudokuMaker.ts";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import type { Tool } from "./shared.ts";
+import type { Tool } from "./shared";
 import { z } from "zod";
 
 const code = `
@@ -20,9 +19,9 @@ const tabSyncClient = new TabSyncClient<{ connected: boolean }>({
 tabSyncClient.onExtraPingDataChanged = ({ connected }) =>
   console.log("Connection status changed:", { connected });
 
-const getPuzzle = (): Puzzle => {
+const getPuzzle = () => {
   let puzzle = window.Api.getPuzzle();
-  puzzle = JSON.parse(JSON.stringify(puzzle)) as Puzzle;
+  puzzle = JSON.parse(JSON.stringify(puzzle));
   delete puzzle.helpers;
   return puzzle;
 };
