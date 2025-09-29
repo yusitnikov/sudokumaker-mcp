@@ -142,6 +142,18 @@ export const run = (serverName: string, appName: string) => {
 
     const tabId = params.arguments?.tabId;
     if (typeof tabId === "number") {
+      if (!tabSyncServer.activeTabs.some(({ id }) => id === tabId)) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Tab ${tabId} not found, it probably has been closed or refreshed.\n${await listTabs()}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
       return handleInTab(tabId);
     }
 
