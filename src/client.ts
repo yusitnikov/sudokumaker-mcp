@@ -4,6 +4,7 @@ import { TabSyncClient } from "@sitnikov/tab-sync";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Tool } from "./shared";
 import { z } from "zod";
+import { PuzzleSchema } from "./SudokuMakerPuzzleSchema.ts";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -19,14 +20,7 @@ const tabSyncClient = new TabSyncClient<{ connected: boolean }>({
 tabSyncClient.onExtraPingDataChanged = ({ connected }) =>
   console.log("Connection status changed:", { connected });
 
-const getPuzzle = () => {
-  let puzzle = window.Api.getPuzzle();
-  puzzle = JSON.parse(JSON.stringify(puzzle));
-  delete puzzle.helpers;
-  return puzzle;
-};
-
-tabSyncClient.onCustomMessage("getPuzzle", getPuzzle);
+const getPuzzle = () => PuzzleSchema.encode(window.Api.getPuzzle());
 
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
   constructor(
@@ -60,42 +54,12 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
   }
 }
 
-const getTypesWikiTool = new ToolImplementation(
-  {
-    definition: {
-      name: "get_types_wiki",
-      title: "Get Sudoku Maker typescript definitions",
-    },
-    global: true,
-  },
-  z.object({}),
-  async () => {
-    const response = await fetch(
-      "https://raw.githubusercontent.com/yusitnikov/puzzletv/refs/heads/main/src/types/SudokuMaker.ts",
-    );
-    const code = await response.text();
-
-    return {
-      content: [
-        {
-          type: "resource",
-          resource: {
-            uri: "wiki://types",
-            mimeType: "text/plain",
-            text: code,
-          },
-        },
-      ],
-    };
-  },
-);
-
 const getPuzzleTool = new ToolImplementation(
   {
     definition: {
       name: "get_puzzle",
       title: "Get puzzle contents for tab",
-      description: `Get full puzzle definition per tab ID. You MUST call the ${getTypesWikiTool} tool to understand the puzzle's data.`,
+      description: "Get full puzzle definition per tab ID",
     },
   },
   z.object({
@@ -234,12 +198,14 @@ const updatePuzzleTool = new ToolImplementation(
       ),
   }),
   ({ updates, operationDescription }) => {
-    window.Api.updatePuzzle((puzzle) => {
+    window.Api.updatePuzzle((sudokuMakerPuzzle) => {
+      let puzzle = PuzzleSchema.encode(sudokuMakerPuzzle);
+
       for (const { path, update } of updates) {
         let ref = {
           value: puzzle as any,
           set: (value: any) => {
-            Object.assign(puzzle, value);
+            puzzle = value;
           },
         };
 
@@ -287,6 +253,13 @@ const updatePuzzleTool = new ToolImplementation(
             break;
         }
       }
+
+      const { cells, ...updatedSudokuMakerPuzzle } =
+        PuzzleSchema.decode(puzzle);
+      Object.assign(sudokuMakerPuzzle, updatedSudokuMakerPuzzle);
+      for (const [index, cell] of cells.entries()) {
+        Object.assign(sudokuMakerPuzzle.cells[index], cell);
+      }
     }, operationDescription);
 
     return {
@@ -300,12 +273,12 @@ const updatePuzzleTool = new ToolImplementation(
   },
 );
 
-const tools = [getTypesWikiTool, getPuzzleTool, updatePuzzleTool];
+const tools = [getPuzzleTool, updatePuzzleTool];
 
 tabSyncClient.onCustomMessage<undefined, string>("getInfo", () => {
   const puzzle = getPuzzle();
 
-  return `Puzzle author: "${puzzle.author}"; Puzzle spec: ${JSON.stringify(puzzle.spec)}; Puzzle constraints count: ${puzzle.allConstraints.length}; In order to get and UNDERSTAND the full puzzle contents, use wiki tools first, and ONLY THEN call the ${getPuzzleTool.name} tool.`;
+  return `Puzzle author: "${puzzle.author}"; Puzzle spec: ${JSON.stringify(puzzle.spec)}; Puzzle constraints count: ${puzzle.allConstraints.length}; Call the ${getPuzzleTool.name} tool to get the full puzzle contents.`;
 });
 
 tabSyncClient.onCustomMessage<undefined, Tool[]>("listTools", () =>

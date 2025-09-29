@@ -4,8 +4,21 @@ import type { ConstraintType } from "./SudokuMakerConstraint";
 import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema";
 
+type CellId = number;
+interface Coords {
+  x: number;
+  y: number;
+}
+
 type Puzzle = z.infer<typeof PuzzleSchema> & {
-  helpers: unknown;
+  helpers: {
+    cellIds: {
+      getIdFromCoords(coords: Coords): CellId;
+      getCoordsFromId(id: CellId): Coords;
+      getX(id: CellId): number;
+      getY(id: CellId): number;
+    };
+  };
 };
 
 declare class DigitSet implements Iterable<number> {
@@ -44,6 +57,7 @@ declare global {
       PuzzleElementType: typeof ConstraintType;
 
       DigitSet: typeof DigitSet;
+      SmallNumberSet: typeof DigitSet;
     };
   }
 }

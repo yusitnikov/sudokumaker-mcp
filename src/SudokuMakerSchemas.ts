@@ -55,11 +55,38 @@ export const IVector2 = z
       "Coordinates of one point in the grid. The coordinate system starts in the top left corner of the grid and go right and down from there. Each grid cell is 1x1, so the cell size is the unit of the coordinate system.",
   });
 
-export const CellId = z.number().brand("CellId").meta({
+const CellIdInternal = z.number().meta({
   id: "CellId",
   description:
-    "Unique numeric identification of a grid cell. It corresponds to the zero-based cell index in the flat cells array, starting from the top left cell, and going in the reading order (left to right, top to bottom). So, the top left cell ID is 0, and cell in row 2 column 3 of a 6x6 puzzle would be 8 (row index 1 multiplied by columns number 6, plus column index 2: 1 * 6 + 2 = 8).",
+    "Unique numeric identification of a grid cell. " +
+    "It corresponds to the zero-based cell index in the flat cells array, starting from the top left cell, and going in the reading order (left to right, top to bottom). " +
+    "So, the top left cell ID is 0, and cell in row 2 column 3 of a 6x6 puzzle would be 8 (row index 1 multiplied by columns number 6, plus column index 2: 1 * 6 + 2 = 8).",
 });
+const CellIdPublic = z
+  .object({
+    row: z.number().describe("Row number, starting from the top"),
+    column: z.number().describe("Column number, starting from the left"),
+  })
+  .meta({
+    id: "CellCoords",
+    description: "Coordinates of a cell in the grid",
+  });
+export const CellId: z.ZodCodec<typeof CellIdPublic, typeof CellIdInternal> =
+  z.codec(CellIdPublic, CellIdInternal, {
+    encode: (cellId) => {
+      const { cellIds } = window.Api.getPuzzle().helpers;
+
+      return {
+        row: cellIds.getY(cellId) + 1,
+        column: cellIds.getX(cellId) + 1,
+      };
+    },
+    decode: ({ column, row }) =>
+      window.Api.getPuzzle().helpers.cellIds.getIdFromCoords({
+        x: column - 1,
+        y: row - 1,
+      }),
+  });
 export const CornerId = z.number().brand("CornerId").meta({
   id: "CornerId",
   description: "",
@@ -107,29 +134,66 @@ export const PuzzleType = z.enum(PuzzleTypeNative).meta({
     "Puzzle type: sudoku or custom. Having a puzzle of type \"sudoku\" means having implicit SudokuRules constraint that enforces unique digits in every row and column, but otherwise it's the same (it's not really sudoku, just a latin square, since sudoku regions (boxes) are still controlled by a separate constraint).",
 });
 
-export const CandidatesFlags = z.number().brand("CandidatesFlags").meta({
-  id: "CandidatesFlags",
+export const DigitSetSchema = z.codec(
+  z.array(z.number()).meta({
+    id: "DigitsList",
+    description:
+      "A set of digits (usually cell candidates, but not restricted to that)",
+  }),
+  z.number().meta({
+    id: "DigitSet",
+    description:
+      "Integer number that uniquely represents a set of digits (usually used for cell candidates or corner marks). " +
+      "It's a bitmap, each bit of it means that the relevant digit is present in the set. " +
+      "For instance, number 25 means a set of digits 0, 3 and 4 because it binary representation is 11001 - " +
+      "positions with zero-based index 0, 3 and 4 have bits there.",
+  }),
+  {
+    encode: (mask) => Array.from(new window.Api.SmallNumberSet(mask)),
+    decode: (list) => +window.Api.SmallNumberSet.from(list),
+  },
+);
+export const ColorsSet = DigitSetSchema.meta({
+  id: "ColorsSet",
   description:
-    "Integer number that uniquely represents a set of digits (usually used for cell candidates or corner marks). It's a bitmap, each bit of it means that the relevant digit is present in the set. For instance, number 25 means a set of digits 0, 3 and 4 because it binary representation is 11001 - positions with zero-based index 0, 3 and 4 have bits there.",
-});
-export const ColorsFlags = z.number().brand("ColorsFlags").meta({
-  id: "ColorsFlags",
-  description:
-    "Integer number that uniquely represents a set of cell background colors. It's a bitmap, each bit of it means that the relevant color is present in the set. For instance, number 6 means a set of color 1 and color 2 in the palette because it binary representation is 110 - positions with zero-based index 1 and 2 have bits there. The default palette is: 0 - white, 1 - red, 2 - orange, 3 - yellow, 4 - light green, 5 - green, 6 - light blue, 7 - blue, 8 - purple, 9 - magenta, 10 - light grey, 11 - dark grey, 12 - black (or very dark grey), 13 - bright pink / fuchsia, 14 - brown, 15 - lime green, 16 - teal/cyan, 17 - royal blue, 18 - violet. Colors 1 - 9 are on the main palette, colors 10-18 are not the secondary palette, white is on both palettes. So if the puzzle doesn't contain any color from palette 2 yet and the user names a color shade that has analogues on both palettes, then the user is likely referencing the color of the main palette. Remember, naming colors is subjective, so please be smart when determining which color the user refers to.",
+    "A set of cell background colors, represented by color's index in the palette. " +
+    "The default palette is: 0 - white, 1 - red, 2 - orange, 3 - yellow, 4 - light green, 5 - green, 6 - light blue, 7 - blue, 8 - purple, 9 - magenta, " +
+    "10 - light grey, 11 - dark grey, 12 - black (or very dark grey), 13 - bright pink / fuchsia, 14 - brown, 15 - lime green, 16 - teal/cyan, 17 - royal blue, 18 - violet. " +
+    "Colors 1 - 9 are on the main palette, colors 10-18 are not the secondary palette, white is on both palettes. " +
+    "Note: if the puzzle doesn't contain any color from the secondary palette yet and the user names a color shade that has analogues on both palettes, " +
+    "then the user is likely referencing the color of the main palette. " +
+    "Remember, naming colors is subjective, so please be smart when determining which color the user refers to.",
 });
 
 export const Cell = z
-  .object({
-    given: z.boolean().describe(""),
-    value: z.number().optional().describe(""),
-    candidates: CandidatesFlags.describe(""),
-    cornerPencilMarks: CandidatesFlags.describe(""),
-    colors: ColorsFlags.describe(""),
-    valid: z.boolean().describe(""),
-    id: CellId.readonly().describe(""),
-    x: z.number().readonly().describe(""),
-    y: z.number().readonly().describe(""),
-  })
+  .intersection(
+    z.object({
+      given: z.boolean().describe(""),
+      value: z.number().optional().describe(""),
+      candidates: DigitSetSchema.describe(""),
+      cornerPencilMarks: DigitSetSchema.describe(""),
+      colors: ColorsSet.describe(""),
+      valid: z.boolean().describe(""),
+    }),
+    z
+      .codec(
+        CellIdPublic,
+        z.object({
+          id: CellId.out,
+          x: z.number(),
+          y: z.number(),
+        }),
+        {
+          encode: ({ x, y }) => ({ row: y + 1, column: x + 1 }),
+          decode: (cell) => ({
+            x: cell.column - 1,
+            y: cell.row - 1,
+            id: CellId.decode(cell),
+          }),
+        },
+      )
+      .readonly(),
+  )
   .describe("");
 
 export const Spec = z

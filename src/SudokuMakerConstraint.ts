@@ -8,14 +8,19 @@ import {
   CellsRectangle,
   Spec,
   SudokuLayer,
+  DigitSetSchema,
 } from "./SudokuMakerSchemas";
 import { z } from "zod";
 
 // region Core
-type ConfigT<
+type PublicConfigT<
   TypeT extends ConstraintType,
   ConfigSchemaT extends z.ZodType,
-> = z.infer<ConfigSchemaT> & { type: TypeT };
+> = z.input<ConfigSchemaT> & { type: (typeof ConstraintType)[TypeT] };
+type InternalConfigT<
+  TypeT extends ConstraintType,
+  ConfigSchemaT extends z.ZodType,
+> = z.output<ConfigSchemaT> & { type: TypeT };
 
 export class SudokuMakerConstraint<
   TypeT extends ConstraintType,
@@ -23,13 +28,16 @@ export class SudokuMakerConstraint<
   ParamsSchemaT extends z.ZodObject,
 > {
   public readonly type: TypeT;
-  public readonly schema: z.ZodType<ConfigT<TypeT, ConfigSchemaT>>;
+  public readonly schema: z.ZodType<
+    InternalConfigT<TypeT, ConfigSchemaT>,
+    PublicConfigT<TypeT, ConfigSchemaT>
+  >;
   public readonly main: SudokuMakerConstraintOption<
-    ConfigT<TypeT, ConfigSchemaT>,
+    PublicConfigT<TypeT, ConfigSchemaT>,
     ParamsSchemaT
   >;
   public readonly options: SudokuMakerConstraintOption<
-    ConfigT<TypeT, ConfigSchemaT>
+    PublicConfigT<TypeT, ConfigSchemaT>
   >[];
 
   constructor({
@@ -41,27 +49,34 @@ export class SudokuMakerConstraint<
     type: TypeT;
     schema?: ConfigSchemaT;
     main: SudokuMakerConstraintOption<
-      ConfigT<TypeT, ConfigSchemaT>,
+      PublicConfigT<TypeT, ConfigSchemaT>,
       ParamsSchemaT
     >;
-    options?: SudokuMakerConstraintOption<ConfigT<TypeT, ConfigSchemaT>>[];
+    options?: SudokuMakerConstraintOption<
+      PublicConfigT<TypeT, ConfigSchemaT>
+    >[];
   }) {
     const typeName = ConstraintType[type];
 
     this.type = type;
-    this.schema = z.intersection(
-      schema,
-      z.object({
-        type: z.literal(type).describe(typeName),
-      }),
-    );
+    this.schema = z
+      .intersection(
+        schema,
+        z.object({
+          type: z.codec(z.literal(typeName), z.literal(type), {
+            encode: () => typeName,
+            decode: () => type,
+          }),
+        }),
+      )
+      .describe(`Title: "${main.title}". Description: ${main.description}`);
     this.main = main;
     this.options = options;
   }
 }
 
 export interface SudokuMakerConstraintOption<
-  ConfigT extends { type: ConstraintType },
+  ConfigT,
   ParamsSchemaT extends z.ZodObject = z.ZodObject<{}>,
 > {
   title: string;
@@ -71,18 +86,18 @@ export interface SudokuMakerConstraintOption<
   paramsSchema?: ParamsSchemaT;
   defaultConfig?:
     | Omit<ConfigT, "type">
-    | SpecGetter<Omit<ConfigT, "type">, [z.infer<ParamsSchemaT>]>;
+    | SpecGetter<Omit<ConfigT, "type">, [z.input<ParamsSchemaT>]>;
   detect?: ConfigGetter<ConfigT, boolean>;
 }
 
 type SpecGetter<ResultT, ArgsT extends any[] = []> = (
-  spec: z.infer<typeof Spec>,
+  spec: z.input<typeof Spec>,
   ...args: ArgsT
 ) => ResultT;
 
-type ConfigGetter<ConfigT extends { type: ConstraintType }, ResultT> = (
+type ConfigGetter<ConfigT, ResultT> = (
   config: ConfigT,
-  spec: z.infer<typeof Spec>,
+  spec: z.input<typeof Spec>,
 ) => ResultT;
 // endregion
 
@@ -296,6 +311,7 @@ export const RegionsConstraint = new SudokuMakerConstraint({
     title: "Regions",
     description: "Digits cannot repeat in marked regions.",
     defaultConfig: {
+      // TODO
       regions: [
         0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1,
         2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 3, 3, 3, 4, 4, 4, 5, 5, 5, 3, 3, 3,
@@ -370,7 +386,7 @@ export const DisjointGroupsConstraint = new SudokuMakerConstraint({
 export const NonconsecutiveConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Nonconsecutive,
   main: {
-    title: "Non­consecutive",
+    title: "Non-consecutive",
     description:
       "Cells that are orthogonally adjacent cannot contain consecutive digits.",
   },
@@ -1325,29 +1341,25 @@ export const FogTriggersConstraint = new SudokuMakerConstraint({
 // endregion
 
 // region Multi-option constraints
-const describeDigitGroups = (groups: number[]) =>
-  groups.length
-    ? groups
-        .map((mask) => Array.from(new window.Api.DigitSet(mask)).join(""))
-        .join("/")
-    : "???";
+const describeDigitGroups = (groups: number[][]) =>
+  groups.length ? groups.map((digits) => digits.join("")).join("/") : "???";
 
 const getDigitGroups: SpecGetter<
-  number[],
+  number[][],
   [number, (digit: number) => number]
 > = ({ minDigit, maxDigit }, count, getGroup) => {
   const groups = Array(count)
     .fill(undefined)
-    .map(() => new window.Api.DigitSet());
+    .map(() => [] as number[]);
 
   for (let digit = minDigit; digit <= maxDigit; digit++) {
-    groups[getGroup(digit)].add(digit);
+    groups[getGroup(digit)].push(digit);
   }
 
-  return groups.map((set) => +set);
+  return groups;
 };
 
-const getEntropicGroups: SpecGetter<number[]> = (spec) => {
+const getEntropicGroups: SpecGetter<number[][]> = (spec) => {
   const { minDigit, digitCount } = spec;
 
   const limit1 = minDigit + Math.round(digitCount / 3);
@@ -1358,38 +1370,39 @@ const getEntropicGroups: SpecGetter<number[]> = (spec) => {
   );
 };
 
-const getModuloGroups: SpecGetter<number[], [number]> = (spec, count) => {
+const getModuloGroups: SpecGetter<number[][], [number]> = (spec, count) => {
   return getDigitGroups(spec, count, (digit) => digit % count);
 };
 
-const areSameDigitGroups = (group1: number[], group2: number[]): boolean => {
-  if (group1.length !== group2.length) {
+const areSameDigitGroups = (
+  group1List: number[][],
+  group2List: number[][],
+): boolean => {
+  if (group1List.length !== group2List.length) {
     return false;
   }
 
-  group1 = Array.from(group1).sort();
-  group2 = Array.from(group2).sort();
+  const group1 = group1List
+    .map((digits) => DigitSetSchema.decode(digits))
+    .sort();
+  const group2 = group2List
+    .map((digits) => DigitSetSchema.decode(digits))
+    .sort();
   return group1.every((value, index) => value === group2[index]);
 };
 
+const GlobalEntropyParamsSchema = z.object({
+  groups: z.array(DigitSetSchema).describe("digit groups"),
+});
 export const GlobalEntropyConstraint = new SudokuMakerConstraint({
   type: ConstraintType.GlobalEntropy,
-  schema: z.object({
-    groups: z.array(z.number()).describe(""),
-  }),
+  schema: GlobalEntropyParamsSchema,
   main: {
     title: "Global 2x2 groups",
     getTitle: ({ groups }) => `Global ${describeDigitGroups(groups)}`,
     description:
       "Every 2x2 square of cells must contain at least 1 digit of every specified group.",
-    paramsSchema: z.object({
-      groups: z
-        .array(z.array(z.number().describe("digit")))
-        .describe("digit groups"),
-    }),
-    defaultConfig: (_spec, { groups }) => ({
-      groups: groups.map((group) => +window.Api.DigitSet.from(group)),
-    }),
+    paramsSchema: GlobalEntropyParamsSchema,
   },
   options: [
     {
@@ -1529,27 +1542,21 @@ export const WhisperConstraint = new SudokuMakerConstraint({
   ],
 });
 
+const EntropyLinesParamsSchema = z.object({
+  groups: z.array(DigitSetSchema).describe("digit groups"),
+});
 export const EntropyLinesConstraint = new SudokuMakerConstraint({
   type: ConstraintType.EntropyLines,
-  schema: z.intersection(
-    LineConstraintConfigBase,
-    z.object({
-      groups: z.array(z.number()).describe(""),
-    }),
-  ),
+  schema: z.intersection(LineConstraintConfigBase, EntropyLinesParamsSchema),
   main: {
     title: "Digit group lines",
     getTitle: ({ groups }) => `${describeDigitGroups(groups)} lines`,
     description:
       "Every N consecutive cells along a line must contain exactly 1 digit of every specified group, where N is the amount of groups.",
-    paramsSchema: z.object({
-      groups: z
-        .array(z.array(z.number().describe("digit")))
-        .describe("digit groups"),
-    }),
+    paramsSchema: EntropyLinesParamsSchema,
     defaultConfig: (_spec, { groups }) => ({
       lines: [],
-      groups: groups.map((group) => +window.Api.DigitSet.from(group)),
+      groups,
       style: {
         color: "#aaaaaa",
         thickness: 0.15,
