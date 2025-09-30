@@ -3,6 +3,7 @@ import { WebSocketClientTransport } from "websocket-mcp/frontend";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   CallToolRequestSchema,
+  type CallToolResult,
   ListToolsRequestSchema,
   type ListToolsResult,
 } from "@modelcontextprotocol/sdk/types.js";
@@ -31,8 +32,12 @@ export const run = (serverName: string, appName: string) => {
     { capabilities: { tools: {} } },
   );
 
-  const listTools = (tabId: number): Promise<Tool[]> =>
-    tabSyncServer.sendMessageToTab(tabId, "listTools", undefined);
+  const listTools = (tabId: number) =>
+    tabSyncServer.sendMessageToTab<undefined, Tool[]>(
+      tabId,
+      "listTools",
+      undefined,
+    );
 
   mcpServer.setRequestHandler(
     ListToolsRequestSchema,
@@ -93,12 +98,12 @@ export const run = (serverName: string, appName: string) => {
       text += `\n- Tab ID: ${tab.id}; Tab title: "${tab.dynamicInfo.title}"`;
 
       try {
-        const info = (await tabSyncServer.sendMessageToTab(
+        const info = await tabSyncServer.sendMessageToTab<undefined, string>(
           tab.id,
           "getInfo",
           undefined,
           500,
-        )) as string;
+        );
         console.log("Got the tab info!", tab, info);
 
         if (info) {
@@ -112,60 +117,66 @@ export const run = (serverName: string, appName: string) => {
     return text;
   };
 
-  mcpServer.setRequestHandler(CallToolRequestSchema, async ({ params }) => {
-    if (params.name === getTabsToolName) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: await listTabs(),
-          },
-        ],
-      };
-    }
-
-    const handleInTab = async (tabId: number) => {
-      const tools = await listTools(tabId);
-      const tool = tools.find(
-        ({ definition: { name } }) => name === params.name,
-      );
-      return tabSyncServer.sendMessageToTab(
-        tabId,
-        "callTool",
-        {
-          name: params.name,
-          params: params.arguments,
-        },
-        tool?.timeout,
-      );
-    };
-
-    const tabId = params.arguments?.tabId;
-    if (typeof tabId === "number") {
-      if (!tabSyncServer.activeTabs.some(({ id }) => id === tabId)) {
+  mcpServer.setRequestHandler(
+    CallToolRequestSchema,
+    async ({ params }): Promise<CallToolResult> => {
+      if (params.name === getTabsToolName) {
         return {
           content: [
             {
               type: "text",
-              text: `Tab ${tabId} not found, it probably has been closed or refreshed.\n${await listTabs()}`,
+              text: await listTabs(),
             },
           ],
-          isError: true,
         };
       }
 
-      return handleInTab(tabId);
-    }
+      const handleInTab = async (tabId: number) => {
+        const tools = await listTools(tabId);
+        const tool = tools.find(
+          ({ definition: { name } }) => name === params.name,
+        );
+        return tabSyncServer.sendMessageToTab<
+          { name: string; params: any },
+          CallToolResult
+        >(
+          tabId,
+          "callTool",
+          {
+            name: params.name,
+            params: params.arguments,
+          },
+          tool?.timeout,
+        );
+      };
 
-    const tabs = Array.from(tabSyncServer.activeTabs).reverse();
-    for (const tab of tabs) {
-      try {
-        return handleInTab(tab.id);
-      } catch {}
-    }
+      const tabId = params.arguments?.tabId;
+      if (typeof tabId === "number") {
+        if (!tabSyncServer.activeTabs.some(({ id }) => id === tabId)) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Tab ${tabId} not found, it probably has been closed or refreshed.\n${await listTabs()}`,
+              },
+            ],
+            isError: true,
+          };
+        }
 
-    throw new Error(`Unknown tool: ${params.name}`);
-  });
+        return handleInTab(tabId);
+      }
+
+      const tabs = Array.from(tabSyncServer.activeTabs).reverse();
+      for (const tab of tabs) {
+        try {
+          return handleInTab(tab.id);
+        } catch {}
+      }
+
+      throw new Error(`Unknown tool: ${params.name}`);
+    },
+  );
 
   (async () => {
     try {
