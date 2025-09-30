@@ -47,6 +47,26 @@ const getPuzzle = () => {
   return puzzle;
 };
 
+const updatePuzzle = (
+  updateCallback: (
+    puzzle: z.input<typeof PuzzleSchema>,
+  ) => z.input<typeof PuzzleSchema> | void,
+  copyCallback: (
+    from: z.output<typeof PuzzleSchema>,
+    to: z.output<typeof PuzzleSchema>,
+  ) => void,
+  operationDescription?: string,
+) =>
+  window.Api.updatePuzzle((sudokuMakerPuzzle) => {
+    const puzzle = PuzzleSchema.encode(sudokuMakerPuzzle);
+
+    const updatedPuzzle = updateCallback(puzzle) ?? puzzle;
+
+    const updatedSudokuMakerPuzzle = PuzzleSchema.decode(updatedPuzzle);
+
+    copyCallback(updatedSudokuMakerPuzzle, sudokuMakerPuzzle);
+  }, operationDescription);
+
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
   constructor(
     private readonly tool: Omit<Tool, "definition"> & {
@@ -223,75 +243,77 @@ const updatePuzzleTool = new ToolImplementation(
       ),
   }),
   ({ updates, operationDescription }) => {
-    window.Api.updatePuzzle((sudokuMakerPuzzle) => {
-      let puzzle = PuzzleSchema.encode(sudokuMakerPuzzle);
-
-      for (const { path, update } of updates) {
-        let ref = {
-          value: puzzle as any,
-          set: (value: any) => {
-            puzzle = value;
-          },
-        };
-
-        for (const key of path) {
-          const prev = ref.value;
-          ref = {
-            value: prev[key],
+    updatePuzzle(
+      (puzzle) => {
+        for (const { path, update } of updates) {
+          let ref = {
+            value: puzzle as any,
             set: (value: any) => {
-              prev[key] = value;
+              puzzle = value;
             },
           };
-        }
 
-        switch (update.type) {
-          case "set":
-            ref.set(update.value);
-            break;
+          for (const key of path) {
+            const prev = ref.value;
+            ref = {
+              value: prev[key],
+              set: (value: any) => {
+                prev[key] = value;
+              },
+            };
+          }
 
-          case "modifyItems":
-            if (typeof ref.value === "string") {
-              const lines = ref.value.split("\n");
-              const textRef = ref;
-              ref = {
-                value: lines,
-                set: (value: any[]) => textRef.set(value.join("\n")),
-              };
-            }
+          switch (update.type) {
+            case "set":
+              ref.set(update.value);
+              break;
 
-            if (!Array.isArray(ref.value)) {
-              throw new Error(
-                `${["puzzle", ...path].join(".")} is not an array, it's ${typeof ref.value}`,
+            case "modifyItems":
+              if (typeof ref.value === "string") {
+                const lines = ref.value.split("\n");
+                const textRef = ref;
+                ref = {
+                  value: lines,
+                  set: (value: any[]) => textRef.set(value.join("\n")),
+                };
+              }
+
+              if (!Array.isArray(ref.value)) {
+                throw new Error(
+                  `${["puzzle", ...path].join(".")} is not an array, it's ${typeof ref.value}`,
+                );
+              }
+
+              ref.value.splice(
+                update.index === "end" ? ref.value.length : update.index - 1,
+                update.deleteItemsCount ?? 0,
+                ...(update.insertItems ?? []),
               );
-            }
-
-            ref.value.splice(
-              update.index === "end" ? ref.value.length : update.index - 1,
-              update.deleteItemsCount ?? 0,
-              ...(update.insertItems ?? []),
-            );
-            /*
-             * ref.value is modified in place,
-             * but we still need to call the setter for the case of updating text lines
-             */
-            ref.set(ref.value);
-            break;
+              /*
+               * ref.value is modified in place,
+               * but we still need to call the setter for the case of updating text lines
+               */
+              ref.set(ref.value);
+              break;
+          }
         }
-      }
 
-      const { cells, ...updatedSudokuMakerPuzzle } =
-        PuzzleSchema.decode(puzzle);
-      Object.assign(sudokuMakerPuzzle, updatedSudokuMakerPuzzle);
-      for (const [index, cell] of cells.entries()) {
-        Object.assign(sudokuMakerPuzzle.cells[index], cell);
-      }
-    }, operationDescription);
+        return puzzle;
+      },
+      ({ cells, ...from }, to) => {
+        Object.assign(to, from);
+        for (const [index, cell] of cells.entries()) {
+          Object.assign(to.cells[index], cell);
+        }
+      },
+      operationDescription,
+    );
 
     return {
       content: [
         {
           type: "text",
-          text: "Updated successfully",
+          text: "Operation completed",
         },
       ],
     };
