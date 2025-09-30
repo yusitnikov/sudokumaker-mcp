@@ -62,4 +62,7 @@ export const PuzzleSchema = z
     name: z.string().describe("Puzzle name"),
     spec: Spec,
   })
-  .describe("");
+  .meta({
+    id: "Puzzle",
+    description: "Full puzzle object",
+  });

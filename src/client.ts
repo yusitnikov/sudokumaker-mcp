@@ -2,13 +2,13 @@
 
 import { TabSyncClient } from "@sitnikov/tab-sync";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import type { Tool } from "./shared";
+import type { Tool, WorkerInitOptions } from "./shared";
 import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema.ts";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
-    run("sudokumaker", "Sudoku Maker");
+    run();
 `;
 const url = "data:application/javascript;base64," + btoa(code);
 
@@ -297,5 +297,20 @@ tabSyncClient.onCustomMessage<{ name: string; params: any }, CallToolResult>(
 );
 
 tabSyncClient.start();
+
+tabSyncClient
+  .sendMessageToServer<WorkerInitOptions, void>("init", {
+    serverName: "sudokumaker",
+    appName: "Sudoku Maker",
+    instructions: `
+      ${(document.head.querySelector('meta[name="description"]') as HTMLMetaElement)?.content ?? ""}
+
+      This MCP server provides programmatic access to Sudoku Maker puzzles open in browser tabs.
+      It communicates with the browser tabs to read and modify puzzle state.
+
+      The full list of all JSON schemas used in this MCP server: ${JSON.stringify(z.toJSONSchema(z.globalRegistry, { io: "input" }))}
+    `,
+  })
+  .catch(console.error);
 
 console.log("MCP client started");
