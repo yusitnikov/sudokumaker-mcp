@@ -5,6 +5,11 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Tool, WorkerInitOptions } from "./shared";
 import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema.ts";
+import {
+  type ConstraintByType,
+  ConstraintType,
+  getConstraintByConfig,
+} from "./SudokuMakerConstraint.ts";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -20,7 +25,27 @@ const tabSyncClient = new TabSyncClient<{ connected: boolean }>({
 tabSyncClient.onExtraPingDataChanged = ({ connected }) =>
   console.log("Connection status changed:", { connected });
 
-const getPuzzle = () => PuzzleSchema.encode(window.Api.getPuzzle());
+const getPuzzle = () => {
+  const puzzle = PuzzleSchema.encode(window.Api.getPuzzle());
+
+  puzzle.allConstraints.forEach(
+    <TypeT extends ConstraintType>(constraint: ConstraintByType<TypeT>) => {
+      const constraintType = getConstraintByConfig<TypeT>(constraint.config);
+
+      const constraintMetadata = constraintType.getConstraintMetadata(
+        constraint.config,
+        puzzle.spec,
+      );
+
+      constraint.constraintMetadata = {
+        defaultName: constraintMetadata.title,
+        description: constraintMetadata.description,
+      };
+    },
+  );
+
+  return puzzle;
+};
 
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
   constructor(

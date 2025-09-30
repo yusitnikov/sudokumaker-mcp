@@ -27,7 +27,8 @@ export class SudokuMakerConstraint<
   ConfigSchemaT extends z.ZodType,
   ParamsSchemaT extends z.ZodObject,
 > {
-  public readonly type: TypeT;
+  public readonly typeId: TypeT;
+  public readonly typeName: (typeof ConstraintType)[TypeT];
   public readonly schema: z.ZodType<
     InternalConfigT<TypeT, ConfigSchemaT>,
     PublicConfigT<TypeT, ConfigSchemaT>
@@ -36,7 +37,7 @@ export class SudokuMakerConstraint<
     PublicConfigT<TypeT, ConfigSchemaT>,
     ParamsSchemaT
   >;
-  public readonly options: SudokuMakerConstraintOption<
+  public readonly options: SecondarySudokuMakerConstraintOption<
     PublicConfigT<TypeT, ConfigSchemaT>
   >[];
 
@@ -52,19 +53,18 @@ export class SudokuMakerConstraint<
       PublicConfigT<TypeT, ConfigSchemaT>,
       ParamsSchemaT
     >;
-    options?: SudokuMakerConstraintOption<
+    options?: SecondarySudokuMakerConstraintOption<
       PublicConfigT<TypeT, ConfigSchemaT>
     >[];
   }) {
-    const typeName = ConstraintType[type];
-
-    this.type = type;
+    this.typeId = type;
+    this.typeName = ConstraintType[type];
     this.schema = z
       .intersection(
         schema,
         z.object({
-          type: z.codec(z.literal(typeName), z.literal(type), {
-            encode: () => typeName,
+          type: z.codec(z.literal(this.typeName), z.literal(type), {
+            encode: () => this.typeName,
             decode: () => type,
           }),
         }),
@@ -72,6 +72,29 @@ export class SudokuMakerConstraint<
       .describe(`Title: "${main.title}". Description: ${main.description}`);
     this.main = main;
     this.options = options;
+  }
+
+  getConstraintMetadata(
+    config: PublicConfigT<TypeT, ConfigSchemaT>,
+    spec: z.input<typeof Spec>,
+  ) {
+    let detectedOption: SudokuMakerConstraintOption<
+      PublicConfigT<TypeT, ConfigSchemaT>,
+      any
+    > = this.main;
+
+    for (const option of this.options) {
+      if (option.detect(config, spec)) {
+        detectedOption = option;
+        break;
+      }
+    }
+
+    return {
+      title: detectedOption.getTitle?.(config, spec) ?? detectedOption.title,
+      description:
+        detectedOption.getDescription?.(spec) ?? detectedOption.description,
+    };
   }
 }
 
@@ -87,7 +110,13 @@ export interface SudokuMakerConstraintOption<
   defaultConfig?:
     | Omit<ConfigT, "type">
     | SpecGetter<Omit<ConfigT, "type">, [z.input<ParamsSchemaT>]>;
-  detect?: ConfigGetter<ConfigT, boolean>;
+}
+
+export interface SecondarySudokuMakerConstraintOption<
+  ConfigT,
+  ParamsSchemaT extends z.ZodObject = z.ZodObject<{}>,
+> extends SudokuMakerConstraintOption<ConfigT, ParamsSchemaT> {
+  detect: ConfigGetter<ConfigT, boolean>;
 }
 
 type SpecGetter<ResultT, ArgsT extends any[] = []> = (
@@ -1613,84 +1642,132 @@ export const EntropyLinesConstraint = new SudokuMakerConstraint({
 });
 // endregion
 
-export const AllConstraints = [
-  SudokuRulesConstraint,
-  GivensConstraint,
-  RegionsConstraint,
-  DiagonalMinusConstraint,
-  DiagonalPlusConstraint,
-  AntikingConstraint,
-  AntiknightConstraint,
-  DisjointGroupsConstraint,
-  NonconsecutiveConstraint,
-  EvenConstraint,
-  OddConstraint,
-  MaximumConstraint,
-  MinimumConstraint,
-  DifferenceConstraint,
-  RatioConstraint,
-  XVConstraint,
-  KillerCagesConstraint,
-  CloneConstraint,
-  QuadrupleConstraint,
-  LookAndSayCagesConstraint,
-  DifferentValuesConstraint,
-  RenbanConstraint,
-  PalindromeConstraint,
-  BetweenLinesConstraint,
-  RegionSumLineConstraint,
-  SequenceConstraint,
-  LockoutLinesConstraint,
-  ArrowConstraint,
-  DoubleArrowConstraint,
-  LittleKillersConstraint,
-  SandwichSumsConstraint,
-  XSumsConstraint,
-  SkyscrapersConstraint,
-  NumberedRoomsConstraint,
-  RowIndexerConstraint,
-  ColumnIndexerConstraint,
-  CustomConstraint,
-  CosmeticLineConstraint,
-  CosmeticCageConstraint,
-  CosmeticSymbolConstraint,
-  FogLightsConstraint,
-  FogTriggersConstraint,
-  GlobalEntropyConstraint,
-  ThermometerConstraint,
-  WhisperConstraint,
-  EntropyLinesConstraint,
-];
+export const AllConstraints = {
+  [ConstraintType.SudokuRules]: SudokuRulesConstraint,
+  [ConstraintType.Givens]: GivensConstraint,
+  [ConstraintType.Regions]: RegionsConstraint,
+  [ConstraintType.DiagonalMinus]: DiagonalMinusConstraint,
+  [ConstraintType.DiagonalPlus]: DiagonalPlusConstraint,
+  [ConstraintType.Antiking]: AntikingConstraint,
+  [ConstraintType.Antiknight]: AntiknightConstraint,
+  [ConstraintType.DisjointGroups]: DisjointGroupsConstraint,
+  [ConstraintType.Nonconsecutive]: NonconsecutiveConstraint,
+  [ConstraintType.Even]: EvenConstraint,
+  [ConstraintType.Odd]: OddConstraint,
+  [ConstraintType.Maximum]: MaximumConstraint,
+  [ConstraintType.Minimum]: MinimumConstraint,
+  [ConstraintType.Difference]: DifferenceConstraint,
+  [ConstraintType.Ratio]: RatioConstraint,
+  [ConstraintType.XV]: XVConstraint,
+  [ConstraintType.KillerCages]: KillerCagesConstraint,
+  [ConstraintType.Clone]: CloneConstraint,
+  [ConstraintType.Quadruple]: QuadrupleConstraint,
+  [ConstraintType.LookAndSayCages]: LookAndSayCagesConstraint,
+  [ConstraintType.DifferentValues]: DifferentValuesConstraint,
+  [ConstraintType.Renban]: RenbanConstraint,
+  [ConstraintType.Palindrome]: PalindromeConstraint,
+  [ConstraintType.BetweenLines]: BetweenLinesConstraint,
+  [ConstraintType.RegionSumLine]: RegionSumLineConstraint,
+  [ConstraintType.Sequence]: SequenceConstraint,
+  [ConstraintType.LockoutLines]: LockoutLinesConstraint,
+  [ConstraintType.Arrow]: ArrowConstraint,
+  [ConstraintType.DoubleArrow]: DoubleArrowConstraint,
+  [ConstraintType.LittleKillers]: LittleKillersConstraint,
+  [ConstraintType.SandwichSums]: SandwichSumsConstraint,
+  [ConstraintType.XSums]: XSumsConstraint,
+  [ConstraintType.Skyscrapers]: SkyscrapersConstraint,
+  [ConstraintType.NumberedRooms]: NumberedRoomsConstraint,
+  [ConstraintType.RowIndexer]: RowIndexerConstraint,
+  [ConstraintType.ColumnIndexer]: ColumnIndexerConstraint,
+  [ConstraintType.Custom]: CustomConstraint,
+  [ConstraintType.CosmeticLine]: CosmeticLineConstraint,
+  [ConstraintType.CosmeticCage]: CosmeticCageConstraint,
+  [ConstraintType.CosmeticSymbol]: CosmeticSymbolConstraint,
+  [ConstraintType.FogLights]: FogLightsConstraint,
+  [ConstraintType.FogTriggers]: FogTriggersConstraint,
+  [ConstraintType.GlobalEntropy]: GlobalEntropyConstraint,
+  [ConstraintType.Thermometer]: ThermometerConstraint,
+  [ConstraintType.Whisper]: WhisperConstraint,
+  [ConstraintType.EntropyLines]: EntropyLinesConstraint,
+};
+export const getConstraintByConfig = <TypeT extends ConstraintType>(
+  config: ConstraintConfigByType<TypeT>,
+) =>
+  Object.values(AllConstraints).find(
+    (constraint) => constraint.typeName === config.type,
+  ) as unknown as SudokuMakerConstraint<
+    TypeT,
+    z.ZodType<unknown, ConstraintConfigByType<TypeT>>,
+    any
+  >;
 
 export const ConstraintConfig = z
-  .union(AllConstraints.map(({ schema }) => schema))
+  .union(Object.values(AllConstraints).map(({ schema }) => schema))
   .meta({
     id: "ConstraintConfig",
     description: "Constraint configuration",
   });
 
 export const Constraint = z
-  .object({
-    id: z
-      .number()
-      .optional()
-      .describe("Constraint ID, must be unique within the puzzle"),
-    name: z
-      .string()
-      .optional()
-      .describe(
-        "Constraint name. Leave it empty to use the default (recommended when there is only one constraint group of the type).",
-      ),
-    enabled: z
-      .boolean()
-      .describe(
-        "Is the constraint enabled? Disabling a constraint will hide its visual clues from the grid and exclude its logic from the solver, which is the same as if the constraint doesn't exist. Useful to temporarily exclude the constraint from the puzzle without deleting it from the list.",
-      ),
-    solverIgnored: z
-      .boolean()
-      .describe(
-        "Ignore the constraint's logic in the solver while still showing the visuals in the grid. Use it to make constraint cosmetic-only, or if you want to temporarily ignore its logic.",
-      ),
-    config: ConstraintConfig,
-  })
+  .intersection(
+    z.object({
+      id: z
+        .number()
+        .optional()
+        .describe("Constraint ID, must be unique within the puzzle"),
+      name: z
+        .string()
+        .optional()
+        .describe(
+          "Constraint name. Leave it empty to use the default (recommended when there is only one constraint group of the type).",
+        ),
+      enabled: z
+        .boolean()
+        .describe(
+          "Is the constraint enabled? Disabling a constraint will hide its visual clues from the grid and exclude its logic from the solver, which is the same as if the constraint doesn't exist. Useful to temporarily exclude the constraint from the puzzle without deleting it from the list.",
+        ),
+      solverIgnored: z
+        .boolean()
+        .describe(
+          "Ignore the constraint's logic in the solver while still showing the visuals in the grid. Use it to make constraint cosmetic-only, or if you want to temporarily ignore its logic.",
+        ),
+      config: ConstraintConfig,
+    }),
+    z.codec(
+      z.object({
+        constraintMetadata: z
+          .object({
+            defaultName: z
+              .string()
+              .describe(
+                'Constraint name, adjusted to the specific constraint\'s config - this value would be displayed if the "name" field omitted',
+              ),
+            description: z
+              .string()
+              .describe(
+                "Constraint description, adjusted to the specific constraint's config",
+              ),
+          })
+          .optional()
+          .readonly()
+          .describe(
+            "Constraint metadata adjusted to the specific constraint's config (more accurate than the general constraint info from the schema)",
+          ),
+      }),
+      z.object({}),
+      {
+        encode: () => ({}),
+        decode: () => ({}),
+      },
+    ),
+  )
   .describe("");
+
+export type ConstraintConfigByType<TypeT extends ConstraintType> = z.input<
+  (typeof AllConstraints)[TypeT]["schema"]
+>;
+
+export type ConstraintByType<TypeT extends ConstraintType> = Omit<
+  z.input<typeof Constraint>,
+  "config"
+> & { config: ConstraintConfigByType<TypeT> };
