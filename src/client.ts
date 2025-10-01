@@ -6,9 +6,11 @@ import type { Tool, WorkerInitOptions } from "./shared";
 import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema.ts";
 import {
+  AllConstraints,
   type ConstraintByType,
   ConstraintType,
   getConstraintByConfig,
+  getConstraintByTypeName,
 } from "./SudokuMakerConstraint.ts";
 
 const code = `
@@ -74,7 +76,7 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
     },
     private readonly inputSchema: SchemaT,
     private readonly _run: (
-      params: z.infer<SchemaT>,
+      params: z.input<SchemaT>,
     ) => CallToolResult | Promise<CallToolResult>,
   ) {}
 
@@ -87,15 +89,15 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
       ...this.tool,
       definition: {
         ...this.tool.definition,
-        inputSchema: z.toJSONSchema(this.inputSchema),
+        inputSchema: z.toJSONSchema(this.inputSchema, { io: "input" }),
       } as Tool["definition"],
     };
   }
 
   run(params: unknown) {
-    const validatedParams = this.inputSchema.parse(params) as z.infer<SchemaT>;
+    const validatedParams = this.inputSchema.parse(params);
 
-    return this._run(validatedParams);
+    return this._run(this.inputSchema.encode(validatedParams));
   }
 }
 
@@ -158,7 +160,7 @@ const updatePuzzleTool = new ToolImplementation(
     definition: {
       name: "update_puzzle",
       title: "Update puzzle contents for tab",
-      description: "Get full puzzle definition per tab ID.",
+      description: "Modify puzzle object at specified path",
     },
   },
   z.object({
@@ -320,7 +322,159 @@ const updatePuzzleTool = new ToolImplementation(
   },
 );
 
-const tools = [getPuzzleTool, updatePuzzleTool];
+const addConstraintGroupTool = new ToolImplementation(
+  {
+    definition: {
+      name: "add_constraint_group",
+      title: "Add constraint group to the puzzle",
+      description:
+        "Add an empty constraint group of specified type with default parameters to the puzzle",
+    },
+  },
+  z.object({
+    name: z
+      .string()
+      .optional()
+      .describe(
+        "Constraint group name. Leave it empty to use the default name according to the constraint type (recommended when there's only one constraint group of this type in the puzzle)",
+      ),
+    constraint: z
+      .union(
+        AllConstraints.flatMap((constraint) =>
+          [constraint.main, ...constraint.options].map((option) =>
+            z
+              .object({
+                type: z.literal(constraint.typeName),
+                subType: z.literal(option.title),
+                params: option.paramsSchema ?? z.never().optional(),
+                // TODO: overrides
+              })
+              .describe(option.description),
+          ),
+        ),
+      )
+      .describe("Constraint to add"),
+    position: z
+      .union([
+        z
+          .object({
+            at: z.number().int().min(1),
+          })
+          .describe(
+            "Place the new constraint at Nth place, e.g. 1 to place it as the first item",
+          ),
+        z
+          .object({
+            at: z.literal("end"),
+          })
+          .describe("Insert the new constraint to the end of the list"),
+        z
+          .object({
+            constraintId: z.number().int().describe("Target constraint ID"),
+            position: z.enum(["before", "after"]),
+          })
+          .describe(
+            "Place the new constraint before or after another constraint with given ID",
+          ),
+      ])
+      .describe("Position where to insert the new constraint to"),
+  }),
+  ({ name, constraint, position }) => {
+    const { spec, allConstraints: currentConstraints } = getPuzzle();
+
+    let index: number;
+    if ("constraintId" in position) {
+      const targetConstraint = currentConstraints.find(
+        ({ id }) => id === position.constraintId,
+      );
+      if (!targetConstraint) {
+        throw new Error(
+          `Constraint with ID ${position.constraintId} not found in the puzzle`,
+        );
+      }
+      index = currentConstraints.indexOf(targetConstraint);
+      if (position.position === "after") {
+        index++;
+      }
+    } else if (position.at === "end") {
+      index = currentConstraints.length;
+    } else {
+      index = position.at - 1;
+      if (index > currentConstraints.length) {
+        throw new Error(
+          `Cannot insert constraint at position ${position.at} - there are only ${currentConstraints.length} constraints in the puzzle`,
+        );
+      }
+    }
+
+    const constraintType = getConstraintByTypeName(constraint.type);
+    const constraintSubType = [
+      constraintType.main,
+      ...constraintType.options,
+    ].find(({ title }) => title === constraint.subType)!;
+    const config = {
+      type: constraint.type,
+      ...(typeof constraintSubType.defaultConfig === "function"
+        ? (constraintSubType.defaultConfig as any)(spec, constraint.params)
+        : (constraintSubType.defaultConfig ?? constraint.params)),
+    };
+    const id = currentConstraints.length
+      ? Math.max(...currentConstraints.map(({ id = 0 }) => id)) + 1
+      : 1;
+
+    updatePuzzle(
+      (puzzle) => {
+        puzzle.allConstraints.splice(index, 0, {
+          id,
+          name,
+          config,
+          enabled: true,
+          solverIgnored: false,
+        });
+      },
+      ({ cells, ...from }, to) => {
+        Object.assign(to, from);
+        for (const [index, cell] of cells.entries()) {
+          Object.assign(to.cells[index], cell);
+        }
+      },
+      "Add",
+    );
+
+    const newConstraints = getPuzzle().allConstraints;
+    const newConstraint = newConstraints[index];
+    if (newConstraint?.id !== id) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Something went wrong - failed to add the constraint. Please report the error to the Sudoku Maker MCP server developer (Chameleon)",
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `New constraint added at position ${index + 1}.`,
+        },
+        {
+          type: "text",
+          text: `The new constraints list: ${newConstraints.map(({ id, name, enabled, solverIgnored, config: { type }, constraintMetadata }) => `"${name || constraintMetadata?.defaultName || type}" (type ${type}, ID ${id}, ${!enabled ? "disabled" : solverIgnored ? "solver-ignored" : "enabled"})`).join(", ")}.`,
+        },
+        {
+          type: "text",
+          text: `New constraint: ${JSON.stringify(newConstraint, null, 2)}`,
+        },
+      ],
+    };
+  },
+);
+
+const tools = [getPuzzleTool, updatePuzzleTool, addConstraintGroupTool];
 
 tabSyncClient.onCustomMessage<undefined, string>("getInfo", () => {
   const puzzle = getPuzzle();

@@ -69,7 +69,10 @@ export class SudokuMakerConstraint<
           }),
         }),
       )
-      .describe(`Title: "${main.title}". Description: ${main.description}`);
+      .meta({
+        id: `${this.typeName}Config`,
+        description: `"${main.title}" constraint config. Constraint description: ${main.description}`,
+      });
     this.main = main;
     this.options = options;
   }
@@ -1643,7 +1646,7 @@ export const EntropyLinesConstraint = new SudokuMakerConstraint({
 });
 // endregion
 
-export const AllConstraints = {
+const AllConstraintsMap = {
   [ConstraintType.SudokuRules]: SudokuRulesConstraint,
   [ConstraintType.Givens]: GivensConstraint,
   [ConstraintType.Regions]: RegionsConstraint,
@@ -1691,19 +1694,20 @@ export const AllConstraints = {
   [ConstraintType.Whisper]: WhisperConstraint,
   [ConstraintType.EntropyLines]: EntropyLinesConstraint,
 };
+export const AllConstraints = Object.values(AllConstraintsMap);
+export const getConstraintByTypeName = (typeName: string) =>
+  AllConstraints.find((constraint) => constraint.typeName === typeName)!;
 export const getConstraintByConfig = <TypeT extends ConstraintType>(
   config: ConstraintConfigByType<TypeT>,
 ) =>
-  Object.values(AllConstraints).find(
-    (constraint) => constraint.typeName === config.type,
-  ) as unknown as SudokuMakerConstraint<
+  getConstraintByTypeName(config.type) as unknown as SudokuMakerConstraint<
     TypeT,
     z.ZodType<unknown, ConstraintConfigByType<TypeT>>,
     any
   >;
 
 export const ConstraintConfig = z
-  .union(Object.values(AllConstraints).map(({ schema }) => schema))
+  .union(AllConstraints.map(({ schema }) => schema))
   .meta({
     id: "ConstraintConfig",
     description: "Constraint configuration",
@@ -1765,7 +1769,7 @@ export const Constraint = z
   .describe("");
 
 export type ConstraintConfigByType<TypeT extends ConstraintType> = z.input<
-  (typeof AllConstraints)[TypeT]["schema"]
+  (typeof AllConstraintsMap)[TypeT]["schema"]
 >;
 
 export type ConstraintByType<TypeT extends ConstraintType> = Omit<
