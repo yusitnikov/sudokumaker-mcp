@@ -9,15 +9,24 @@ interface Coords {
   x: number;
   y: number;
 }
+export interface CellCoordsTransformHelper {
+  getIdFromCoords(coords: Coords): CellId;
+  getCoordsFromId(id: CellId): Coords;
+}
+interface CellCoordsTransformHelperXY extends CellCoordsTransformHelper {
+  getX(id: CellId): number;
+  getY(id: CellId): number;
+}
 
 type Puzzle = z.infer<typeof PuzzleSchema> & {
   helpers: {
-    cellIds: {
-      getIdFromCoords(coords: Coords): CellId;
+    cellIds: CellCoordsTransformHelperXY;
+    outerCellIds: CellCoordsTransformHelperXY;
+    cornerIds: {
+      getIdFromCornerCoords(coords: Coords): CellId;
       getCoordsFromId(id: CellId): Coords;
-      getX(id: CellId): number;
-      getY(id: CellId): number;
     };
+    edgeIds: CellCoordsTransformHelper;
   };
 };
 

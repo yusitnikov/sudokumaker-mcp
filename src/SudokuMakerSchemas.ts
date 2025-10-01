@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { CellCoordsTransformHelper } from "./SudokuMakerApi.ts";
 
 /*
   AI comment about critical documentation investment areas:
@@ -62,7 +63,7 @@ const CellIdInternal = z.number().meta({
     "It corresponds to the zero-based cell index in the flat cells array, starting from the top left cell, and going in the reading order (left to right, top to bottom). " +
     "So, the top left cell ID is 0, and cell in row 2 column 3 of a 6x6 puzzle would be 8 (row index 1 multiplied by columns number 6, plus column index 2: 1 * 6 + 2 = 8).",
 });
-const CellIdPublic = z
+export const CellIdPublic = z
   .object({
     row: z.number().describe("Row number, starting from the top"),
     column: z.number().describe("Column number, starting from the left"),
@@ -71,34 +72,110 @@ const CellIdPublic = z
     id: "CellCoords",
     description: "Coordinates of a cell in the grid",
   });
-export const CellId: z.ZodCodec<typeof CellIdPublic, typeof CellIdInternal> =
-  z.codec(CellIdPublic, CellIdInternal, {
-    encode: (cellId) => {
-      const { cellIds } = window.Api.getPuzzle().helpers;
+export type CellCoords = z.input<typeof CellIdPublic>;
+// noinspection JSUnusedGlobalSymbols
+const getCellCoordsCodecParams = (helper: () => CellCoordsTransformHelper) => ({
+  encode: (cellId: number) => {
+    const { x, y } = helper().getCoordsFromId(cellId);
 
-      return {
-        row: cellIds.getY(cellId) + 1,
-        column: cellIds.getX(cellId) + 1,
-      };
-    },
-    decode: ({ column, row }) =>
-      window.Api.getPuzzle().helpers.cellIds.getIdFromCoords({
-        x: column - 1,
-        y: row - 1,
-      }),
-  });
-export const CornerId = z.number().brand("CornerId").meta({
+    return {
+      row: y + 1,
+      column: x + 1,
+    };
+  },
+  decode: ({ column, row }: CellCoords) =>
+    helper().getIdFromCoords({
+      x: column - 1,
+      y: row - 1,
+    }),
+});
+export const CellId: z.ZodCodec<typeof CellIdPublic, typeof CellIdInternal> =
+  z.codec(
+    CellIdPublic,
+    CellIdInternal,
+    getCellCoordsCodecParams(() => window.Api.getPuzzle().helpers.cellIds),
+  );
+
+const CornerIdInternal = z.number().meta({
   id: "CornerId",
   description: "",
 });
-export const EdgeId = z.number().brand("EdgeId").meta({
+export const CornerId: z.ZodCodec<
+  typeof CellIdPublic,
+  typeof CornerIdInternal
+> = z.codec(
+  CellIdPublic.describe(
+    "The desired corner is the top-left corner of this cell (could be a cell outside the grid)",
+  ),
+  CornerIdInternal,
+  getCellCoordsCodecParams(() => {
+    const helper = window.Api.getPuzzle().helpers.cornerIds;
+
+    return {
+      getCoordsFromId: (id) => helper.getCoordsFromId(id),
+      getIdFromCoords: (coords) => helper.getIdFromCornerCoords(coords),
+    };
+  }),
+);
+
+const EdgeIdInternal = z.number().meta({
   id: "EdgeId",
   description: "",
 });
-export const OuterCellId = z.number().brand("OuterCellId").meta({
+const EdgeIdPublic = z.tuple([CellIdPublic, CellIdPublic]).meta({
+  id: "EdgeCells",
+  description:
+    "Coordinates of one cell grid edge, defined by coordinates of 2 cells that share the edge. One of the cells might be outside the grid.",
+});
+export const EdgeId: z.ZodCodec<typeof EdgeIdPublic, typeof EdgeIdInternal> =
+  z.codec(EdgeIdPublic, EdgeIdInternal, {
+    encode: (cellId) => {
+      const { x, y } =
+        window.Api.getPuzzle().helpers.edgeIds.getCoordsFromId(cellId);
+
+      return x % 1 === 0
+        ? [
+            {
+              row: y + 0.5,
+              column: x,
+            },
+            {
+              row: y + 0.5,
+              column: x + 1,
+            },
+          ]
+        : [
+            {
+              row: y,
+              column: x + 0.5,
+            },
+            {
+              row: y + 1,
+              column: x + 0.5,
+            },
+          ];
+    },
+    decode: ([cell1, cell2]) =>
+      window.Api.getPuzzle().helpers.edgeIds.getIdFromCoords({
+        x: (cell1.column + cell2.column) / 2 - 0.5,
+        y: (cell1.row + cell2.row) / 2 - 0.5,
+      }),
+  });
+
+const OuterCellIdInternal = z.number().meta({
   id: "OuterCellId",
   description: "",
 });
+export const OuterCellId: z.ZodCodec<
+  typeof CellIdPublic,
+  typeof OuterCellIdInternal
+> = z.codec(
+  CellIdPublic.describe(
+    "Coordinates of a cell outside the grid (row/column would be 0 for top/left cells, or greater than grid height/width for bottom/right cells)",
+  ),
+  OuterCellIdInternal,
+  getCellCoordsCodecParams(() => window.Api.getPuzzle().helpers.outerCellIds),
+);
 
 export enum DiagonalTypeNative {
   // noinspection JSUnusedGlobalSymbols

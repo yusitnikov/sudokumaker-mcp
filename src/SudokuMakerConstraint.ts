@@ -1,5 +1,6 @@
 import {
   CellId,
+  type CellCoords,
   CornerId,
   DiagonalType,
   EdgeId,
@@ -16,47 +17,88 @@ import { z } from "zod";
 type PublicConfigT<
   TypeT extends ConstraintType,
   ConfigSchemaT extends z.ZodType,
-> = z.input<ConfigSchemaT> & { type: (typeof ConstraintType)[TypeT] };
+  InstanceKeyT extends string | never,
+  InstanceConfigSchemaT extends z.ZodType | never,
+> = z.input<ConfigSchemaT> & {
+  type: (typeof ConstraintType)[TypeT];
+} & (InstanceKeyT extends string
+    ? InstanceConfigSchemaT extends z.ZodType
+      ? { [K in InstanceKeyT]: z.input<InstanceConfigSchemaT>[] }
+      : {}
+    : {});
 type InternalConfigT<
   TypeT extends ConstraintType,
   ConfigSchemaT extends z.ZodType,
-> = z.output<ConfigSchemaT> & { type: TypeT };
+  InstanceKeyT extends string | never,
+  InstanceConfigSchemaT extends z.ZodType | never,
+> = z.output<ConfigSchemaT> & { type: TypeT } & (InstanceKeyT extends string
+    ? InstanceConfigSchemaT extends z.ZodType
+      ? { [K in InstanceKeyT]: z.output<InstanceConfigSchemaT>[] }
+      : {}
+    : {});
+
+interface ConstraintInstanceDescriptor<
+  InstanceKeyT extends string,
+  InstanceConfigSchemaT extends z.ZodType,
+> {
+  key: InstanceKeyT;
+  schema: InstanceConfigSchemaT;
+  getAffectedCells: (instance: z.input<InstanceConfigSchemaT>) => CellCoords[];
+}
 
 export class SudokuMakerConstraint<
   TypeT extends ConstraintType,
   ConfigSchemaT extends z.ZodType,
+  InstanceKeyT extends string | never,
+  InstanceConfigSchemaT extends z.ZodType | never,
   ParamsSchemaT extends z.ZodObject,
 > {
   public readonly typeId: TypeT;
   public readonly typeName: (typeof ConstraintType)[TypeT];
   public readonly schema: z.ZodType<
-    InternalConfigT<TypeT, ConfigSchemaT>,
-    PublicConfigT<TypeT, ConfigSchemaT>
+    InternalConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
+    PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>
+  >;
+  public readonly instance?: ConstraintInstanceDescriptor<
+    InstanceKeyT,
+    InstanceConfigSchemaT
   >;
   public readonly main: SudokuMakerConstraintOption<
-    PublicConfigT<TypeT, ConfigSchemaT>,
+    PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
+    InstanceKeyT,
     ParamsSchemaT
   >;
   public readonly options: SecondarySudokuMakerConstraintOption<
-    PublicConfigT<TypeT, ConfigSchemaT>
+    PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
+    InstanceKeyT
   >[];
 
   constructor({
     type,
     schema = z.object({}) as unknown as ConfigSchemaT,
+    instance,
     main,
     options = [],
   }: {
     type: TypeT;
     schema?: ConfigSchemaT;
+    instance?: ConstraintInstanceDescriptor<
+      InstanceKeyT,
+      InstanceConfigSchemaT
+    >;
     main: SudokuMakerConstraintOption<
-      PublicConfigT<TypeT, ConfigSchemaT>,
+      PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
+      InstanceKeyT,
       ParamsSchemaT
     >;
     options?: SecondarySudokuMakerConstraintOption<
-      PublicConfigT<TypeT, ConfigSchemaT>
+      PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
+      InstanceKeyT
     >[];
   }) {
+    const instanceKey = instance?.key;
+    const instanceSchema = instance?.schema;
+
     this.typeId = type;
     this.typeName = ConstraintType[type];
     this.schema = z
@@ -67,22 +109,35 @@ export class SudokuMakerConstraint<
             encode: () => this.typeName,
             decode: () => type,
           }),
+          ...(instanceKey && instanceSchema
+            ? {
+                [instanceKey]: z
+                  .array(instanceSchema)
+                  .describe("Array of constraint instances"),
+              }
+            : {}),
         }),
       )
       .meta({
         id: `${this.typeName}Config`,
         description: `"${main.title}" constraint config. Constraint description: ${main.description}`,
-      });
+      }) as any;
+    this.instance = instance;
     this.main = main;
     this.options = options;
   }
 
   getConstraintMetadata(
-    config: PublicConfigT<TypeT, ConfigSchemaT>,
+    config: PublicConfigT<
+      TypeT,
+      ConfigSchemaT,
+      InstanceKeyT,
+      InstanceConfigSchemaT
+    >,
     spec: z.input<typeof Spec>,
   ) {
     let detectedOption: SudokuMakerConstraintOption<
-      PublicConfigT<TypeT, ConfigSchemaT>,
+      PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
       any
     > = this.main;
 
@@ -103,6 +158,7 @@ export class SudokuMakerConstraint<
 
 export interface SudokuMakerConstraintOption<
   ConfigT,
+  InstanceKeyT extends string | never,
   ParamsSchemaT extends z.ZodObject = z.ZodObject<{}>,
 > {
   title: string;
@@ -111,14 +167,18 @@ export interface SudokuMakerConstraintOption<
   getDescription?: SpecGetter<string>;
   paramsSchema?: ParamsSchemaT;
   defaultConfig?:
-    | Omit<ConfigT, "type">
-    | SpecGetter<Omit<ConfigT, "type">, [z.input<ParamsSchemaT>]>;
+    | Omit<ConfigT, "type" | InstanceKeyT>
+    | SpecGetter<
+        Omit<ConfigT, "type" | InstanceKeyT>,
+        [z.input<ParamsSchemaT>]
+      >;
 }
 
 export interface SecondarySudokuMakerConstraintOption<
   ConfigT,
+  InstanceKeyT extends string | never,
   ParamsSchemaT extends z.ZodObject = z.ZodObject<{}>,
-> extends SudokuMakerConstraintOption<ConfigT, ParamsSchemaT> {
+> extends SudokuMakerConstraintOption<ConfigT, InstanceKeyT, ParamsSchemaT> {
   detect: ConfigGetter<ConfigT, boolean>;
 }
 
@@ -268,9 +328,21 @@ export const OuterClueStyle = z
     description: "",
   });
 
+const LineInstanceSchema = z.array(CellId).meta({
+  id: "LineCells",
+  description: "The list of all cells that lines goes through",
+});
+const LineInstance: ConstraintInstanceDescriptor<
+  "lines",
+  typeof LineInstanceSchema
+> = {
+  key: "lines",
+  schema: LineInstanceSchema,
+  getAffectedCells: (cells) => cells,
+};
+
 export const LineConstraintConfigBase = z
   .object({
-    lines: z.array(z.array(CellId)).describe(""),
     style: LineStyle,
   })
   .meta({
@@ -280,7 +352,6 @@ export const LineConstraintConfigBase = z
 
 export const LineWithEndPointsConfigBase = z
   .object({
-    lines: z.array(z.array(CellId)).describe(""),
     style: LineWithEndPointsStyle,
   })
   .meta({
@@ -288,30 +359,49 @@ export const LineWithEndPointsConfigBase = z
     description: "",
   });
 
-export const EdgeClue = <ValueT extends z.ZodType>(ValueType: ValueT) =>
-  z
+export const EdgeClue = <ValueT extends z.ZodType>(ValueType: ValueT) => {
+  const schema = z
     .object({
       value: ValueType,
       edge: EdgeId,
     })
     .describe("");
 
-export const OuterClue = <ValueT extends z.ZodType>(ValueType: ValueT) =>
-  z
+  return {
+    key: "clues",
+    schema,
+    getAffectedCells: ({ edge }) => edge,
+  } as ConstraintInstanceDescriptor<"clues", typeof schema>;
+};
+
+export const OuterClue = <ValueT extends z.ZodType>(ValueType: ValueT) => {
+  const schema = z.object({
+    value: ValueType.describe(""),
+    outerCell: OuterCellId.describe(""),
+    diagonal: DiagonalType.optional(),
+  });
+
+  return {
+    key: "clues",
+    schema,
+    getAffectedCells: ({ outerCell }) => [outerCell],
+  } as ConstraintInstanceDescriptor<"clues", typeof schema>;
+};
+
+export const Cage = <ValueT extends z.ZodType>(ValueType: ValueT) => {
+  const schema = z
     .object({
-      value: ValueType.describe(""),
-      outerCell: OuterCellId.describe(""),
-      diagonal: DiagonalType.optional(),
+      value: ValueType,
+      cells: z.array(CellId).describe("Cage cells"),
     })
     .describe("");
 
-export const Cage = <ValueT extends z.ZodType>(ValueType: ValueT) =>
-  z
-    .object({
-      value: ValueType,
-      cells: z.array(CellId).describe(""),
-    })
-    .describe("");
+  return {
+    key: "cages",
+    schema,
+    getAffectedCells: ({ cells }) => cells,
+  } as ConstraintInstanceDescriptor<"cages", typeof schema>;
+};
 // endregion
 
 // region Single-option constraints
@@ -424,10 +514,16 @@ export const NonconsecutiveConstraint = new SudokuMakerConstraint({
   },
 });
 
+const SingleCellInstance: ConstraintInstanceDescriptor<"cells", typeof CellId> =
+  {
+    key: "cells" as const,
+    schema: CellId,
+    getAffectedCells: (cell) => [cell],
+  };
+
 export const EvenConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Even,
   schema: z.object({
-    cells: z.array(CellId).describe(""),
     style: z
       .object({
         color: z.string().describe(""),
@@ -435,11 +531,11 @@ export const EvenConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
+  instance: SingleCellInstance,
   main: {
     title: "Even",
     description: "Cells with these squares must contain even numbers.",
     defaultConfig: {
-      cells: [],
       style: {
         color: "#00000033",
         size: 0.8,
@@ -451,7 +547,6 @@ export const EvenConstraint = new SudokuMakerConstraint({
 export const OddConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Odd,
   schema: z.object({
-    cells: z.array(CellId).describe(""),
     style: z
       .object({
         color: z.string().describe(""),
@@ -459,11 +554,11 @@ export const OddConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
+  instance: SingleCellInstance,
   main: {
     title: "Odd",
     description: "Cells with these circles must contain odd numbers.",
     defaultConfig: {
-      cells: [],
       style: {
         color: "#00000033",
         size: 0.8,
@@ -475,19 +570,18 @@ export const OddConstraint = new SudokuMakerConstraint({
 export const MaximumConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Maximum,
   schema: z.object({
-    cells: z.array(CellId).describe(""),
     style: z
       .object({
         color: z.string().describe(""),
       })
       .describe(""),
   }),
+  instance: SingleCellInstance,
   main: {
     title: "Maximum",
     description:
       "Cells with this constraint are greater than all adjacent cells without this constraint.",
     defaultConfig: {
-      cells: [],
       style: {
         color: "#00000033",
       },
@@ -498,19 +592,18 @@ export const MaximumConstraint = new SudokuMakerConstraint({
 export const MinimumConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Minimum,
   schema: z.object({
-    cells: z.array(CellId).describe(""),
     style: z
       .object({
         color: z.string().describe(""),
       })
       .describe(""),
   }),
+  instance: SingleCellInstance,
   main: {
     title: "Minimum",
     description:
       "Cells with this constraint are smaller than all adjacent cells without this constraint.",
     defaultConfig: {
-      cells: [],
       style: {
         color: "#00000033",
       },
@@ -521,16 +614,15 @@ export const MinimumConstraint = new SudokuMakerConstraint({
 export const DifferenceConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Difference,
   schema: z.object({
-    clues: z.array(EdgeClue(z.number().describe(""))).describe(""),
     negative: z.array(z.number()).describe(""),
     overrideNegativeRatios: z.boolean().describe(""),
   }),
+  instance: EdgeClue(z.number().describe("")),
   main: {
     title: "Difference Kropki dots",
     description:
       "Cells joined by a white dot must have a difference of the indicated number. If there is no indicated number, the difference will be assumed to be 1.",
     defaultConfig: {
-      clues: [],
       negative: [],
       overrideNegativeRatios: true,
     },
@@ -540,16 +632,15 @@ export const DifferenceConstraint = new SudokuMakerConstraint({
 export const RatioConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Ratio,
   schema: z.object({
-    clues: z.array(EdgeClue(z.number().describe(""))).describe(""),
     negative: z.array(z.number()).describe(""),
     overrideNegativeDifferences: z.boolean().describe(""),
   }),
+  instance: EdgeClue(z.number().describe("")),
   main: {
     title: "Ratio Kropki dots",
     description:
       "Cells joined by a black dot must have a ratio of the indicated number. If there is no indicated number, the ratio will be assumed to be 2.",
     defaultConfig: {
-      clues: [],
       negative: [],
       overrideNegativeDifferences: true,
     },
@@ -559,14 +650,13 @@ export const RatioConstraint = new SudokuMakerConstraint({
 export const XVConstraint = new SudokuMakerConstraint({
   type: ConstraintType.XV,
   schema: z.object({
-    clues: z.array(EdgeClue(z.number().describe(""))).describe(""),
     negative: z.array(z.number()).describe(""),
   }),
+  instance: EdgeClue(z.number().describe("")),
   main: {
     title: "XV",
     description: "Cells joined by an X or V must sum to 10 (X) or 5 (V).",
     defaultConfig: {
-      clues: [],
       negative: [],
     },
   },
@@ -575,15 +665,14 @@ export const XVConstraint = new SudokuMakerConstraint({
 export const KillerCagesConstraint = new SudokuMakerConstraint({
   type: ConstraintType.KillerCages,
   schema: z.object({
-    cages: z.array(Cage(z.number().describe(""))).describe(""),
     style: CageStyle,
   }),
+  instance: Cage(z.number().describe("")),
   main: {
     title: "Killer cages",
     description:
       "Digits in cages must sum to the number in the top-left corner and cannot repeat",
     defaultConfig: {
-      cages: [],
       style: {
         text: {
           color: "#000000",
@@ -599,6 +688,7 @@ export const KillerCagesConstraint = new SudokuMakerConstraint({
 export const CloneConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Clone,
   schema: z.object({
+    // TODO: how does it work?
     groups: z.array(z.array(CellId)).describe(""),
     style: z
       .object({
@@ -638,12 +728,27 @@ export const QuadrupleConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
+  instance: {
+    key: "clues",
+    schema: z.object({
+      corner: CornerId.describe("Quadruple position"),
+      digits: z
+        .array(z.number())
+        .max(4)
+        .describe("Quadruple digits (up to 4 digits)"),
+    }),
+    getAffectedCells: ({ corner }) => [
+      corner,
+      { ...corner, row: corner.row - 1 },
+      { ...corner, column: corner.column - 1 },
+      { row: corner.row - 1, column: corner.column - 1 },
+    ],
+  },
   main: {
     title: "Quadruples",
     description:
       "Every digit in a circle has to be assigned to one of the surrounding cells.",
     defaultConfig: {
-      clues: [],
       style: {
         singleLine: false,
       },
@@ -654,15 +759,14 @@ export const QuadrupleConstraint = new SudokuMakerConstraint({
 export const LookAndSayCagesConstraint = new SudokuMakerConstraint({
   type: ConstraintType.LookAndSayCages,
   schema: z.object({
-    cages: z.array(Cage(z.string().describe(""))).describe(""),
     style: CageStyle,
   }),
+  instance: Cage(z.string().describe("")),
   main: {
     title: "Look-and-say cages",
     description:
       "Read the clue out loud, which describes the nature of the cage. E.g. 1522 says there is “one five and two two(s)” in the cage.",
     defaultConfig: {
-      cages: [],
       style: {
         cage: {
           color: "#000000",
@@ -675,6 +779,7 @@ export const LookAndSayCagesConstraint = new SudokuMakerConstraint({
   },
 });
 
+// Allows specifying only one region
 export const DifferentValuesConstraint = new SudokuMakerConstraint({
   type: ConstraintType.DifferentValues,
   schema: z.object({
@@ -702,12 +807,12 @@ export const DifferentValuesConstraint = new SudokuMakerConstraint({
 export const RenbanConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Renban,
   schema: LineConstraintConfigBase,
+  instance: LineInstance,
   main: {
     title: "Renban lines",
     description:
       "Every renban line contains a set of consecutive digits in any order, without repeats",
     defaultConfig: {
-      lines: [],
       style: {
         color: "#f067f0",
         thickness: 0.15,
@@ -719,12 +824,12 @@ export const RenbanConstraint = new SudokuMakerConstraint({
 export const PalindromeConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Palindrome,
   schema: LineConstraintConfigBase,
+  instance: LineInstance,
   main: {
     title: "Palindromes",
     description:
       "Digits on a palindrome line read the same forwards and backwards",
     defaultConfig: {
-      lines: [],
       style: {
         color: "#bbbbbb",
         thickness: 0.15,
@@ -736,12 +841,12 @@ export const PalindromeConstraint = new SudokuMakerConstraint({
 export const BetweenLinesConstraint = new SudokuMakerConstraint({
   type: ConstraintType.BetweenLines,
   schema: LineWithEndPointsConfigBase,
+  instance: LineInstance,
   main: {
     title: "Between lines",
     description:
       "Digits along a between line must be between the digits on the circled ends of the line.",
     defaultConfig: {
-      lines: [],
       style: {
         lines: {
           thickness: 0.1,
@@ -768,12 +873,12 @@ export const RegionSumLineConstraint = new SudokuMakerConstraint({
       singleRegionTotals: z.boolean().describe(""),
     }),
   ),
+  instance: LineInstance,
   main: {
     title: "Region sum lines",
     description:
       "For each line, digits on the line have an equal sum N within each box it passes through.",
     defaultConfig: {
-      lines: [],
       singleRegionTotals: false,
       style: {
         color: "#2ecbff",
@@ -786,12 +891,12 @@ export const RegionSumLineConstraint = new SudokuMakerConstraint({
 export const SequenceConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Sequence,
   schema: LineConstraintConfigBase,
+  instance: LineInstance,
   main: {
     title: "Sequence lines",
     description:
       "Sequence lines contain digits in order with a constant difference. E.g. 1-2-3, 2-5-8 or even 3-3-3...",
     defaultConfig: {
-      lines: [],
       style: {
         color: "#aaaaaa",
         thickness: 0.15,
@@ -803,12 +908,12 @@ export const SequenceConstraint = new SudokuMakerConstraint({
 export const LockoutLinesConstraint = new SudokuMakerConstraint({
   type: ConstraintType.LockoutLines,
   schema: LineWithEndPointsConfigBase,
+  instance: LineInstance,
   main: {
     title: "Lockout lines",
     description:
       "Digits along a lockout line must not be between the digits on the circled ends of the line, which have a difference of at least 4",
     defaultConfig: {
-      lines: [],
       style: {
         lines: {
           color: "#aabeefff",
@@ -830,16 +935,6 @@ export const LockoutLinesConstraint = new SudokuMakerConstraint({
 export const ArrowConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Arrow,
   schema: z.object({
-    bulbsWithArrows: z
-      .array(
-        z
-          .object({
-            bulbCells: z.array(CellId).describe(""), // Important: index 0 is 1s, index 1 is 10s, etc
-            arrows: z.array(z.array(CellId)).describe(""),
-          })
-          .describe(""),
-      )
-      .describe(""),
     style: z
       .object({
         arrow: z
@@ -853,12 +948,22 @@ export const ArrowConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
+  instance: {
+    key: "bulbsWithArrows",
+    schema: z.object({
+      bulbCells: z.array(CellId).describe(""), // Important: index 0 is 1s, index 1 is 10s, etc
+      arrows: z.array(z.array(CellId)).describe(""),
+    }),
+    getAffectedCells: ({ bulbCells, arrows }) => [
+      ...bulbCells,
+      ...arrows.flat(),
+    ],
+  },
   main: {
     title: "Arrows",
     description:
       "Numbers along an arrow sum to the number shown in the circled cells.",
     defaultConfig: {
-      bulbsWithArrows: [],
       style: {
         bulb: {
           size: 0.8,
@@ -881,12 +986,12 @@ export const ArrowConstraint = new SudokuMakerConstraint({
 export const DoubleArrowConstraint = new SudokuMakerConstraint({
   type: ConstraintType.DoubleArrow,
   schema: LineWithEndPointsConfigBase,
+  instance: LineInstance,
   main: {
     title: "Double arrows",
     description:
       "The sum of the digits along a ‘double arrow’ line is equal to the sum of the digits in the circles at either end of the line.",
     defaultConfig: {
-      lines: [],
       style: {
         lines: {
           thickness: 0.05,
@@ -908,17 +1013,6 @@ export const DoubleArrowConstraint = new SudokuMakerConstraint({
 export const LittleKillersConstraint = new SudokuMakerConstraint({
   type: ConstraintType.LittleKillers,
   schema: z.object({
-    clues: z
-      .array(
-        z
-          .object({
-            value: z.number().optional().describe(""),
-            outerCell: OuterCellId,
-            diagonal: DiagonalType,
-          })
-          .describe(""),
-      )
-      .describe(""),
     style: z
       .object({
         text: z
@@ -934,12 +1028,22 @@ export const LittleKillersConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
+  instance: {
+    key: "clues",
+    schema: z
+      .object({
+        value: z.number().optional().describe(""),
+        outerCell: OuterCellId,
+        diagonal: DiagonalType,
+      })
+      .describe(""),
+    getAffectedCells: ({ outerCell }) => [outerCell],
+  },
   main: {
     title: "Little killers",
     description:
       "Digits along marked diagonals sum to the number indicated outside the grid.",
     defaultConfig: {
-      clues: [],
       style: {
         text: {
           color: "#000000",
@@ -955,15 +1059,14 @@ export const LittleKillersConstraint = new SudokuMakerConstraint({
 export const SandwichSumsConstraint = new SudokuMakerConstraint({
   type: ConstraintType.SandwichSums,
   schema: z.object({
-    clues: z.array(OuterClue(z.number().describe(""))).describe(""),
     style: OuterClueStyle,
   }),
+  instance: OuterClue(z.number().describe("")),
   main: {
     title: "Sandwich sums",
     description:
       "Digits between 1 and 9 in the indicated row or column must sum to the indicated value",
     defaultConfig: {
-      clues: [],
       style: {
         color: "#000000ff",
       },
@@ -974,15 +1077,14 @@ export const SandwichSumsConstraint = new SudokuMakerConstraint({
 export const XSumsConstraint = new SudokuMakerConstraint({
   type: ConstraintType.XSums,
   schema: z.object({
-    clues: z.array(OuterClue(z.number().optional())).describe(""),
     style: OuterClueStyle,
   }),
+  instance: OuterClue(z.number().optional().describe("")),
   main: {
     title: "X-sums",
     description:
       "Clues at the edge of the grid show the sum of the first X digits, where X is the first seen digit.",
     defaultConfig: {
-      clues: [],
       style: {
         color: "#000000",
       },
@@ -993,15 +1095,14 @@ export const XSumsConstraint = new SudokuMakerConstraint({
 export const SkyscrapersConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Skyscrapers,
   schema: z.object({
-    clues: z.array(OuterClue(z.number().optional())).describe(""),
     style: OuterClueStyle,
   }),
+  instance: OuterClue(z.number().optional().describe("")),
   main: {
     title: "Skyscrapers",
     description:
       "Each digit in the grid represents the height of a building in its cell. Taller buildings obstruct the view of shorter ones behind them. Clues outside the grid give the number of buildings visible from that vantage point in the clue's row or column.",
     defaultConfig: {
-      clues: [],
       style: {
         color: "#000000ff",
       },
@@ -1012,15 +1113,14 @@ export const SkyscrapersConstraint = new SudokuMakerConstraint({
 export const NumberedRoomsConstraint = new SudokuMakerConstraint({
   type: ConstraintType.NumberedRooms,
   schema: z.object({
-    clues: z.array(OuterClue(z.number().optional())).describe(""),
     style: OuterClueStyle,
   }),
+  instance: OuterClue(z.number().optional().describe("")),
   main: {
     title: "Numbered rooms",
     description:
       "Clues outside the grid indicate the digit which has to be placed in the Nth cell in the corresponding direction, where N is the digit placed in the first cell in that direction.",
     defaultConfig: {
-      clues: [],
       style: {
         color: "#000000",
       },
@@ -1031,19 +1131,18 @@ export const NumberedRoomsConstraint = new SudokuMakerConstraint({
 export const RowIndexerConstraint = new SudokuMakerConstraint({
   type: ConstraintType.RowIndexer,
   schema: z.object({
-    cells: z.array(CellId).describe(""),
     style: z
       .object({
         color: z.string().describe(""),
       })
       .describe(""),
   }),
+  instance: SingleCellInstance,
   main: {
     title: "Row indexers",
     description:
       "A marked cell in row X indicates the row where X appears in the column.",
     defaultConfig: {
-      cells: [],
       style: {
         color: "#0080f955",
       },
@@ -1054,19 +1153,18 @@ export const RowIndexerConstraint = new SudokuMakerConstraint({
 export const ColumnIndexerConstraint = new SudokuMakerConstraint({
   type: ConstraintType.ColumnIndexer,
   schema: z.object({
-    cells: z.array(CellId).describe(""),
     style: z
       .object({
         color: z.string().describe(""),
       })
       .describe(""),
   }),
+  instance: SingleCellInstance,
   main: {
     title: "Column indexers",
     description:
       "A marked cell in column X indicates the column where X appears in the row.",
     defaultConfig: {
-      cells: [],
       style: {
         color: "#f9000055",
       },
@@ -1180,15 +1278,14 @@ export const CosmeticLineConstraint = new SudokuMakerConstraint({
 export const CosmeticCageConstraint = new SudokuMakerConstraint({
   type: ConstraintType.CosmeticCage,
   schema: z.object({
-    cages: z.array(Cage(z.string().describe(""))).describe(""),
     style: CageStyle,
   }),
+  instance: Cage(z.string().describe("")),
   main: {
     title: "Cosmetic cages",
     description:
       "Place cages without any (programmed) logic associated with them.",
     defaultConfig: {
-      cages: [],
       style: {
         text: {
           color: "#000000",
@@ -1301,16 +1398,14 @@ export const CosmeticSymbolConstraint = new SudokuMakerConstraint({
 
 export const FogLightsConstraint = new SudokuMakerConstraint({
   type: ConstraintType.FogLights,
-  schema: z.object({
-    lightCells: z.array(CellId).describe(""),
-  }),
+  instance: {
+    ...SingleCellInstance,
+    key: "lightCells",
+  },
   main: {
     title: "Fog lights",
     description:
       "Place lights which clear fog at the start. Fog: cover cells with fog that only clears when a correct digit is placed.",
-    defaultConfig: {
-      lightCells: [],
-    },
   },
 });
 
@@ -1473,13 +1568,16 @@ export const ThermometerConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
+  instance: {
+    ...LineInstance,
+    key: "thermometers",
+  },
   main: {
     title: "Thermometers",
     description:
       "Numbers on a thermometer strictly increase as they move away from the bulb",
     defaultConfig: {
       slow: false,
-      thermometers: [],
       style: {
         color: "#cccccc",
         thickness: 0.3,
@@ -1494,7 +1592,6 @@ export const ThermometerConstraint = new SudokuMakerConstraint({
         "Numbers on a slow thermometer increase or stay the same as they move away from the bulb",
       defaultConfig: {
         slow: true,
-        thermometers: [],
         style: {
           color: "#aaaaaa",
           thickness: 0.3,
@@ -1522,6 +1619,7 @@ const WhisperParamsSchema = z.object({
 export const WhisperConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Whisper,
   schema: z.intersection(LineConstraintConfigBase, WhisperParamsSchema),
+  instance: LineInstance,
   main: {
     title: "Whisper lines",
     getTitle: ({ minDifference }) => `${minDifference}-whisper lines`,
@@ -1529,7 +1627,6 @@ export const WhisperConstraint = new SudokuMakerConstraint({
       "Two cells connected by a whisper line must have a difference of at least defined number.",
     paramsSchema: WhisperParamsSchema,
     defaultConfig: (_spec, { minDifference }) => ({
-      lines: [],
       minDifference,
       style: {
         color: "#67f067",
@@ -1545,7 +1642,6 @@ export const WhisperConstraint = new SudokuMakerConstraint({
       getDescription: (spec) =>
         `Two cells connected by a German whisper line must have a difference of at least ${getGermanWhisperDiff(spec)}.`,
       defaultConfig: (spec) => ({
-        lines: [],
         minDifference: getGermanWhisperDiff(spec),
         style: {
           color: "#67f067",
@@ -1562,7 +1658,6 @@ export const WhisperConstraint = new SudokuMakerConstraint({
       getDescription: (spec) =>
         `Two cells connected by a Dutch whisper line must have a difference of at least ${getDutchWhisperDiff(spec)}.`,
       defaultConfig: (spec) => ({
-        lines: [],
         minDifference: getDutchWhisperDiff(spec),
         style: {
           color: "#ffa600",
@@ -1581,6 +1676,7 @@ const EntropyLinesParamsSchema = z.object({
 export const EntropyLinesConstraint = new SudokuMakerConstraint({
   type: ConstraintType.EntropyLines,
   schema: z.intersection(LineConstraintConfigBase, EntropyLinesParamsSchema),
+  instance: LineInstance,
   main: {
     title: "Digit group lines",
     getTitle: ({ groups }) => `${describeDigitGroups(groups)} lines`,
@@ -1588,7 +1684,6 @@ export const EntropyLinesConstraint = new SudokuMakerConstraint({
       "Every N consecutive cells along a line must contain exactly 1 digit of every specified group, where N is the amount of groups.",
     paramsSchema: EntropyLinesParamsSchema,
     defaultConfig: (_spec, { groups }) => ({
-      lines: [],
       groups,
       style: {
         color: "#aaaaaa",
@@ -1602,7 +1697,6 @@ export const EntropyLinesConstraint = new SudokuMakerConstraint({
       description:
         "Every 3 consecutive cells along an entropic line must contain a low digit (1,2,3), middle digit (4,5,6) and high digit (7,8,9).",
       defaultConfig: (spec) => ({
-        lines: [],
         groups: getEntropicGroups(spec),
         style: {
           color: "#ffccaa",
@@ -1617,7 +1711,6 @@ export const EntropyLinesConstraint = new SudokuMakerConstraint({
       description:
         "Every 3 consecutive cells along a 3-modular line must contain a complete set of residuals modulo 3. i.e: one from (3,6,9), one from (1,4,7) and one from (2,5,8).",
       defaultConfig: (spec) => ({
-        lines: [],
         groups: getModuloGroups(spec, 3),
         style: {
           color: "#33bbaa",
@@ -1632,7 +1725,6 @@ export const EntropyLinesConstraint = new SudokuMakerConstraint({
       description:
         "Every pair of consecutive cells along a parity line must contain an even and odd digit.",
       defaultConfig: (spec) => ({
-        lines: [],
         groups: getModuloGroups(spec, 2),
         style: {
           color: "#ff6666",
@@ -1703,6 +1795,8 @@ export const getConstraintByConfig = <TypeT extends ConstraintType>(
   getConstraintByTypeName(config.type) as unknown as SudokuMakerConstraint<
     TypeT,
     z.ZodType<unknown, ConstraintConfigByType<TypeT>>,
+    any,
+    any,
     any
   >;
 

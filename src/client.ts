@@ -13,6 +13,7 @@ import {
   getConstraintByConfig,
   getConstraintByTypeName,
 } from "./SudokuMakerConstraint.ts";
+import { type CellCoords, CellIdPublic } from "./SudokuMakerSchemas.ts";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -85,6 +86,9 @@ const waitForSolver = async (timeout: number) => {
       : "The solver finished running.",
   };
 };
+
+const toShortCellNotation = ({ row, column }: CellCoords) =>
+  `r${row}c${column}`;
 // endregion
 
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
@@ -446,6 +450,7 @@ const addConstraintGroupTool = new ToolImplementation(
     ].find(({ title }) => title === constraint.subType)!;
     const config = {
       type: constraint.type,
+      ...(constraintType.instance ? { [constraintType.instance.key]: [] } : {}),
       ...(typeof constraintSubType.defaultConfig === "function"
         ? (constraintSubType.defaultConfig as any)(spec, constraint.params)
         : (constraintSubType.defaultConfig ?? constraint.params)),
@@ -558,6 +563,223 @@ const removeConstraintGroupTool = new ToolImplementation(
         {
           type: "text",
           text: `The full spec of the removed constraint (verify that it's the constraint that you wanted to delete!): ${JSON.stringify(targetConstraint, null, 2)}`,
+        },
+      ],
+    };
+  },
+);
+
+const addConstraintInstancesTool = new ToolImplementation(
+  {
+    definition: {
+      name: "add_constraint_instances",
+      title: "Add constraint instances",
+      description:
+        "Add one or more instances to an existing constraint group in the puzzle",
+    },
+  },
+  z.object({
+    constraintId: z
+      .number()
+      .int()
+      .describe("Constraint group ID to insert the constraints to"),
+    operationDescription: z
+      .string()
+      .optional()
+      .describe(
+        "Human-readable description of the operation you're performing (for the user to understand what's being added)",
+      ),
+    insert: z.union(
+      AllConstraints.filter(({ instance }) => instance).map((constraint) =>
+        z.object({
+          type: z
+            .literal(constraint.typeName)
+            .describe(
+              "The type of the target constraint group. The operation will fail if they don't match.",
+            ),
+          instances: z
+            .array(constraint.instance!.schema)
+            .describe("Constraint instances to add"),
+        }),
+      ),
+    ),
+  }),
+  ({ constraintId, operationDescription, insert: { type, instances } }) => {
+    const { allConstraints: currentConstraints } = getPuzzle();
+
+    const targetConstraint = currentConstraints.find(
+      ({ id }) => id === constraintId,
+    );
+    if (!targetConstraint) {
+      throw new Error(
+        `Constraint with ID ${constraintId} not found in the puzzle`,
+      );
+    }
+    if (targetConstraint.config.type !== type) {
+      throw new Error(
+        `Type mismatch: constraint with ID ${constraintId} is of type "${targetConstraint.config.type}", but type "${type}" requested. Are you sure that it's the constraint that you wanted to edit?`,
+      );
+    }
+    const index = currentConstraints.indexOf(targetConstraint);
+
+    const constraintType = getConstraintByTypeName(type);
+    const instancesKey = constraintType.instance!.key;
+
+    updatePuzzle(
+      (puzzle) => {
+        (puzzle.allConstraints[index].config as any)[instancesKey].push(
+          ...instances,
+        );
+      },
+      (from, to) => {
+        (to.allConstraints[index].config as any)[instancesKey] = (
+          from.allConstraints[index].config as any
+        )[instancesKey];
+      },
+      operationDescription ||
+        `Add ${instances.length} instances of "${getConstraintGroupFinalName(targetConstraint)}"`,
+    );
+
+    const updatedConstraint = getPuzzle().allConstraints[index];
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Add ${instances.length} instances of "${getConstraintGroupFinalName(targetConstraint)}", there are ${(updatedConstraint.config as any)[instancesKey].length} instances in total now.`,
+        },
+      ],
+    };
+  },
+);
+
+const removeConstraintInstancesTool = new ToolImplementation(
+  {
+    definition: {
+      name: "remove_constraint_instances",
+      title: "Remove constraint instances",
+      description:
+        "Remove one or more instances of an existing constraint group in the puzzle",
+    },
+  },
+  z.object({
+    constraintId: z
+      .number()
+      .int()
+      .describe("Constraint group ID to remove the constraints from"),
+    operationDescription: z
+      .string()
+      .optional()
+      .describe(
+        "Human-readable description of the operation you're performing (for the user to understand what's being removed)",
+      ),
+    constraintType: z
+      .enum(
+        AllConstraints.filter(({ instance }) => instance).map(
+          ({ typeName }) => typeName,
+        ),
+      )
+      .describe(
+        "The type of the target constraint group. The operation will fail if they don't match.",
+      ),
+    constraintCellGroups: z
+      .array(
+        z
+          .array(CellIdPublic)
+          .describe(
+            "A group of cells that indicates which constraint to remove. Only constraint that affect ALL cells in the group will be removed. Please pass enough cells here to identify the constraint instance uniquely unless you want to remove multiple constraints at the time.",
+          ),
+      )
+      .describe(
+        "Groups of cells that indicate which constraints to remove. Each group triggers a separate removal.",
+      ),
+  }),
+  ({
+    constraintId,
+    constraintType: type,
+    constraintCellGroups,
+    operationDescription,
+  }): CallToolResult => {
+    const { allConstraints: currentConstraints } = getPuzzle();
+
+    const targetConstraint = currentConstraints.find(
+      ({ id }) => id === constraintId,
+    );
+    if (!targetConstraint) {
+      throw new Error(
+        `Constraint with ID ${constraintId} not found in the puzzle`,
+      );
+    }
+    if (targetConstraint.config.type !== type) {
+      throw new Error(
+        `Type mismatch: constraint with ID ${constraintId} is of type "${targetConstraint.config.type}", but type "${type}" requested. Are you sure that it's the constraint that you wanted to edit?`,
+      );
+    }
+    const index = currentConstraints.indexOf(targetConstraint);
+
+    const constraintType = getConstraintByTypeName(type);
+    const instancesKey = constraintType.instance!.key;
+    const instances = (
+      (targetConstraint.config as any)[instancesKey] as any[]
+    ).map((instance, index) => ({
+      index,
+      instance,
+      cells: constraintType.instance!.getAffectedCells(instance),
+    }));
+    const matchingInstances = constraintCellGroups.map((cells) =>
+      instances.filter((instance) =>
+        cells.every((cell1) =>
+          instance.cells.some(
+            (cell2) => cell2.row === cell1.row && cell2.column === cell1.column,
+          ),
+        ),
+      ),
+    );
+    const allMatchingIndexes = new Set(
+      matchingInstances.flat().map(({ index }) => index),
+    );
+
+    if (allMatchingIndexes.size === 0) {
+      const allInstanceCells = instances
+        .map(({ cells }) => cells.map(toShortCellNotation).join(", "))
+        .map((cellsStr) => `(${cellsStr || "none"})`);
+
+      throw new Error(
+        `No matching constraints found, please check the filters. There are constraints with the following affected cells - you can target only these cells: ${allInstanceCells.join("; ") || "none"}`,
+      );
+    }
+
+    updatePuzzle(
+      (puzzle) => {
+        const config = puzzle.allConstraints[index].config as any;
+        config[instancesKey] = (config[instancesKey] as any[]).filter(
+          (_value, index) => !allMatchingIndexes.has(index),
+        );
+      },
+      (from, to) => {
+        (to.allConstraints[index].config as any)[instancesKey] = (
+          from.allConstraints[index].config as any
+        )[instancesKey];
+      },
+      operationDescription ||
+        `Remove ${allMatchingIndexes.size} instances of "${getConstraintGroupFinalName(targetConstraint)}"`,
+    );
+
+    const updatedConstraint = getPuzzle().allConstraints[index];
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Removed ${allMatchingIndexes.size} instances of "${getConstraintGroupFinalName(targetConstraint)}", there are ${(updatedConstraint.config as any)[instancesKey].length} instances in total now.`,
+        },
+        ...matchingInstances.map((matches, groupIndex) => ({
+          type: "text" as const,
+          text: `Cells group #${groupIndex + 1} - removed ${matches.length} constraints: ${JSON.stringify(matches.map(({ instance }) => instance))}`,
+        })),
+        {
+          type: "text",
+          text: "If some of the removed constraints above don't match your expectations, please undo the operation immediately!",
         },
       ],
     };
@@ -774,6 +996,8 @@ const tools = [
   updatePuzzleTool,
   addConstraintGroupTool,
   removeConstraintGroupTool,
+  addConstraintInstancesTool,
+  removeConstraintInstancesTool,
   undoTool,
   redoTool,
   clearGridTool,
