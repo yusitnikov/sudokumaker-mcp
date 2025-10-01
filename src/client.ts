@@ -179,7 +179,8 @@ const updatePuzzleTool = new ToolImplementation(
     definition: {
       name: "update_puzzle",
       title: "Update puzzle contents for tab",
-      description: "Modify puzzle object at specified path",
+      description:
+        "Modify puzzle object at specified path. Please use this tool only as a last resort option when no other puzzle modification tool is fitting",
     },
   },
   z.object({
