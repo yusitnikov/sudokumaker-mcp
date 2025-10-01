@@ -378,7 +378,7 @@ const addConstraintGroupTool = new ToolImplementation(
               .object({
                 type: z.literal(constraint.typeName),
                 subType: z.literal(option.title),
-                params: option.paramsSchema ?? z.never().optional(),
+                ...(option.paramsSchema ? { params: option.paramsSchema } : {}),
                 // TODO: overrides
               })
               .describe(option.description),
