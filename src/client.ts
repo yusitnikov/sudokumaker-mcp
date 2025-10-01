@@ -28,6 +28,7 @@ const tabSyncClient = new TabSyncClient<{ connected: boolean }>({
 tabSyncClient.onExtraPingDataChanged = ({ connected }) =>
   console.log("Connection status changed:", { connected });
 
+// region Utils
 const getPuzzle = () => {
   const puzzle = PuzzleSchema.encode(window.Api.getPuzzle());
 
@@ -70,6 +71,22 @@ const updatePuzzle = (
     copyCallback(updatedSudokuMakerPuzzle, sudokuMakerPuzzle);
   }, operationDescription);
 
+const waitForSolver = async (timeout: number) => {
+  const step = 200;
+  for (let time = 0; time < timeout && window.Api.busy.value; time += step) {
+    await new Promise((resolve) => setTimeout(resolve, step));
+  }
+
+  const isBusy = window.Api.busy.value;
+  return {
+    isBusy,
+    message: isBusy
+      ? `The solver is still running after ${timeout / 1000} seconds...`
+      : "The solver finished running.",
+  };
+};
+// endregion
+
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
   constructor(
     private readonly tool: Omit<Tool, "definition"> & {
@@ -102,6 +119,7 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
   }
 }
 
+// region Tools
 const getPuzzleTool = new ToolImplementation(
   {
     definition: {
@@ -545,13 +563,228 @@ const removeConstraintGroupTool = new ToolImplementation(
   },
 );
 
+// TODO: tell which action was undone, API to get the undo/redo history, tell what have changed afterwards
+const undoTool = new ToolImplementation(
+  {
+    definition: {
+      name: "undo",
+      title: "Undo the last action in the puzzle",
+      description: "Undo the last action in the puzzle",
+    },
+  },
+  z.object({}),
+  () => {
+    window.Api.triggerAction("undo");
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: "Done.",
+        },
+      ],
+    };
+  },
+);
+
+const redoTool = new ToolImplementation(
+  {
+    definition: {
+      name: "redo",
+      title: "Redo the last action in the puzzle",
+      description: "Redo the last action in the puzzle",
+    },
+  },
+  z.object({}),
+  () => {
+    window.Api.triggerAction("redo");
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: "Done.",
+        },
+      ],
+    };
+  },
+);
+
+const reversibleActionNote = `Note: this action could be undone and redone by calling "${undoTool.name}" and "${redoTool.name}" tools, similar to any other action in the puzzle`;
+
+const clearGridTool = new ToolImplementation(
+  {
+    definition: {
+      name: "clear_grid",
+      title: "Clear the grid",
+      description: `Clear all (non-given) digits and markings in the puzzle grid cells. ${reversibleActionNote}`,
+    },
+  },
+  z.object({}),
+  () => {
+    window.Api.triggerAction("clearGrid");
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: "Done.",
+        },
+      ],
+    };
+  },
+);
+
+const singleStepTimeout = 5000;
+const doLogicalStepTool = new ToolImplementation(
+  {
+    definition: {
+      name: "logical_step",
+      title: "Do a single logical step",
+      description: `Do a single logical step in the puzzle and wait for its results. ${reversibleActionNote}`,
+    },
+    timeout: singleStepTimeout + 1000,
+  },
+  z.object({}),
+  async () => {
+    window.Api.triggerAction("doSingleLogicalStep");
+    const { message } = await waitForSolver(singleStepTimeout);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: message,
+        },
+        // TODO: describe the changes
+      ],
+    };
+  },
+);
+
+const solverMaxTimeout = 30000;
+const doAllLogicalStepsTool = new ToolImplementation(
+  {
+    definition: {
+      name: "all_logical_steps",
+      title: "Solve step-by-step, logically",
+      description: `Do all possible logical steps in the puzzle. ${reversibleActionNote} (all logical steps will be undone/redone at once)`,
+    },
+    timeout: solverMaxTimeout + 1000,
+  },
+  z.object({}),
+  async () => {
+    window.Api.triggerAction("doAllLogicalSteps");
+    const { message } = await waitForSolver(solverMaxTimeout);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: message,
+        },
+        // TODO: describe the changes
+      ],
+    };
+  },
+);
+
+const bruteForceSolveTool = new ToolImplementation(
+  {
+    definition: {
+      name: "brute_force_solve",
+      title: "Find all possible solutions and valid candidates",
+      description: `
+        Run the brute force solver for the puzzle - find all possible solutions and valid candidates.
+        This is the only reliable way to know solutions count to the puzzle and the exact list of valid candidates for every cell
+        (unless the puzzle is already known to be broken or solved with 1 unique solution).
+        ${reversibleActionNote}
+      `,
+    },
+    timeout: solverMaxTimeout + 1000,
+  },
+  z.object({}),
+  async () => {
+    window.Api.triggerAction("findSolutions");
+    const { message } = await waitForSolver(solverMaxTimeout);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: message,
+        },
+        // TODO: describe the changes
+      ],
+    };
+  },
+);
+
+const waitForSolverTool = new ToolImplementation(
+  {
+    definition: {
+      name: "wait_for_solver",
+      title: "Wait for the solver",
+      description: "Wait for the solver in the given tab to finish running",
+    },
+    timeout: solverMaxTimeout + 1000,
+  },
+  z.object({}),
+  async () => {
+    const { message } = await waitForSolver(solverMaxTimeout);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: message,
+        },
+        // TODO: describe the changes
+      ],
+    };
+  },
+);
+
+const stopSolverTool = new ToolImplementation(
+  {
+    definition: {
+      name: "stop_solver",
+      title: "Stop the solver",
+      description: "Stop the solver in the given tab if it's still running",
+    },
+  },
+  z.object({}),
+  () => {
+    window.Api.triggerAction("stopSolver");
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: "The solver has been stopped.",
+        },
+      ],
+    };
+  },
+);
+
 const tools = [
   getPuzzleTool,
   updatePuzzleTool,
   addConstraintGroupTool,
   removeConstraintGroupTool,
+  undoTool,
+  redoTool,
+  clearGridTool,
+  doLogicalStepTool,
+  doAllLogicalStepsTool,
+  bruteForceSolveTool,
+  waitForSolverTool,
+  stopSolverTool,
 ];
+// endregion
 
+// region Protocol implementation
 tabSyncClient.onCustomMessage<undefined, string>("getInfo", () => {
   const puzzle = getPuzzle();
 
@@ -591,3 +824,4 @@ tabSyncClient
   .catch(console.error);
 
 console.log("MCP client started");
+// endregion

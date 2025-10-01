@@ -44,6 +44,28 @@ declare class DigitSet implements Iterable<number> {
   static from(digits: Iterable<number>): DigitSet;
 }
 
+type TriggerableAction =
+  | "undo"
+  | "redo"
+  | "selectAll"
+  | "delete"
+  | "setEnterDigits"
+  | "setEnterCornerPencilMarks"
+  | "setEnterCandidates"
+  | "setEnterColorMarks"
+  | "newConstraint"
+  | "openNextConstraint"
+  | "openPreviousConstraint"
+  | "removeConstraint"
+  | "exitConstraintEditor"
+  | "clearGrid"
+  | "doSingleLogicalStep"
+  | "doAllLogicalSteps"
+  | "findSolutions"
+  | "checkValidity"
+  | "stopSolver"
+  | "toggleFog";
+
 declare global {
   interface Window {
     Api: {
@@ -54,10 +76,16 @@ declare global {
         operationDescription?: string,
       ): void;
 
+      triggerAction(action: TriggerableAction): void;
+
       PuzzleElementType: typeof ConstraintType;
 
       DigitSet: typeof DigitSet;
       SmallNumberSet: typeof DigitSet;
+
+      busy: {
+        readonly value: boolean;
+      };
     };
   }
 }
