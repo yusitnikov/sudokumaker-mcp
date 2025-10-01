@@ -1713,7 +1713,7 @@ export const ConstraintConfig = z
     description: "Constraint configuration",
   });
 
-export const Constraint = z
+export const ConstraintSchema = z
   .intersection(
     z.object({
       id: z
@@ -1773,6 +1773,6 @@ export type ConstraintConfigByType<TypeT extends ConstraintType> = z.input<
 >;
 
 export type ConstraintByType<TypeT extends ConstraintType> = Omit<
-  z.input<typeof Constraint>,
+  z.input<typeof ConstraintSchema>,
   "config"
 > & { config: ConstraintConfigByType<TypeT> };

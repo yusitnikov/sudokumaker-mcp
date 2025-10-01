@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { Cell, Spec } from "./SudokuMakerSchemas";
-import { Constraint } from "./SudokuMakerConstraint";
+import { ConstraintSchema } from "./SudokuMakerConstraint";
 
 export const PuzzleSchema = z
   .object({
     allConstraints: z
-      .array(Constraint)
+      .array(ConstraintSchema)
       .describe(
         "The list of all elements (aka constraints, clues) of the puzzle",
       ),

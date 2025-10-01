@@ -7,6 +7,7 @@ import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema.ts";
 import {
   AllConstraints,
+  ConstraintSchema,
   type ConstraintByType,
   ConstraintType,
   getConstraintByConfig,
@@ -322,6 +323,18 @@ const updatePuzzleTool = new ToolImplementation(
   },
 );
 
+const getConstraintGroupFinalName = ({
+  name,
+  config: { type },
+  constraintMetadata,
+}: z.input<typeof ConstraintSchema>) =>
+  name || constraintMetadata?.defaultName || type;
+
+const getConstraintGroupSummary = (
+  constraint: z.input<typeof ConstraintSchema>,
+) =>
+  `"${getConstraintGroupFinalName(constraint)}" (type ${constraint.config.type}, ID ${constraint.id}, ${!constraint.enabled ? "disabled" : constraint.solverIgnored ? "solver-ignored" : "enabled"})`;
+
 const addConstraintGroupTool = new ToolImplementation(
   {
     definition: {
@@ -432,13 +445,10 @@ const addConstraintGroupTool = new ToolImplementation(
           solverIgnored: false,
         });
       },
-      ({ cells, ...from }, to) => {
-        Object.assign(to, from);
-        for (const [index, cell] of cells.entries()) {
-          Object.assign(to.cells[index], cell);
-        }
+      (from, to) => {
+        to.allConstraints.splice(index, 0, from.allConstraints[index]);
       },
-      "Add",
+      `Add ${constraintSubType.title}`,
     );
 
     const newConstraints = getPuzzle().allConstraints;
@@ -463,7 +473,7 @@ const addConstraintGroupTool = new ToolImplementation(
         },
         {
           type: "text",
-          text: `The new constraints list: ${newConstraints.map(({ id, name, enabled, solverIgnored, config: { type }, constraintMetadata }) => `"${name || constraintMetadata?.defaultName || type}" (type ${type}, ID ${id}, ${!enabled ? "disabled" : solverIgnored ? "solver-ignored" : "enabled"})`).join(", ")}.`,
+          text: `The new constraints list: ${newConstraints.map(getConstraintGroupSummary).join(", ")}.`,
         },
         {
           type: "text",
@@ -474,7 +484,73 @@ const addConstraintGroupTool = new ToolImplementation(
   },
 );
 
-const tools = [getPuzzleTool, updatePuzzleTool, addConstraintGroupTool];
+const removeConstraintGroupTool = new ToolImplementation(
+  {
+    definition: {
+      name: "remove_constraint_group",
+      title: "Remove constraint group",
+      description: "Remove constraint group from the puzzle by ID",
+    },
+  },
+  z.object({
+    constraintId: z.number().int().describe("Constraint group ID to delete"),
+    constraintName: z
+      .string()
+      .optional()
+      .describe(
+        "The name of the constraint group that's going to be deleted - use this parameter to make the AI user understand which constraint is going to be removed when looking at the MCP tool call parameters",
+      ),
+  }),
+  ({ constraintId }) => {
+    const { allConstraints: currentConstraints } = getPuzzle();
+
+    const targetConstraint = currentConstraints.find(
+      ({ id }) => id === constraintId,
+    );
+    if (!targetConstraint) {
+      throw new Error(
+        `Constraint with ID ${constraintId} not found in the puzzle`,
+      );
+    }
+    const index = currentConstraints.indexOf(targetConstraint);
+
+    updatePuzzle(
+      (puzzle) => {
+        puzzle.allConstraints.splice(index, 1);
+      },
+      (_from, to) => {
+        to.allConstraints.splice(index, 1);
+      },
+      `Remove ${getConstraintGroupFinalName(targetConstraint)}`,
+    );
+
+    const remainingConstraints = getPuzzle().allConstraints;
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Constraint group "${getConstraintGroupFinalName(targetConstraint)}" of type "${targetConstraint.config.type}" removed from position ${index + 1}.`,
+        },
+        {
+          type: "text",
+          text: `The remaining constraints: ${remainingConstraints.map(getConstraintGroupSummary).join(", ") || "none"}.`,
+        },
+        {
+          type: "text",
+          text: `The full spec of the removed constraint (verify that it's the constraint that you wanted to delete!): ${JSON.stringify(targetConstraint, null, 2)}`,
+        },
+      ],
+    };
+  },
+);
+
+const tools = [
+  getPuzzleTool,
+  updatePuzzleTool,
+  addConstraintGroupTool,
+  removeConstraintGroupTool,
+];
 
 tabSyncClient.onCustomMessage<undefined, string>("getInfo", () => {
   const puzzle = getPuzzle();
