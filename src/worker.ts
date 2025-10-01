@@ -109,10 +109,10 @@ export const run = () => {
     const listTabs = async () => {
       const activeTabs = tabSyncServer.activeTabs;
 
-      let text = `There are ${activeTabs.length} active ${appName} tabs.`;
+      let text = `There are ${activeTabs.length} ${appName} tabs in the browser.`;
 
       for (const tab of activeTabs) {
-        text += `\n- Tab ID: ${tab.id}; Tab title: "${tab.dynamicInfo.title}"`;
+        text += `\n- Tab ID: ${tab.id}; Tab state (activity): ${tab.dynamicInfo.hidden ? "hidden" : "visible"}; Tab title: "${tab.dynamicInfo.title}"`;
 
         try {
           const info = await tabSyncServer.sendMessageToTab<undefined, string>(
