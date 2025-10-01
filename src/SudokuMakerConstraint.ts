@@ -1521,6 +1521,7 @@ export const WhisperConstraint = new SudokuMakerConstraint({
   schema: z.intersection(LineConstraintConfigBase, WhisperParamsSchema),
   main: {
     title: "Whisper lines",
+    getTitle: ({ minDifference }) => `${minDifference}-whisper lines`,
     description:
       "Two cells connected by a whisper line must have a difference of at least defined number.",
     paramsSchema: WhisperParamsSchema,
