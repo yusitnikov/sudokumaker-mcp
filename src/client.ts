@@ -349,6 +349,7 @@ const updatePuzzleTool = new ToolImplementation(
   },
 );
 
+// region Constraints
 const getConstraintGroupFinalName = ({
   name,
   config: { type },
@@ -518,6 +519,128 @@ const addConstraintGroupTool = new ToolImplementation(
         {
           type: "text",
           text: `New constraint: ${JSON.stringify(newConstraint, null, 2)}`,
+        },
+      ],
+    };
+  },
+);
+
+const updateConstraintGroupTool = new ToolImplementation(
+  {
+    definition: {
+      name: "update_constraint_group",
+      title: "Update constraint group",
+      description:
+        "Update global properties of a constraint group and/or batch-update properties of all instances of this constraint group",
+    },
+  },
+  z.object({
+    constraintId: z.number().int().describe("Constraint group ID to update"),
+    operationDescription: z
+      .string()
+      .optional()
+      .describe(
+        "Human-readable description of the operation you're performing (for the user to understand what's being updated and how)",
+      ),
+    updates: z
+      .union(
+        AllConstraints.filter(
+          ({ globalSchema, instance }) => globalSchema || instance,
+        ).map((constraint) =>
+          z.object({
+            type: z.literal(constraint.typeName),
+            ...(constraint.globalSchema
+              ? {
+                  groupUpdates: ZodDeepPartial(
+                    constraint.globalSchema,
+                  ).optional(),
+                }
+              : {}),
+            ...(constraint.instance
+              ? {
+                  instanceBatchUpdates: ZodDeepPartial(
+                    constraint.instance.schema,
+                  ).optional(),
+                }
+              : {}),
+          }),
+        ),
+      )
+      .describe(
+        "Updates to apply to the constraint group: " +
+          "type - target constraint group type name (should match the actual type or the operation will fail), " +
+          "groupUpdates - update parameters of the constraint group itself, " +
+          "instanceBatchUpdates - update parameters of EVERY instance of the constraint group " +
+          "(don't update cell coords there, batch-updating them to the same value doesn't make sense!)",
+      ),
+  }),
+  ({
+    constraintId,
+    updates: { type, groupUpdates, instanceBatchUpdates },
+    operationDescription,
+  }) => {
+    const { allConstraints: currentConstraints } = getPuzzle();
+
+    const targetConstraint = currentConstraints.find(
+      ({ id }) => id === constraintId,
+    );
+    if (!targetConstraint) {
+      throw new Error(
+        `Constraint with ID ${constraintId} not found in the puzzle`,
+      );
+    }
+    if (targetConstraint.config.type !== type) {
+      throw new Error(
+        `Type mismatch: constraint with ID ${constraintId} is of type "${targetConstraint.config.type}", but type "${type}" requested. Are you sure that it's the constraint that you wanted to edit?`,
+      );
+    }
+    const index = currentConstraints.indexOf(targetConstraint);
+
+    const constraintType = getConstraintByTypeName(type);
+    const instanceKey = constraintType.instance?.key;
+
+    updatePuzzle(
+      (puzzle) => {
+        const constraint = puzzle.allConstraints[index];
+        if (groupUpdates) {
+          constraint.config = deepmerge<typeof constraint.config>(
+            constraint.config,
+            groupUpdates,
+          );
+        }
+        if (instanceBatchUpdates && instanceKey) {
+          const config = constraint.config as {
+            [key in typeof instanceKey]: any[];
+          };
+          config[instanceKey] = config[instanceKey].map((value) =>
+            deepmerge(value, instanceBatchUpdates),
+          );
+        }
+      },
+      (from, to) => {
+        to.allConstraints[index].config = from.allConstraints[index].config;
+      },
+      operationDescription ||
+        `Update ${getConstraintGroupFinalName(targetConstraint)}`,
+    );
+
+    const updatedConstraint = getPuzzle().allConstraints[index];
+
+    const updatedConfig = { ...updatedConstraint.config } as any;
+    const excludeInstances = instanceKey && !instanceBatchUpdates;
+    if (excludeInstances) {
+      delete updatedConfig[instanceKey];
+    }
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Constraint group "${getConstraintGroupFinalName(updatedConstraint)}" updated successfully.`,
+        },
+        {
+          type: "text",
+          text: `Here's the updated config spec${excludeInstances ? " (excluding the instances list)" : ""}: ${JSON.stringify(updatedConfig, null, 2)}`,
         },
       ],
     };
@@ -801,7 +924,9 @@ const removeConstraintInstancesTool = new ToolImplementation(
     };
   },
 );
+// endregion
 
+// region History
 // TODO: tell which action was undone, API to get the undo/redo history, tell what have changed afterwards
 const undoTool = new ToolImplementation(
   {
@@ -850,6 +975,7 @@ const redoTool = new ToolImplementation(
 );
 
 const reversibleActionNote = `Note: this action could be undone and redone by calling "${undoTool.name}" and "${redoTool.name}" tools, similar to any other action in the puzzle`;
+// endregion
 
 const clearGridTool = new ToolImplementation(
   {
@@ -874,6 +1000,7 @@ const clearGridTool = new ToolImplementation(
   },
 );
 
+// region Solver
 const singleStepTimeout = 5000;
 const doLogicalStepTool = new ToolImplementation(
   {
@@ -1006,11 +1133,13 @@ const stopSolverTool = new ToolImplementation(
     };
   },
 );
+// endregion
 
 const tools = [
   getPuzzleTool,
   updatePuzzleTool,
   addConstraintGroupTool,
+  updateConstraintGroupTool,
   removeConstraintGroupTool,
   addConstraintInstancesTool,
   removeConstraintInstancesTool,
