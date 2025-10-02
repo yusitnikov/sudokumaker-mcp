@@ -409,11 +409,9 @@ const addConstraintGroupTool = new ToolImplementation(
                 ...(option.paramsSchema ? { params: option.paramsSchema } : {}),
                 ...(constraint.globalSchema
                   ? {
-                      overrides: ZodDeepPartial(constraint.globalSchema)
-                        .optional()
-                        .describe(
-                          "Override default config with these values - they will be deep-merged into the config",
-                        ),
+                      overrides: ZodDeepPartial(
+                        constraint.globalSchema,
+                      ).optional(),
                     }
                   : {}),
               })
@@ -1253,6 +1251,12 @@ const tools = [
   waitForSolverTool,
   stopSolverTool,
 ];
+
+const globalSchema = z.toJSONSchema(z.globalRegistry, { io: "input" }).schemas;
+for (const schema of Object.values(globalSchema)) {
+  delete schema.$schema;
+  delete schema.id;
+}
 // endregion
 
 // region Protocol implementation
@@ -1289,7 +1293,7 @@ tabSyncClient
       This MCP server provides programmatic access to Sudoku Maker puzzles open in browser tabs.
       It communicates with the browser tabs to read and modify puzzle state.
 
-      The full list of all JSON schemas used in this MCP server: ${JSON.stringify(z.toJSONSchema(z.globalRegistry, { io: "input" }))}
+      The full list of all JSON schemas used in this MCP server: ${JSON.stringify(globalSchema)}
     `,
   })
   .catch(console.error);
