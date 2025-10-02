@@ -770,6 +770,192 @@ const addConstraintInstancesTool = new ToolImplementation(
   },
 );
 
+const ConstraintInstanceCellsGroupFilter = z.array(CellIdPublic).meta({
+  id: "ConstraintInstanceCellsGroupFilter",
+  description:
+    "A group of cells that indicates which constraint to target. Only constraint that affect ALL cells in the group will be targeted. Please pass enough cells here to identify the constraint instance uniquely unless you want to target multiple constraints at the time.",
+});
+const updateConstraintsByCellGroups = (
+  constraintId: number,
+  type: string,
+  constraintCellGroups: CellCoords[][],
+  updateCallback: (
+    instances: any[],
+    matchingIndexGroups: number[][],
+    allMatchingIndexes: Set<number>,
+  ) => any[] | void,
+  operationDescription: (
+    targetConstraint: z.input<typeof ConstraintSchema>,
+    affectedInstancesCount: number,
+  ) => string,
+) => {
+  const { index, targetConstraint } = getConstraintGroupById(
+    constraintId,
+    type,
+  );
+
+  const constraintType = getConstraintByTypeName(type);
+  const instancesKey = constraintType.instance!.key;
+  const instances = (
+    (targetConstraint.config as any)[instancesKey] as any[]
+  ).map((instance, index) => ({
+    index,
+    instance,
+    cells: constraintType.instance!.getAffectedCells(instance),
+  }));
+  const matchingInstances = constraintCellGroups.map((cells) =>
+    instances.filter((instance) =>
+      cells.every((cell1) =>
+        instance.cells.some(
+          (cell2) => cell2.row === cell1.row && cell2.column === cell1.column,
+        ),
+      ),
+    ),
+  );
+  const allMatchingIndexes = new Set(
+    matchingInstances.flat().map(({ index }) => index),
+  );
+
+  if (allMatchingIndexes.size === 0) {
+    const allInstanceCells = instances
+      .map(({ cells }) => cells.map(toShortCellNotation).join(", "))
+      .map((cellsStr) => `(${cellsStr || "none"})`);
+
+    throw new Error(
+      `No matching constraints found, please check the filters. There are constraints with the following affected cells - you can target only these cells: ${allInstanceCells.join("; ") || "none"}`,
+    );
+  }
+
+  updatePuzzle(
+    (puzzle) => {
+      const config = puzzle.allConstraints[index].config as any;
+      const result = updateCallback(
+        config[instancesKey],
+        matchingInstances.map((group) => group.map(({ index }) => index)),
+        allMatchingIndexes,
+      );
+      if (result) {
+        config[instancesKey] = result;
+      }
+    },
+    (from, to) => {
+      (to.allConstraints[index].config as any)[instancesKey] = (
+        from.allConstraints[index].config as any
+      )[instancesKey];
+    },
+    operationDescription(targetConstraint, allMatchingIndexes.size),
+  );
+
+  const updatedConstraint = getPuzzle().allConstraints[index];
+  const updatedInstances = (updatedConstraint.config as any)[
+    instancesKey
+  ] as any[];
+
+  return {
+    index,
+    targetConstraint,
+    constraintType,
+    instancesKey,
+    instances,
+    matchingInstances,
+    allMatchingIndexes,
+    updatedConstraint,
+    updatedInstances,
+    messages: [
+      ...matchingInstances.map((matches, groupIndex) => ({
+        type: "text" as const,
+        text: `Cells group #${groupIndex + 1} - targeted ${matches.length} constraints: ${JSON.stringify(matches.map(({ instance }) => instance))}`,
+      })),
+      {
+        type: "text" as const,
+        text: "If some of the targeted constraints above don't match your expectations, please undo the operation immediately!",
+      },
+    ],
+  };
+};
+
+const updateConstraintInstancesTool = new ToolImplementation(
+  {
+    definition: {
+      name: "update_constraint_instances",
+      title: "Update constraint instances",
+      description:
+        "Update properties of one or more instances of an existing constraint group in the puzzle",
+    },
+  },
+  z.object({
+    constraintId: z.number().int().describe("Constraint group ID to update"),
+    operationDescription: z
+      .string()
+      .optional()
+      .describe(
+        "Human-readable description of the operation you're performing (for the user to understand what's being updated and how)",
+      ),
+    updates: z
+      .union(
+        AllConstraints.filter(({ instance }) => instance).map((constraint) =>
+          z.object({
+            type: z.literal(constraint.typeName),
+            updateGroups: z.array(
+              z.object({
+                constraintCells: ConstraintInstanceCellsGroupFilter,
+                updates: ZodDeepPartial(constraint.instance!.schema),
+              }),
+            ),
+          }),
+        ),
+      )
+      .describe(
+        "Updates to apply to the constraint group: " +
+          "type - target constraint group type name (should match the actual type or the operation will fail), " +
+          "updates - parameters to update for every matching constraint instance",
+      ),
+  }),
+  ({ constraintId, updates: { type, updateGroups }, operationDescription }) => {
+    const {
+      allMatchingIndexes,
+      updatedConstraint,
+      updatedInstances,
+      messages,
+    } = updateConstraintsByCellGroups(
+      constraintId,
+      type,
+      updateGroups.map(({ constraintCells }) => constraintCells),
+      (instances, matchingIndexGroups) => {
+        for (const [updateGroupIndex, { updates }] of updateGroups.entries()) {
+          for (const instanceIndex of matchingIndexGroups[updateGroupIndex]) {
+            instances[instanceIndex] = mergeDeepUpdates(
+              instances[instanceIndex],
+              updates,
+            );
+          }
+        }
+      },
+      (targetConstraint) =>
+        operationDescription ||
+        `Update "${getConstraintGroupFinalName(targetConstraint)}"`,
+    );
+
+    const affectedInstances = updatedInstances.filter((_, index) =>
+      allMatchingIndexes.has(index),
+    );
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Updated ${allMatchingIndexes.size} instances of "${getConstraintGroupFinalName(updatedConstraint)}".`,
+        },
+        ...messages,
+        {
+          type: "text",
+          text: `Here are the affected constraints after the update: ${JSON.stringify(affectedInstances, null, 2)}`,
+        },
+      ],
+    };
+  },
+);
+
 const removeConstraintInstancesTool = new ToolImplementation(
   {
     definition: {
@@ -800,13 +986,7 @@ const removeConstraintInstancesTool = new ToolImplementation(
         "The type of the target constraint group. The operation will fail if they don't match.",
       ),
     constraintCellGroups: z
-      .array(
-        z
-          .array(CellIdPublic)
-          .describe(
-            "A group of cells that indicates which constraint to remove. Only constraint that affect ALL cells in the group will be removed. Please pass enough cells here to identify the constraint instance uniquely unless you want to remove multiple constraints at the time.",
-          ),
-      )
+      .array(ConstraintInstanceCellsGroupFilter)
       .describe(
         "Groups of cells that indicate which constraints to remove. Each group triggers a separate removal.",
       ),
@@ -817,75 +997,29 @@ const removeConstraintInstancesTool = new ToolImplementation(
     constraintCellGroups,
     operationDescription,
   }): CallToolResult => {
-    const { index, targetConstraint } = getConstraintGroupById(
+    const {
+      allMatchingIndexes,
+      updatedConstraint,
+      updatedInstances,
+      messages,
+    } = updateConstraintsByCellGroups(
       constraintId,
       type,
+      constraintCellGroups,
+      (instances, _, allMatchingIndexes) =>
+        instances.filter((_value, index) => !allMatchingIndexes.has(index)),
+      (targetConstraint, affectedInstancesCount) =>
+        operationDescription ||
+        `Remove ${affectedInstancesCount} instances of "${getConstraintGroupFinalName(targetConstraint)}"`,
     );
-
-    const constraintType = getConstraintByTypeName(type);
-    const instancesKey = constraintType.instance!.key;
-    const instances = (
-      (targetConstraint.config as any)[instancesKey] as any[]
-    ).map((instance, index) => ({
-      index,
-      instance,
-      cells: constraintType.instance!.getAffectedCells(instance),
-    }));
-    const matchingInstances = constraintCellGroups.map((cells) =>
-      instances.filter((instance) =>
-        cells.every((cell1) =>
-          instance.cells.some(
-            (cell2) => cell2.row === cell1.row && cell2.column === cell1.column,
-          ),
-        ),
-      ),
-    );
-    const allMatchingIndexes = new Set(
-      matchingInstances.flat().map(({ index }) => index),
-    );
-
-    if (allMatchingIndexes.size === 0) {
-      const allInstanceCells = instances
-        .map(({ cells }) => cells.map(toShortCellNotation).join(", "))
-        .map((cellsStr) => `(${cellsStr || "none"})`);
-
-      throw new Error(
-        `No matching constraints found, please check the filters. There are constraints with the following affected cells - you can target only these cells: ${allInstanceCells.join("; ") || "none"}`,
-      );
-    }
-
-    updatePuzzle(
-      (puzzle) => {
-        const config = puzzle.allConstraints[index].config as any;
-        config[instancesKey] = (config[instancesKey] as any[]).filter(
-          (_value, index) => !allMatchingIndexes.has(index),
-        );
-      },
-      (from, to) => {
-        (to.allConstraints[index].config as any)[instancesKey] = (
-          from.allConstraints[index].config as any
-        )[instancesKey];
-      },
-      operationDescription ||
-        `Remove ${allMatchingIndexes.size} instances of "${getConstraintGroupFinalName(targetConstraint)}"`,
-    );
-
-    const updatedConstraint = getPuzzle().allConstraints[index];
 
     return {
       content: [
         {
           type: "text",
-          text: `Removed ${allMatchingIndexes.size} instances of "${getConstraintGroupFinalName(targetConstraint)}", there are ${(updatedConstraint.config as any)[instancesKey].length} instances in total now.`,
+          text: `Removed ${allMatchingIndexes.size} instances of "${getConstraintGroupFinalName(updatedConstraint)}", there are ${updatedInstances.length} instances in total now.`,
         },
-        ...matchingInstances.map((matches, groupIndex) => ({
-          type: "text" as const,
-          text: `Cells group #${groupIndex + 1} - removed ${matches.length} constraints: ${JSON.stringify(matches.map(({ instance }) => instance))}`,
-        })),
-        {
-          type: "text",
-          text: "If some of the removed constraints above don't match your expectations, please undo the operation immediately!",
-        },
+        ...messages,
       ],
     };
   },
@@ -1108,6 +1242,7 @@ const tools = [
   updateConstraintGroupTool,
   removeConstraintGroupTool,
   addConstraintInstancesTool,
+  updateConstraintInstancesTool,
   removeConstraintInstancesTool,
   undoTool,
   redoTool,
