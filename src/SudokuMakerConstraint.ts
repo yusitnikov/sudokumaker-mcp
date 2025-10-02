@@ -59,6 +59,7 @@ export class SudokuMakerConstraint<
     InternalConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
     PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>
   >;
+  public readonly globalSchema?: ConfigSchemaT;
   public readonly instance?: ConstraintInstanceDescriptor<
     InstanceKeyT,
     InstanceConfigSchemaT
@@ -75,7 +76,7 @@ export class SudokuMakerConstraint<
 
   constructor({
     type,
-    schema = z.object({}) as unknown as ConfigSchemaT,
+    schema,
     instance,
     main,
     options = [],
@@ -103,7 +104,7 @@ export class SudokuMakerConstraint<
     this.typeName = ConstraintType[type];
     this.schema = z
       .intersection(
-        schema,
+        schema ?? (z.object({}) as unknown as ConfigSchemaT),
         z.object({
           type: z.codec(z.literal(this.typeName), z.literal(type), {
             encode: () => this.typeName,
@@ -122,6 +123,7 @@ export class SudokuMakerConstraint<
         id: `${this.typeName}Config`,
         description: `"${main.title}" constraint config. Constraint description: ${main.description}`,
       }) as any;
+    this.globalSchema = schema;
     this.instance = instance;
     this.main = main;
     this.options = options;
@@ -712,16 +714,6 @@ export const CloneConstraint = new SudokuMakerConstraint({
 export const QuadrupleConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Quadruple,
   schema: z.object({
-    clues: z
-      .array(
-        z
-          .object({
-            corner: CornerId,
-            digits: z.array(z.number()).describe(""),
-          })
-          .describe(""),
-      )
-      .describe(""),
     style: z
       .object({
         singleLine: z.boolean().describe(""),

@@ -19,6 +19,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.1",
     "@sitnikov/tab-sync": "^1.0.2",
+    "deepmerge": "^4.3.1",
     "websocket-mcp": "^1.2.0",
     "zod": "^4.1.11"
   },

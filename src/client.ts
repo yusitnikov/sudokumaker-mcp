@@ -12,8 +12,11 @@ import {
   ConstraintType,
   getConstraintByConfig,
   getConstraintByTypeName,
+  ConstraintConfig,
 } from "./SudokuMakerConstraint.ts";
 import { type CellCoords, CellIdPublic } from "./SudokuMakerSchemas.ts";
+import { ZodDeepPartial } from "./DeepPartial.ts";
+import deepmerge from "deepmerge";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -383,7 +386,15 @@ const addConstraintGroupTool = new ToolImplementation(
                 type: z.literal(constraint.typeName),
                 subType: z.literal(option.title),
                 ...(option.paramsSchema ? { params: option.paramsSchema } : {}),
-                // TODO: overrides
+                ...(constraint.globalSchema
+                  ? {
+                      overrides: ZodDeepPartial(constraint.globalSchema)
+                        .optional()
+                        .describe(
+                          "Override default config with these values - they will be deep-merged into the config",
+                        ),
+                    }
+                  : {}),
               })
               .describe(option.description),
           ),
@@ -448,13 +459,18 @@ const addConstraintGroupTool = new ToolImplementation(
       constraintType.main,
       ...constraintType.options,
     ].find(({ title }) => title === constraint.subType)!;
-    const config = {
-      type: constraint.type,
-      ...(constraintType.instance ? { [constraintType.instance.key]: [] } : {}),
-      ...(typeof constraintSubType.defaultConfig === "function"
-        ? (constraintSubType.defaultConfig as any)(spec, constraint.params)
-        : (constraintSubType.defaultConfig ?? constraint.params)),
-    };
+    const config = deepmerge<z.input<typeof ConstraintConfig>>(
+      {
+        type: constraint.type,
+        ...(constraintType.instance
+          ? { [constraintType.instance.key]: [] }
+          : {}),
+        ...(typeof constraintSubType.defaultConfig === "function"
+          ? (constraintSubType.defaultConfig as any)(spec, constraint.params)
+          : (constraintSubType.defaultConfig ?? constraint.params)),
+      },
+      constraint.overrides ?? {},
+    );
     const id = currentConstraints.length
       ? Math.max(...currentConstraints.map(({ id = 0 }) => id)) + 1
       : 1;
