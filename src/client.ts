@@ -15,8 +15,7 @@ import {
   ConstraintConfig,
 } from "./SudokuMakerConstraint.ts";
 import { type CellCoords, CellIdPublic } from "./SudokuMakerSchemas.ts";
-import { ZodDeepPartial } from "./DeepPartial.ts";
-import deepmerge from "deepmerge";
+import { mergeDeepUpdates, ZodDeepPartial } from "./DeepPartial.ts";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -473,7 +472,7 @@ const addConstraintGroupTool = new ToolImplementation(
       constraintType.main,
       ...constraintType.options,
     ].find(({ title }) => title === constraint.subType)!;
-    const config = deepmerge<z.input<typeof ConstraintConfig>>(
+    const config = mergeDeepUpdates<z.input<typeof ConstraintConfig>>(
       {
         type: constraint.type,
         ...(constraintType.instance
@@ -604,7 +603,7 @@ const updateConstraintGroupTool = new ToolImplementation(
       (puzzle) => {
         const constraint = puzzle.allConstraints[index];
         if (groupUpdates) {
-          constraint.config = deepmerge<typeof constraint.config>(
+          constraint.config = mergeDeepUpdates<typeof constraint.config>(
             constraint.config,
             groupUpdates,
           );
@@ -614,7 +613,7 @@ const updateConstraintGroupTool = new ToolImplementation(
             [key in typeof instanceKey]: any[];
           };
           config[instanceKey] = config[instanceKey].map((value) =>
-            deepmerge(value, instanceBatchUpdates),
+            mergeDeepUpdates(value, instanceBatchUpdates),
           );
         }
       },

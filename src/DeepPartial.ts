@@ -1,10 +1,18 @@
 import { z } from "zod";
+import deepmerge from "deepmerge";
 
-export type DeepPartial<T> = T extends (infer ItemT)[]
-  ? DeepPartial<ItemT>[]
+export type DeepPartial<T> = T extends any[]
+  ? T
   : T extends object
     ? { [K in keyof T]?: DeepPartial<T[K]> }
     : T;
+
+// noinspection JSUnusedGlobalSymbols
+export const mergeDeepUpdates = <T>(object: T, updates: DeepPartial<T>) =>
+  deepmerge<T>(object, updates as any, {
+    // Override previous arrays completely instead of merging
+    arrayMerge: (_target, source) => source,
+  });
 
 export const ZodDeepPartial = <OutputT, InputT>(
   schema: z.core.$ZodType<OutputT, InputT>,
@@ -28,7 +36,8 @@ export const ZodDeepPartial = <OutputT, InputT>(
   }
 
   if (schema instanceof z.ZodArray) {
-    return z.array(ZodDeepPartial(schema.def.element)) as any;
+    // Don't allow deep-partial for arrays - new arrays will fully override the previous value
+    return schema as any;
   }
 
   if (schema instanceof z.ZodOptional) {
