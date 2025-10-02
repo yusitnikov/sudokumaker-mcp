@@ -362,6 +362,27 @@ const getConstraintGroupSummary = (
 ) =>
   `"${getConstraintGroupFinalName(constraint)}" (type ${constraint.config.type}, ID ${constraint.id}, ${!constraint.enabled ? "disabled" : constraint.solverIgnored ? "solver-ignored" : "enabled"})`;
 
+const getConstraintGroupById = (constraintId: number, type?: string) => {
+  const { allConstraints: currentConstraints } = getPuzzle();
+
+  const targetConstraint = currentConstraints.find(
+    ({ id }) => id === constraintId,
+  );
+  if (!targetConstraint) {
+    throw new Error(
+      `Constraint with ID ${constraintId} not found in the puzzle`,
+    );
+  }
+  if (type !== undefined && targetConstraint.config.type !== type) {
+    throw new Error(
+      `Type mismatch: constraint with ID ${constraintId} is of type "${targetConstraint.config.type}", but type "${type}" requested. Are you sure that it's the constraint that you wanted to edit?`,
+    );
+  }
+  const index = currentConstraints.indexOf(targetConstraint);
+
+  return { index, targetConstraint };
+};
+
 const addConstraintGroupTool = new ToolImplementation(
   {
     definition: {
@@ -432,15 +453,7 @@ const addConstraintGroupTool = new ToolImplementation(
 
     let index: number;
     if ("constraintId" in position) {
-      const targetConstraint = currentConstraints.find(
-        ({ id }) => id === position.constraintId,
-      );
-      if (!targetConstraint) {
-        throw new Error(
-          `Constraint with ID ${position.constraintId} not found in the puzzle`,
-        );
-      }
-      index = currentConstraints.indexOf(targetConstraint);
+      index = getConstraintGroupById(position.constraintId).index;
       if (position.position === "after") {
         index++;
       }
@@ -579,22 +592,10 @@ const updateConstraintGroupTool = new ToolImplementation(
     updates: { type, groupUpdates, instanceBatchUpdates },
     operationDescription,
   }) => {
-    const { allConstraints: currentConstraints } = getPuzzle();
-
-    const targetConstraint = currentConstraints.find(
-      ({ id }) => id === constraintId,
+    const { index, targetConstraint } = getConstraintGroupById(
+      constraintId,
+      type,
     );
-    if (!targetConstraint) {
-      throw new Error(
-        `Constraint with ID ${constraintId} not found in the puzzle`,
-      );
-    }
-    if (targetConstraint.config.type !== type) {
-      throw new Error(
-        `Type mismatch: constraint with ID ${constraintId} is of type "${targetConstraint.config.type}", but type "${type}" requested. Are you sure that it's the constraint that you wanted to edit?`,
-      );
-    }
-    const index = currentConstraints.indexOf(targetConstraint);
 
     const constraintType = getConstraintByTypeName(type);
     const instanceKey = constraintType.instance?.key;
@@ -665,17 +666,7 @@ const removeConstraintGroupTool = new ToolImplementation(
       ),
   }),
   ({ constraintId }) => {
-    const { allConstraints: currentConstraints } = getPuzzle();
-
-    const targetConstraint = currentConstraints.find(
-      ({ id }) => id === constraintId,
-    );
-    if (!targetConstraint) {
-      throw new Error(
-        `Constraint with ID ${constraintId} not found in the puzzle`,
-      );
-    }
-    const index = currentConstraints.indexOf(targetConstraint);
+    const { index, targetConstraint } = getConstraintGroupById(constraintId);
 
     updatePuzzle(
       (puzzle) => {
@@ -744,22 +735,10 @@ const addConstraintInstancesTool = new ToolImplementation(
     ),
   }),
   ({ constraintId, operationDescription, insert: { type, instances } }) => {
-    const { allConstraints: currentConstraints } = getPuzzle();
-
-    const targetConstraint = currentConstraints.find(
-      ({ id }) => id === constraintId,
+    const { index, targetConstraint } = getConstraintGroupById(
+      constraintId,
+      type,
     );
-    if (!targetConstraint) {
-      throw new Error(
-        `Constraint with ID ${constraintId} not found in the puzzle`,
-      );
-    }
-    if (targetConstraint.config.type !== type) {
-      throw new Error(
-        `Type mismatch: constraint with ID ${constraintId} is of type "${targetConstraint.config.type}", but type "${type}" requested. Are you sure that it's the constraint that you wanted to edit?`,
-      );
-    }
-    const index = currentConstraints.indexOf(targetConstraint);
 
     const constraintType = getConstraintByTypeName(type);
     const instancesKey = constraintType.instance!.key;
@@ -839,22 +818,10 @@ const removeConstraintInstancesTool = new ToolImplementation(
     constraintCellGroups,
     operationDescription,
   }): CallToolResult => {
-    const { allConstraints: currentConstraints } = getPuzzle();
-
-    const targetConstraint = currentConstraints.find(
-      ({ id }) => id === constraintId,
+    const { index, targetConstraint } = getConstraintGroupById(
+      constraintId,
+      type,
     );
-    if (!targetConstraint) {
-      throw new Error(
-        `Constraint with ID ${constraintId} not found in the puzzle`,
-      );
-    }
-    if (targetConstraint.config.type !== type) {
-      throw new Error(
-        `Type mismatch: constraint with ID ${constraintId} is of type "${targetConstraint.config.type}", but type "${type}" requested. Are you sure that it's the constraint that you wanted to edit?`,
-      );
-    }
-    const index = currentConstraints.indexOf(targetConstraint);
 
     const constraintType = getConstraintByTypeName(type);
     const instancesKey = constraintType.instance!.key;
