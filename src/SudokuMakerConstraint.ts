@@ -1223,6 +1223,7 @@ export const CustomConstraint = new SudokuMakerConstraint({
   }),
   main: {
     title: "Custom constraint",
+    getTitle: (config) => config.definition.name || "Custom constraint",
     description: "Code your own constraints in Javascript",
     defaultConfig: {
       definition: {
