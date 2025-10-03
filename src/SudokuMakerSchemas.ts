@@ -242,7 +242,7 @@ export const ColorsSet = DigitSetSchema.meta({
     "Remember, naming colors is subjective, so please be smart when determining which color the user refers to.",
 });
 
-export const Cell = z
+export const CellSchema = z
   .intersection(
     z.object({
       given: z.boolean().describe(""),

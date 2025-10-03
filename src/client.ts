@@ -144,7 +144,9 @@ const getPuzzleTool = new ToolImplementation(
       )
       .optional()
       .describe(
-        'The path of the puzzle object to retrieve, e.g. ["spec", "type"] to get puzzle.spec.type. Skip the path to get the whole puzzle object (warning: it will produce lots of tokens!). Do not use this parameter until you know the object\'s structure!',
+        'The path of the puzzle object to retrieve, e.g. ["spec", "type"] to get puzzle.spec.type. ' +
+          "Skip the path to get the whole puzzle object (warning: it will produce lots of tokens!). " +
+          "DO NOT guess the puzzle structure, you have the exact schema in the instructions!",
       ),
   }),
   ({ path = [] }) => {
@@ -186,7 +188,9 @@ const updatePuzzleTool = new ToolImplementation(
       name: "update_puzzle",
       title: "Update puzzle contents for tab",
       description:
-        "Modify puzzle object at specified path. Please use this tool only as a last resort option when no other puzzle modification tool is fitting",
+        "Modify puzzle object at specified path. " +
+        "Please use this tool only as a last resort option when no other puzzle modification tool is fitting. " +
+        "DO NOT guess the puzzle structure, you have the exact schema in the instructions!",
     },
   },
   z.object({
@@ -1036,13 +1040,19 @@ const undoTool = new ToolImplementation(
   },
   z.object({}),
   () => {
+    const before = getPuzzle();
     window.Api.triggerAction("undo");
+    const after = getPuzzle();
 
     return {
       content: [
         {
           type: "text",
           text: "Done.",
+        },
+        {
+          type: "text",
+          text: diffCells(before, after, true),
         },
       ],
     };
@@ -1059,13 +1069,19 @@ const redoTool = new ToolImplementation(
   },
   z.object({}),
   () => {
+    const before = getPuzzle();
     window.Api.triggerAction("redo");
+    const after = getPuzzle();
 
     return {
       content: [
         {
           type: "text",
           text: "Done.",
+        },
+        {
+          type: "text",
+          text: diffCells(before, after, true),
         },
       ],
     };
@@ -1099,6 +1115,113 @@ const clearGridTool = new ToolImplementation(
 );
 
 // region Solver
+const diffCells = (
+  { cells: cells1 }: z.input<typeof PuzzleSchema>,
+  { cells: cells2 }: z.input<typeof PuzzleSchema>,
+  reportNoChanges = false,
+) => {
+  const groupedDiffMap: Record<string, string[]> = {};
+
+  for (const [index, { row, column, ...cell1 }] of cells1.entries()) {
+    const { row: _row, column: _column, ...cell2 } = cells2[index];
+
+    const [empty1, empty2] = [cell1, cell2].map(
+      (cell) =>
+        !cell.given &&
+        cell.value === undefined &&
+        cell.valid &&
+        !cell.candidates.length &&
+        !cell.cornerPencilMarks.length &&
+        !cell.colors.length,
+    );
+
+    const changes: string[] = [];
+    let dumped = false;
+    const dump = JSON.stringify(cell2);
+
+    if (empty1 !== empty2) {
+      if (empty2) {
+        changes.push("turned empty");
+      } else {
+        dumped = true;
+        changes.push(`turned into ${dump}`);
+      }
+    } else if (cell1.given !== cell2.given) {
+      if (cell2.given) {
+        changes.push(`placed a given ${cell2.value}`);
+      } else {
+        dumped = true;
+        changes.push(`removed the given, new state is ${dump}`);
+      }
+    } else if (cell1.value !== cell2.value) {
+      if (typeof cell2.value === "number") {
+        changes.push(
+          `placed a ${cell2.given ? "given" : "value"} ${cell2.value}`,
+        );
+      } else {
+        dumped = true;
+        changes.push(`removed the value, new state is ${dump}`);
+      }
+    } else {
+      const diffCandidates = (c1: number[], c2: number[], word: string) => {
+        const newCandidates = c2.filter((c) => !c1.includes(c));
+        const removedCandidates = c1.filter((c) => !c2.includes(c));
+
+        if (!newCandidates.length && !removedCandidates.length) {
+          return;
+        }
+
+        if (!c2.length) {
+          changes.push(`${word} turned empty`);
+          return;
+        }
+
+        const dump = `${word} turned into ${JSON.stringify(c2)}`;
+
+        if (!newCandidates.length && removedCandidates.length <= c2.length) {
+          changes.push(`${dump} (removed ${removedCandidates.join(", ")})`);
+          return;
+        }
+
+        if (!removedCandidates.length && newCandidates.length <= c1.length) {
+          changes.push(`${dump} (added ${newCandidates.join(", ")})`);
+          return;
+        }
+
+        changes.push(dump);
+      };
+
+      diffCandidates(cell1.candidates, cell2.candidates, "candidates");
+      diffCandidates(
+        cell1.cornerPencilMarks,
+        cell2.cornerPencilMarks,
+        "corner marks",
+      );
+      diffCandidates(cell1.colors, cell2.colors, "colors");
+    }
+
+    if (!dumped && cell1.valid !== cell2.valid) {
+      changes.push(cell2.valid ? "turned valid" : "turned invalid");
+    }
+
+    if (changes.length) {
+      (groupedDiffMap[changes.join(", ")] ??= []).push(
+        toShortCellNotation({ row, column }),
+      );
+    }
+  }
+
+  const diff = Object.entries(groupedDiffMap).map(
+    ([changes, positions]) => `- ${positions.join(", ")}: ${changes}`,
+  );
+
+  return diff.length
+    ? ["Grid cells changed:", ...diff].join("\n")
+    : reportNoChanges
+      ? "Grid cells didn't change"
+      : "";
+};
+
 const singleStepTimeout = 5000;
 const doLogicalStepTool = new ToolImplementation(
   {
@@ -1111,8 +1234,10 @@ const doLogicalStepTool = new ToolImplementation(
   },
   z.object({}),
   async () => {
+    const before = getPuzzle();
     window.Api.triggerAction("doSingleLogicalStep");
     const { message } = await waitForSolver(singleStepTimeout);
+    const after = getPuzzle();
 
     return {
       content: [
@@ -1120,7 +1245,10 @@ const doLogicalStepTool = new ToolImplementation(
           type: "text",
           text: message,
         },
-        // TODO: describe the changes
+        {
+          type: "text",
+          text: diffCells(before, after, true),
+        },
       ],
     };
   },
@@ -1138,8 +1266,10 @@ const doAllLogicalStepsTool = new ToolImplementation(
   },
   z.object({}),
   async () => {
+    const before = getPuzzle();
     window.Api.triggerAction("doAllLogicalSteps");
     const { message } = await waitForSolver(solverMaxTimeout);
+    const after = getPuzzle();
 
     return {
       content: [
@@ -1147,7 +1277,10 @@ const doAllLogicalStepsTool = new ToolImplementation(
           type: "text",
           text: message,
         },
-        // TODO: describe the changes
+        {
+          type: "text",
+          text: diffCells(before, after, true),
+        },
       ],
     };
   },
@@ -1169,8 +1302,10 @@ const bruteForceSolveTool = new ToolImplementation(
   },
   z.object({}),
   async () => {
+    const before = getPuzzle();
     window.Api.triggerAction("findSolutions");
     const { message } = await waitForSolver(solverMaxTimeout);
+    const after = getPuzzle();
 
     return {
       content: [
@@ -1178,7 +1313,10 @@ const bruteForceSolveTool = new ToolImplementation(
           type: "text",
           text: message,
         },
-        // TODO: describe the changes
+        {
+          type: "text",
+          text: diffCells(before, after, true),
+        },
       ],
     };
   },
@@ -1233,7 +1371,48 @@ const stopSolverTool = new ToolImplementation(
 );
 // endregion
 
+const globalSchema = z.toJSONSchema(z.globalRegistry, { io: "input" }).schemas;
+for (const schema of Object.values(globalSchema)) {
+  delete schema.$schema;
+  delete schema.id;
+}
+
+const instructions = `
+${(document.head.querySelector('meta[name="description"]') as HTMLMetaElement)?.content ?? ""}
+
+This MCP server provides programmatic access to Sudoku Maker puzzles open in browser tabs.
+It communicates with the browser tabs to read and modify puzzle state.
+
+The full list of all JSON schemas used in this MCP server: ${JSON.stringify(globalSchema)}
+`.trim();
+const instructionsTool = new ToolImplementation(
+  {
+    definition: {
+      name: "server_instructions",
+      title: "MCP server usage instructions",
+      description:
+        "It's not a real tool, you're not supposed to call it. " +
+        "It's just a way to provide the instructions for MCP clients that don't support instructions protocol. " +
+        "You MUST treat all text below as a general instructions to the whole MCP server, not only to the current tool.\n\n" +
+        "--------------------------------------\n\n" +
+        instructions,
+    },
+    global: true,
+  },
+  z.object({}),
+  () => ({
+    content: [
+      {
+        type: "text",
+        text: "You're not supposed to call this tool. All instructions are already present in the tool's description.",
+      },
+    ],
+    isError: true,
+  }),
+);
+
 const tools = [
+  instructionsTool,
   getPuzzleTool,
   updatePuzzleTool,
   addConstraintGroupTool,
@@ -1251,12 +1430,6 @@ const tools = [
   waitForSolverTool,
   stopSolverTool,
 ];
-
-const globalSchema = z.toJSONSchema(z.globalRegistry, { io: "input" }).schemas;
-for (const schema of Object.values(globalSchema)) {
-  delete schema.$schema;
-  delete schema.id;
-}
 // endregion
 
 // region Protocol implementation
@@ -1287,14 +1460,6 @@ tabSyncClient
   .sendMessageToServer<WorkerInitOptions, void>("init", {
     serverName: "sudokumaker",
     appName: "Sudoku Maker",
-    instructions: `
-      ${(document.head.querySelector('meta[name="description"]') as HTMLMetaElement)?.content ?? ""}
-
-      This MCP server provides programmatic access to Sudoku Maker puzzles open in browser tabs.
-      It communicates with the browser tabs to read and modify puzzle state.
-
-      The full list of all JSON schemas used in this MCP server: ${JSON.stringify(globalSchema)}
-    `,
   })
   .catch(console.error);
 
