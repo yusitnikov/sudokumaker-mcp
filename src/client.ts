@@ -14,7 +14,13 @@ import {
   getConstraintByTypeName,
   ConstraintConfig,
 } from "./SudokuMakerConstraint.ts";
-import { type CellCoords, CellIdPublic } from "./SudokuMakerSchemas.ts";
+import {
+  type CellCoords,
+  CellId,
+  CellIdPublic,
+  CellSchema,
+  CellSchemaNoId,
+} from "./SudokuMakerSchemas.ts";
 import { mergeDeepUpdates, ZodDeepPartial } from "./DeepPartial.ts";
 
 const code = `
@@ -74,6 +80,15 @@ const updatePuzzle = (
     copyCallback(updatedSudokuMakerPuzzle, sudokuMakerPuzzle);
   }, operationDescription);
 
+const copyCells = (
+  from: z.output<typeof CellSchema>[],
+  to: z.output<typeof CellSchema>[],
+) => {
+  for (const [index, cell] of from.entries()) {
+    Object.assign(to[index], cell);
+  }
+};
+
 const waitForSolver = async (timeout: number) => {
   const step = 200;
   for (let time = 0; time < timeout && window.Api.busy.value; time += step) {
@@ -89,8 +104,10 @@ const waitForSolver = async (timeout: number) => {
   };
 };
 
-const toShortCellNotation = ({ row, column }: CellCoords) =>
-  `r${row}c${column}`;
+const toShortCellNotation = (cellOrCells: CellCoords | CellCoords[]): string =>
+  Array.isArray(cellOrCells)
+    ? cellOrCells.map(toShortCellNotation).join(", ")
+    : `r${cellOrCells.row}c${cellOrCells.column}`;
 // endregion
 
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
@@ -334,9 +351,7 @@ const updatePuzzleTool = new ToolImplementation(
       },
       ({ cells, ...from }, to) => {
         Object.assign(to, from);
-        for (const [index, cell] of cells.entries()) {
-          Object.assign(to.cells[index], cell);
-        }
+        copyCells(cells, to.cells);
       },
       operationDescription,
     );
@@ -347,6 +362,275 @@ const updatePuzzleTool = new ToolImplementation(
           type: "text",
           text: "Operation completed",
         },
+      ],
+    };
+  },
+);
+
+const updateGivenDigitsTool = new ToolImplementation(
+  {
+    definition: {
+      name: "update_given_digits",
+      title: "Update given digits",
+      description: "Modify (add, update or delete) given digits in the cells",
+    },
+  },
+  z.object({
+    cells: z.array(CellId).describe("Cells to modify"),
+    digit: z
+      .number()
+      .int()
+      .min(-1)
+      .describe(
+        "The digit to place into the cells, or -1 to remove given digits from the specified cells",
+      ),
+  }),
+  ({ cells, digit }) => {
+    updatePuzzle(
+      (puzzle) => {
+        for (const { row, column } of cells) {
+          const cell = puzzle.cells[row - 1][column - 1];
+
+          cell.given = digit !== -1;
+          cell.value = digit === -1 ? undefined : digit;
+          cell.candidates = [];
+          cell.cornerPencilMarks = [];
+        }
+      },
+      (from, to) => copyCells(from.cells, to.cells),
+      (digit === -1
+        ? "Remove given digits from "
+        : `Put given ${digit} into `) + toShortCellNotation(cells),
+    );
+
+    return {
+      content: [{ type: "text", text: "Updated successfully." }],
+    };
+  },
+);
+
+const updateCellValuesTool = new ToolImplementation(
+  {
+    definition: {
+      name: "update_cell_values",
+      title: "Update cell values",
+      description: "Modify (add, update or delete) final values of grid cells",
+    },
+  },
+  z.object({
+    cells: z.array(CellId).describe("Cells to modify"),
+    digit: z
+      .number()
+      .int()
+      .min(-1)
+      .describe(
+        "The digit to place into the cells, or -1 to remove digits from the specified cells",
+      ),
+  }),
+  ({ cells, digit }) => {
+    const updatedCells: CellCoords[] = [];
+    const skippedCells: CellCoords[] = [];
+
+    updatePuzzle(
+      (puzzle) => {
+        for (const coords of cells) {
+          const { row, column } = coords;
+          const cell = puzzle.cells[row - 1][column - 1];
+
+          if (cell.given) {
+            skippedCells.push(coords);
+            continue;
+          }
+
+          cell.value = digit === -1 ? undefined : digit;
+          cell.candidates = [];
+          cell.cornerPencilMarks = [];
+          updatedCells.push(coords);
+        }
+      },
+      (from, to) => copyCells(from.cells, to.cells),
+      (digit === -1 ? "Remove values from " : `Put value ${digit} into `) +
+        toShortCellNotation(cells),
+    );
+
+    if (skippedCells.length === 0) {
+      return {
+        content: [{ type: "text", text: "Updated successfully." }],
+      };
+    }
+
+    if (updatedCells.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Failed to update the cells because they all contain given digits.",
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Updated cells ${toShortCellNotation(updatedCells)} successfully.`,
+        },
+        {
+          type: "text",
+          text: `Failed to update cells ${toShortCellNotation(skippedCells)} because they contain given digits.`,
+        },
+      ],
+    };
+  },
+);
+
+const updateCellMarksTool = new ToolImplementation(
+  {
+    definition: {
+      name: "update_cell_marks",
+      title: "Update cell marks and colors",
+      description:
+        "Modify (add, update or delete) the marks (candidates, corner marks, colors) in the grid cells",
+    },
+  },
+  z.object({
+    operationDescription: z
+      .string()
+      .optional()
+      .describe("Human-readable summary of the cells update operation"),
+    cells: z.array(CellId).describe("Cells to modify"),
+    operation: z
+      .enum(["add", "replace", "remove"])
+      .describe(
+        "Operation to apply to existing cell marks: " +
+          '"add" - add given marks to the existing cell marks, ' +
+          '"replace" - replace (override) the existing cell marks with the given marks, ' +
+          '"remove" - subtract the given marks from the existing cell marks. ' +
+          'Use the "replace" operation with an empty array to remove all marks of a kind',
+      ),
+    candidates: CellSchemaNoId.shape.candidates.optional(),
+    cornerPencilMarks: CellSchemaNoId.shape.cornerPencilMarks.optional(),
+    colors: CellSchemaNoId.shape.colors.optional(),
+  }),
+  ({
+    operationDescription,
+    cells,
+    operation,
+    candidates,
+    cornerPencilMarks,
+    colors,
+  }) => {
+    const updatedCells: CellCoords[] = [];
+    const skippedCells: CellCoords[] = [];
+
+    updatePuzzle(
+      (puzzle) => {
+        for (const coords of cells) {
+          const { row, column } = coords;
+          const cell = puzzle.cells[row - 1][column - 1];
+
+          if (cell.value !== undefined && (candidates || cornerPencilMarks)) {
+            skippedCells.push(coords);
+            continue;
+          }
+
+          const update = (
+            key: "candidates" | "cornerPencilMarks" | "colors",
+            value: number[] | undefined,
+          ) => {
+            if (value === undefined) {
+              return;
+            }
+
+            switch (operation) {
+              case "add":
+                cell[key] = Array.from(new Set([...cell[key], ...value]));
+                break;
+              case "replace":
+                cell[key] = value;
+                break;
+              case "remove":
+                cell[key] = cell[key].filter((digit) => !value.includes(digit));
+                break;
+            }
+          };
+          update("candidates", candidates);
+          update("cornerPencilMarks", cornerPencilMarks);
+          update("colors", colors);
+
+          updatedCells.push(coords);
+        }
+      },
+      (from, to) => copyCells(from.cells, to.cells),
+      operationDescription || "Update marks for " + toShortCellNotation(cells),
+    );
+
+    const newCells = getPuzzle().cells;
+    const updatedCellsDescription =
+      updatedCells.length && operation !== "replace"
+        ? [
+            {
+              type: "text" as const,
+              text:
+                "Here are the cells marks after the update:\n" +
+                updatedCells
+                  .map((coords) => {
+                    const cell = newCells[coords.row - 1][coords.column - 1];
+
+                    return (
+                      `- ${toShortCellNotation(coords)}: ` +
+                      // describe only mark types that were requested to change
+                      [
+                        candidates &&
+                          `candidates - ${JSON.stringify(cell.candidates)}`,
+                        cornerPencilMarks &&
+                          `corner marks - ${JSON.stringify(cell.cornerPencilMarks)}`,
+                        colors && `colors - ${JSON.stringify(cell.colors)}`,
+                      ]
+                        .filter(Boolean)
+                        .join(", ") +
+                      "."
+                    );
+                  })
+                  .join("\n"),
+            },
+          ]
+        : [];
+
+    if (skippedCells.length === 0) {
+      return {
+        content: [
+          { type: "text", text: "Updated successfully." },
+          ...updatedCellsDescription,
+        ],
+      };
+    }
+
+    if (updatedCells.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Failed to update the cells because they all contain value.",
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Updated cells ${toShortCellNotation(updatedCells)} successfully.`,
+        },
+        {
+          type: "text",
+          text: `Failed to update cells ${toShortCellNotation(skippedCells)} because they contain value.`,
+        },
+        ...updatedCellsDescription,
       ],
     };
   },
@@ -820,7 +1104,7 @@ const updateConstraintsByCellGroups = (
 
   if (allMatchingIndexes.size === 0) {
     const allInstanceCells = instances
-      .map(({ cells }) => cells.map(toShortCellNotation).join(", "))
+      .map(({ cells }) => toShortCellNotation(cells))
       .map((cellsStr) => `(${cellsStr || "none"})`);
 
     throw new Error(
@@ -1418,6 +1702,9 @@ const tools = [
   instructionsTool,
   getPuzzleTool,
   updatePuzzleTool,
+  updateGivenDigitsTool,
+  updateCellValuesTool,
+  updateCellMarksTool,
   addConstraintGroupTool,
   updateConstraintGroupTool,
   removeConstraintGroupTool,

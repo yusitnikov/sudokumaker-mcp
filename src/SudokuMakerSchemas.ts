@@ -242,38 +242,40 @@ export const ColorsSet = DigitSetSchema.meta({
     "Remember, naming colors is subjective, so please be smart when determining which color the user refers to.",
 });
 
+export const CellSchemaNoId = z.object({
+  given: z
+    .boolean()
+    .describe(
+      'Does the cell contain a given digit? (goes together with the "value" field)',
+    ),
+  value: z
+    .number()
+    .optional()
+    .describe(
+      "The value of the cell: either a given digit or logically deduced value",
+    ),
+  candidates: DigitSetSchema.describe(
+    "Logically deduced set of possible candidates for the cell. " +
+      "Empty array means that the cell wasn't analyzed for candidates yet.",
+  ),
+  cornerPencilMarks: DigitSetSchema.describe(
+    "Digits marked in the corners of the cell. " +
+      "The meaning of the corner marks is subjective and free to interpretation.",
+  ),
+  colors: ColorsSet.describe(
+    "Background colors of the cell. " +
+      "The meaning of colors depends on context: " +
+      "sometimes marking a set of cells with the same color means that these cells have the same digit or the same set of digits, " +
+      "sometimes colors are purely cosmetic, sometimes it's something else. " +
+      "Mixing a color together with white usually means that whatever is associated with the non-white color " +
+      "could go in one of the cells marked with this color and white.",
+  ),
+  valid: z.boolean().describe(""),
+});
+
 export const CellSchema = z
   .intersection(
-    z.object({
-      given: z
-        .boolean()
-        .describe(
-          'Does the cell contain a given digit? (goes together with the "value" field)',
-        ),
-      value: z
-        .number()
-        .optional()
-        .describe(
-          "The value of the cell: either a given digit or logically deduced value",
-        ),
-      candidates: DigitSetSchema.describe(
-        "Logically deduced set of possible candidates for the cell. " +
-          "Empty array means that the cell wasn't analyzed for candidates yet.",
-      ),
-      cornerPencilMarks: DigitSetSchema.describe(
-        "Digits marked in the corners of the cell. " +
-          "The meaning of the corner marks is subjective and free to interpretation.",
-      ),
-      colors: ColorsSet.describe(
-        "Background colors of the cell. " +
-          "The meaning of colors depends on context: " +
-          "sometimes marking a set of cells with the same color means that these cells have the same digit or the same set of digits, " +
-          "sometimes colors are purely cosmetic, sometimes it's something else. " +
-          "Mixing a color together with white usually means that whatever is associated with the non-white color " +
-          "could go in one of the cells marked with this color and white.",
-      ),
-      valid: z.boolean().describe(""),
-    }),
+    CellSchemaNoId,
     z
       .codec(
         CellIdPublic,
