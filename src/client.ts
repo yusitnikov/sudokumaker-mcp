@@ -1116,10 +1116,13 @@ const clearGridTool = new ToolImplementation(
 
 // region Solver
 const diffCells = (
-  { cells: cells1 }: z.input<typeof PuzzleSchema>,
-  { cells: cells2 }: z.input<typeof PuzzleSchema>,
+  { cells: cells1Map }: z.input<typeof PuzzleSchema>,
+  { cells: cells2Map }: z.input<typeof PuzzleSchema>,
   reportNoChanges = false,
 ) => {
+  const cells1 = cells1Map.flat();
+  const cells2 = cells2Map.flat();
+
   const groupedDiffMap: Record<string, string[]> = {};
 
   for (const [index, { row, column, ...cell1 }] of cells1.entries()) {

@@ -245,11 +245,33 @@ export const ColorsSet = DigitSetSchema.meta({
 export const CellSchema = z
   .intersection(
     z.object({
-      given: z.boolean().describe(""),
-      value: z.number().optional().describe(""),
-      candidates: DigitSetSchema.describe(""),
-      cornerPencilMarks: DigitSetSchema.describe(""),
-      colors: ColorsSet.describe(""),
+      given: z
+        .boolean()
+        .describe(
+          'Does the cell contain a given digit? (goes together with the "value" field)',
+        ),
+      value: z
+        .number()
+        .optional()
+        .describe(
+          "The value of the cell: either a given digit or logically deduced value",
+        ),
+      candidates: DigitSetSchema.describe(
+        "Logically deduced set of possible candidates for the cell. " +
+          "Empty array means that the cell wasn't analyzed for candidates yet.",
+      ),
+      cornerPencilMarks: DigitSetSchema.describe(
+        "Digits marked in the corners of the cell. " +
+          "The meaning of the corner marks is subjective and free to interpretation.",
+      ),
+      colors: ColorsSet.describe(
+        "Background colors of the cell. " +
+          "The meaning of colors depends on context: " +
+          "sometimes marking a set of cells with the same color means that these cells have the same digit or the same set of digits, " +
+          "sometimes colors are purely cosmetic, sometimes it's something else. " +
+          "Mixing a color together with white usually means that whatever is associated with the non-white color " +
+          "could go in one of the cells marked with this color and white.",
+      ),
       valid: z.boolean().describe(""),
     }),
     z
@@ -271,7 +293,35 @@ export const CellSchema = z
       )
       .readonly(),
   )
-  .describe("");
+  .describe("Contents of a grid cell");
+
+/**
+ * Array of cells:
+ * - Internal format: plain array.
+ * - Public format: 2D array.
+ */
+export const CellsArray = <ItemT extends z.ZodType>(itemSchema: ItemT) =>
+  z.codec(
+    z
+      .array(z.array(itemSchema).describe("Row's cells, left to right"))
+      .describe("Rows of cells, top to bottom"),
+    z.array(itemSchema),
+    {
+      encode: (array) => {
+        const mappedArray = array.map((item) => itemSchema.decode(item));
+
+        const chunkSize = window.Api.getPuzzle().spec.size.width;
+        const result: z.output<ItemT>[][] = [];
+
+        for (let offset = 0; offset < mappedArray.length; offset += chunkSize) {
+          result.push(mappedArray.slice(offset, offset + chunkSize));
+        }
+
+        return result;
+      },
+      decode: (array) => array.flat().map((item) => itemSchema.encode(item)),
+    },
+  );
 
 export const Spec = z
   .object({

@@ -10,6 +10,7 @@ import {
   Spec,
   SudokuLayer,
   DigitSetSchema,
+  CellsArray,
 } from "./SudokuMakerSchemas";
 import { z } from "zod";
 
@@ -422,25 +423,44 @@ export const GivensConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Givens,
   main: {
     title: "Given digits",
-    description: "Prefill some cells with digits.",
+    description:
+      "This constraint doesn't do anything, just indicates that the setter wants to place some given digits. " +
+      "The actual given digits are being placed by editing the grid cells.",
   },
 });
 
 export const RegionsConstraint = new SudokuMakerConstraint({
   type: ConstraintType.Regions,
   schema: z.object({
-    regions: z.array(z.number()).describe(""),
+    regions: CellsArray(
+      // Transform internal zero-based region index to the visible region number
+      z
+        .codec(z.number(), z.number(), {
+          encode: (value) => value + 1,
+          decode: (value) => value - 1,
+        })
+        .describe(
+          "Region number assigned to the cell. " +
+            "Cells that have the same index are part of the same region. " +
+            "0 means no region.",
+        ),
+    ),
   }),
   main: {
     title: "Regions",
     description: "Digits cannot repeat in marked regions.",
     defaultConfig: {
-      // TODO
+      // TODO: construct dynamically based on spec
       regions: [
-        0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1,
-        2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 3, 3, 3, 4, 4, 4, 5, 5, 5, 3, 3, 3,
-        4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 6, 6, 6, 7, 7, 7, 8, 8, 8,
-        6, 6, 6, 7, 7, 7, 8, 8, 8,
+        [1, 1, 1, 2, 2, 2, 3, 3, 3],
+        [1, 1, 1, 2, 2, 2, 3, 3, 3],
+        [1, 1, 1, 2, 2, 2, 3, 3, 3],
+        [4, 4, 4, 5, 5, 5, 6, 6, 6],
+        [4, 4, 4, 5, 5, 5, 6, 6, 6],
+        [4, 4, 4, 5, 5, 5, 6, 6, 6],
+        [7, 7, 7, 8, 8, 8, 9, 9, 9],
+        [7, 7, 7, 8, 8, 8, 9, 9, 9],
+        [7, 7, 7, 8, 8, 8, 9, 9, 9],
       ],
     },
   },

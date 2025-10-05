@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CellSchema, Spec } from "./SudokuMakerSchemas";
+import { CellsArray, CellSchema, Spec } from "./SudokuMakerSchemas";
 import { ConstraintSchema } from "./SudokuMakerConstraint";
 
 export const PuzzleSchema = z
@@ -10,11 +10,7 @@ export const PuzzleSchema = z
         "The list of all elements (aka constraints, clues) of the puzzle",
       ),
     author: z.string().describe("Puzzle author (aka setter)"),
-    cells: z
-      .array(CellSchema)
-      .describe(
-        "The list of all puzzle cells in the reading order (left to right, top to bottom)",
-      ),
+    cells: CellsArray(CellSchema),
     comment: z
       .string()
       .describe(
