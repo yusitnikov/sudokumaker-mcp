@@ -92,7 +92,9 @@ export const run = () => {
                 definition.inputSchema.properties.tabDescription = {
                   type: "string",
                   description:
-                    "Optional human-readable description of the target tab. Specify it for the LLM user to understand which tab is going to be affected",
+                    'Optional human-readable description of the target tab (e.g., "the first active tab", "the puzzle you\'re working on"). ' +
+                    "This appears in the JSON parameters shown to the user for approval, " +
+                    "helping them understand which puzzle will be modified.",
                 };
 
                 definition.inputSchema.required ??= [];
