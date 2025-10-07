@@ -208,7 +208,10 @@ export enum PuzzleTypeNative {
 export const PuzzleType = z.enum(PuzzleTypeNative).meta({
   id: "PuzzleType",
   description:
-    "Puzzle type: sudoku or custom. Having a puzzle of type \"sudoku\" means having implicit SudokuRules constraint that enforces unique digits in every row and column, but otherwise it's the same (it's not really sudoku, just a latin square, since sudoku regions (boxes) are still controlled by a separate constraint).",
+    "Puzzle type: sudoku or custom. " +
+    'Having a puzzle of type "sudoku" means having implicit SudokuRules ("Rows and columns") constraint that enforces unique digits in every row and column, ' +
+    "but otherwise it's the same (it's not really sudoku, just a latin square, " +
+    "since sudoku regions (boxes) are still controlled by a separate constraint).",
 });
 
 export const DigitSetSchema = z.codec(

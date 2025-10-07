@@ -16,93 +16,87 @@ import { z } from "zod";
 
 // region Core
 type PublicConfigT<
-  TypeT extends ConstraintType,
+  TypeT extends ElementType,
   ConfigSchemaT extends z.ZodType,
-  InstanceKeyT extends string | never,
-  InstanceConfigSchemaT extends z.ZodType | never,
+  ClueKeyT extends string | never,
+  ClueConfigSchemaT extends z.ZodType | never,
 > = z.input<ConfigSchemaT> & {
-  type: (typeof ConstraintType)[TypeT];
-} & (InstanceKeyT extends string
-    ? InstanceConfigSchemaT extends z.ZodType
-      ? { [K in InstanceKeyT]: z.input<InstanceConfigSchemaT>[] }
+  type: (typeof ElementType)[TypeT];
+} & (ClueKeyT extends string
+    ? ClueConfigSchemaT extends z.ZodType
+      ? { [K in ClueKeyT]: z.input<ClueConfigSchemaT>[] }
       : {}
     : {});
 type InternalConfigT<
-  TypeT extends ConstraintType,
+  TypeT extends ElementType,
   ConfigSchemaT extends z.ZodType,
-  InstanceKeyT extends string | never,
-  InstanceConfigSchemaT extends z.ZodType | never,
-> = z.output<ConfigSchemaT> & { type: TypeT } & (InstanceKeyT extends string
-    ? InstanceConfigSchemaT extends z.ZodType
-      ? { [K in InstanceKeyT]: z.output<InstanceConfigSchemaT>[] }
+  ClueKeyT extends string | never,
+  ClueConfigSchemaT extends z.ZodType | never,
+> = z.output<ConfigSchemaT> & { type: TypeT } & (ClueKeyT extends string
+    ? ClueConfigSchemaT extends z.ZodType
+      ? { [K in ClueKeyT]: z.output<ClueConfigSchemaT>[] }
       : {}
     : {});
 
-interface ConstraintInstanceDescriptor<
-  InstanceKeyT extends string,
-  InstanceConfigSchemaT extends z.ZodType,
+interface ClueDescriptor<
+  ClueKeyT extends string,
+  ClueConfigSchemaT extends z.ZodType,
 > {
-  key: InstanceKeyT;
-  schema: InstanceConfigSchemaT;
-  getAffectedCells: (instance: z.input<InstanceConfigSchemaT>) => CellCoords[];
+  key: ClueKeyT;
+  schema: ClueConfigSchemaT;
+  getAffectedCells: (clue: z.input<ClueConfigSchemaT>) => CellCoords[];
 }
 
-export class SudokuMakerConstraint<
-  TypeT extends ConstraintType,
+export class SudokuMakerElement<
+  TypeT extends ElementType,
   ConfigSchemaT extends z.ZodType,
-  InstanceKeyT extends string | never,
-  InstanceConfigSchemaT extends z.ZodType | never,
+  ClueKeyT extends string | never,
+  ClueConfigSchemaT extends z.ZodType | never,
   ParamsSchemaT extends z.ZodObject,
 > {
   public readonly typeId: TypeT;
-  public readonly typeName: (typeof ConstraintType)[TypeT];
+  public readonly typeName: (typeof ElementType)[TypeT];
   public readonly schema: z.ZodType<
-    InternalConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
-    PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>
+    InternalConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
+    PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>
   >;
   public readonly globalSchema?: ConfigSchemaT;
-  public readonly instance?: ConstraintInstanceDescriptor<
-    InstanceKeyT,
-    InstanceConfigSchemaT
-  >;
-  public readonly main: SudokuMakerConstraintOption<
-    PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
-    InstanceKeyT,
+  public readonly clue?: ClueDescriptor<ClueKeyT, ClueConfigSchemaT>;
+  public readonly main: SudokuMakerElementOption<
+    PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
+    ClueKeyT,
     ParamsSchemaT
   >;
-  public readonly options: SecondarySudokuMakerConstraintOption<
-    PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
-    InstanceKeyT
+  public readonly options: SecondarySudokuMakerElementOption<
+    PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
+    ClueKeyT
   >[];
 
   constructor({
     type,
     schema,
-    instance,
+    clue,
     main,
     options = [],
   }: {
     type: TypeT;
     schema?: ConfigSchemaT;
-    instance?: ConstraintInstanceDescriptor<
-      InstanceKeyT,
-      InstanceConfigSchemaT
-    >;
-    main: SudokuMakerConstraintOption<
-      PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
-      InstanceKeyT,
+    clue?: ClueDescriptor<ClueKeyT, ClueConfigSchemaT>;
+    main: SudokuMakerElementOption<
+      PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
+      ClueKeyT,
       ParamsSchemaT
     >;
-    options?: SecondarySudokuMakerConstraintOption<
-      PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
-      InstanceKeyT
+    options?: SecondarySudokuMakerElementOption<
+      PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
+      ClueKeyT
     >[];
   }) {
-    const instanceKey = instance?.key;
-    const instanceSchema = instance?.schema;
+    const cluesKey = clue?.key;
+    const clueSchema = clue?.schema;
 
     this.typeId = type;
-    this.typeName = ConstraintType[type];
+    this.typeName = ElementType[type];
     this.schema = z
       .intersection(
         schema ?? (z.object({}) as unknown as ConfigSchemaT),
@@ -111,36 +105,31 @@ export class SudokuMakerConstraint<
             encode: () => this.typeName,
             decode: () => type,
           }),
-          ...(instanceKey && instanceSchema
+          ...(cluesKey && clueSchema
             ? {
-                [instanceKey]: z
-                  .array(instanceSchema)
-                  .describe("Array of constraint instances"),
+                [cluesKey]: z
+                  .array(clueSchema)
+                  .describe("Array of element's clues"),
               }
             : {}),
         }),
       )
       .meta({
         id: `${this.typeName}Config`,
-        description: `"${main.title}" constraint config. Constraint description: ${main.description}`,
+        description: `"${main.title}" element config. Element description: ${main.description}`,
       }) as any;
     this.globalSchema = schema;
-    this.instance = instance;
+    this.clue = clue;
     this.main = main;
     this.options = options;
   }
 
-  getConstraintMetadata(
-    config: PublicConfigT<
-      TypeT,
-      ConfigSchemaT,
-      InstanceKeyT,
-      InstanceConfigSchemaT
-    >,
+  getElementMetadata(
+    config: PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
     spec: z.input<typeof Spec>,
   ) {
-    let detectedOption: SudokuMakerConstraintOption<
-      PublicConfigT<TypeT, ConfigSchemaT, InstanceKeyT, InstanceConfigSchemaT>,
+    let detectedOption: SudokuMakerElementOption<
+      PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
       any
     > = this.main;
 
@@ -159,9 +148,9 @@ export class SudokuMakerConstraint<
   }
 }
 
-export interface SudokuMakerConstraintOption<
+export interface SudokuMakerElementOption<
   ConfigT,
-  InstanceKeyT extends string | never,
+  ClueKeyT extends string | never,
   ParamsSchemaT extends z.ZodObject = z.ZodObject<{}>,
 > {
   title: string;
@@ -170,18 +159,15 @@ export interface SudokuMakerConstraintOption<
   getDescription?: SpecGetter<string>;
   paramsSchema?: ParamsSchemaT;
   defaultConfig?:
-    | Omit<ConfigT, "type" | InstanceKeyT>
-    | SpecGetter<
-        Omit<ConfigT, "type" | InstanceKeyT>,
-        [z.input<ParamsSchemaT>]
-      >;
+    | Omit<ConfigT, "type" | ClueKeyT>
+    | SpecGetter<Omit<ConfigT, "type" | ClueKeyT>, [z.input<ParamsSchemaT>]>;
 }
 
-export interface SecondarySudokuMakerConstraintOption<
+export interface SecondarySudokuMakerElementOption<
   ConfigT,
-  InstanceKeyT extends string | never,
+  ClueKeyT extends string | never,
   ParamsSchemaT extends z.ZodObject = z.ZodObject<{}>,
-> extends SudokuMakerConstraintOption<ConfigT, InstanceKeyT, ParamsSchemaT> {
+> extends SudokuMakerElementOption<ConfigT, ClueKeyT, ParamsSchemaT> {
   detect: ConfigGetter<ConfigT, boolean>;
 }
 
@@ -196,7 +182,7 @@ type ConfigGetter<ConfigT, ResultT> = (
 ) => ResultT;
 // endregion
 
-export enum ConstraintType {
+export enum ElementType {
   // Sudoku basics
   Givens = 0,
   Regions,
@@ -210,18 +196,18 @@ export enum ConstraintType {
   Nonconsecutive,
   GlobalEntropy,
 
-  // Placeable single-cell constraints
+  // Placeable single-cell elements
   Even = 100,
   Odd,
   Maximum,
   Minimum,
 
-  // Placeable cell-pair constraints
+  // Placeable cell-pair elements
   Difference = 200,
   Ratio,
   XV,
 
-  // Simple placeable constraints
+  // Simple placeable elements
   Thermometer = 300,
   KillerCages,
   Clone,
@@ -241,14 +227,14 @@ export enum ConstraintType {
   Arrow,
   DoubleArrow,
 
-  // Outside of grid clued constraints
+  // Outside of grid clued elements
   LittleKillers = 500,
   SandwichSums,
   XSums,
   Skyscrapers,
   NumberedRooms,
 
-  // Other constraints
+  // Other elements
   RowIndexer = 600,
   ColumnIndexer,
 
@@ -260,7 +246,7 @@ export enum ConstraintType {
   CosmeticCage = 2001,
   CosmeticSymbol = 2002,
 
-  // Complex placeable constraints
+  // Complex placeable elements
   SudokuRules,
 
   // Misc
@@ -331,25 +317,22 @@ export const OuterClueStyle = z
     description: "",
   });
 
-const LineInstanceSchema = z.array(CellId).meta({
+const LineClueSchema = z.array(CellId).meta({
   id: "LineCells",
   description: "The list of all cells that lines goes through",
 });
-const LineInstance: ConstraintInstanceDescriptor<
-  "lines",
-  typeof LineInstanceSchema
-> = {
+const LineClue: ClueDescriptor<"lines", typeof LineClueSchema> = {
   key: "lines",
-  schema: LineInstanceSchema,
+  schema: LineClueSchema,
   getAffectedCells: (cells) => cells,
 };
 
-export const LineConstraintConfigBase = z
+export const LineElementConfigBase = z
   .object({
     style: LineStyle,
   })
   .meta({
-    id: "LineConstraintConfigBase",
+    id: "LineElementConfigBase",
     description: "",
   });
 
@@ -374,7 +357,7 @@ export const EdgeClue = <ValueT extends z.ZodType>(ValueType: ValueT) => {
     key: "clues",
     schema,
     getAffectedCells: ({ edge }) => edge,
-  } as ConstraintInstanceDescriptor<"clues", typeof schema>;
+  } as ClueDescriptor<"clues", typeof schema>;
 };
 
 export const OuterClue = <ValueT extends z.ZodType>(ValueType: ValueT) => {
@@ -388,7 +371,7 @@ export const OuterClue = <ValueT extends z.ZodType>(ValueType: ValueT) => {
     key: "clues",
     schema,
     getAffectedCells: ({ outerCell }) => [outerCell],
-  } as ConstraintInstanceDescriptor<"clues", typeof schema>;
+  } as ClueDescriptor<"clues", typeof schema>;
 };
 
 export const Cage = <ValueT extends z.ZodType>(ValueType: ValueT) => {
@@ -403,13 +386,13 @@ export const Cage = <ValueT extends z.ZodType>(ValueType: ValueT) => {
     key: "cages",
     schema,
     getAffectedCells: ({ cells }) => cells,
-  } as ConstraintInstanceDescriptor<"cages", typeof schema>;
+  } as ClueDescriptor<"cages", typeof schema>;
 };
 // endregion
 
-// region Single-option constraints
-export const SudokuRulesConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.SudokuRules,
+// region Single-option elements
+export const SudokuRulesElement = new SudokuMakerElement({
+  type: ElementType.SudokuRules,
   schema: z.object({
     areas: z.array(CellsRectangle).optional().describe(""),
   }),
@@ -419,18 +402,18 @@ export const SudokuRulesConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const GivensConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Givens,
+export const GivensElement = new SudokuMakerElement({
+  type: ElementType.Givens,
   main: {
     title: "Given digits",
     description:
-      "This constraint doesn't do anything, just indicates that the setter wants to place some given digits. " +
+      "This elements doesn't do anything, just indicates that the setter wants to place some given digits. " +
       "The actual given digits are being placed by editing the grid cells.",
   },
 });
 
-export const RegionsConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Regions,
+export const RegionsElement = new SudokuMakerElement({
+  type: ElementType.Regions,
   schema: z.object({
     regions: CellsArray(
       // Transform internal zero-based region index to the visible region number
@@ -466,8 +449,8 @@ export const RegionsConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const DiagonalMinusConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.DiagonalMinus,
+export const DiagonalMinusElement = new SudokuMakerElement({
+  type: ElementType.DiagonalMinus,
   schema: z.object({
     style: LineStyle,
   }),
@@ -483,8 +466,8 @@ export const DiagonalMinusConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const DiagonalPlusConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.DiagonalPlus,
+export const DiagonalPlusElement = new SudokuMakerElement({
+  type: ElementType.DiagonalPlus,
   schema: z.object({
     style: LineStyle,
   }),
@@ -500,8 +483,8 @@ export const DiagonalPlusConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const AntikingConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Antiking,
+export const AntikingElement = new SudokuMakerElement({
+  type: ElementType.Antiking,
   main: {
     title: "Antiking",
     description:
@@ -509,8 +492,8 @@ export const AntikingConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const AntiknightConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Antiknight,
+export const AntiknightElement = new SudokuMakerElement({
+  type: ElementType.Antiknight,
   main: {
     title: "Antiknight",
     description:
@@ -518,8 +501,8 @@ export const AntiknightConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const DisjointGroupsConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.DisjointGroups,
+export const DisjointGroupsElement = new SudokuMakerElement({
+  type: ElementType.DisjointGroups,
   main: {
     title: "Disjoint groups",
     description:
@@ -527,8 +510,8 @@ export const DisjointGroupsConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const NonconsecutiveConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Nonconsecutive,
+export const NonconsecutiveElement = new SudokuMakerElement({
+  type: ElementType.Nonconsecutive,
   main: {
     title: "Non-consecutive",
     description:
@@ -536,15 +519,14 @@ export const NonconsecutiveConstraint = new SudokuMakerConstraint({
   },
 });
 
-const SingleCellInstance: ConstraintInstanceDescriptor<"cells", typeof CellId> =
-  {
-    key: "cells" as const,
-    schema: CellId,
-    getAffectedCells: (cell) => [cell],
-  };
+const SingleCellClue: ClueDescriptor<"cells", typeof CellId> = {
+  key: "cells" as const,
+  schema: CellId,
+  getAffectedCells: (cell) => [cell],
+};
 
-export const EvenConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Even,
+export const EvenElement = new SudokuMakerElement({
+  type: ElementType.Even,
   schema: z.object({
     style: z
       .object({
@@ -553,7 +535,7 @@ export const EvenConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: SingleCellInstance,
+  clue: SingleCellClue,
   main: {
     title: "Even",
     description: "Cells with these squares must contain even numbers.",
@@ -566,8 +548,8 @@ export const EvenConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const OddConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Odd,
+export const OddElement = new SudokuMakerElement({
+  type: ElementType.Odd,
   schema: z.object({
     style: z
       .object({
@@ -576,7 +558,7 @@ export const OddConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: SingleCellInstance,
+  clue: SingleCellClue,
   main: {
     title: "Odd",
     description: "Cells with these circles must contain odd numbers.",
@@ -589,8 +571,8 @@ export const OddConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const MaximumConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Maximum,
+export const MaximumElement = new SudokuMakerElement({
+  type: ElementType.Maximum,
   schema: z.object({
     style: z
       .object({
@@ -598,7 +580,7 @@ export const MaximumConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: SingleCellInstance,
+  clue: SingleCellClue,
   main: {
     title: "Maximum",
     description:
@@ -611,8 +593,8 @@ export const MaximumConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const MinimumConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Minimum,
+export const MinimumElement = new SudokuMakerElement({
+  type: ElementType.Minimum,
   schema: z.object({
     style: z
       .object({
@@ -620,7 +602,7 @@ export const MinimumConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: SingleCellInstance,
+  clue: SingleCellClue,
   main: {
     title: "Minimum",
     description:
@@ -633,13 +615,13 @@ export const MinimumConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const DifferenceConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Difference,
+export const DifferenceElement = new SudokuMakerElement({
+  type: ElementType.Difference,
   schema: z.object({
     negative: z.array(z.number()).describe(""),
     overrideNegativeRatios: z.boolean().describe(""),
   }),
-  instance: EdgeClue(z.number().describe("")),
+  clue: EdgeClue(z.number().describe("")),
   main: {
     title: "Difference Kropki dots",
     description:
@@ -651,13 +633,13 @@ export const DifferenceConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const RatioConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Ratio,
+export const RatioElement = new SudokuMakerElement({
+  type: ElementType.Ratio,
   schema: z.object({
     negative: z.array(z.number()).describe(""),
     overrideNegativeDifferences: z.boolean().describe(""),
   }),
-  instance: EdgeClue(z.number().describe("")),
+  clue: EdgeClue(z.number().describe("")),
   main: {
     title: "Ratio Kropki dots",
     description:
@@ -669,12 +651,12 @@ export const RatioConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const XVConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.XV,
+export const XVElement = new SudokuMakerElement({
+  type: ElementType.XV,
   schema: z.object({
     negative: z.array(z.number()).describe(""),
   }),
-  instance: EdgeClue(z.number().describe("")),
+  clue: EdgeClue(z.number().describe("")),
   main: {
     title: "XV",
     description: "Cells joined by an X or V must sum to 10 (X) or 5 (V).",
@@ -684,12 +666,12 @@ export const XVConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const KillerCagesConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.KillerCages,
+export const KillerCagesElement = new SudokuMakerElement({
+  type: ElementType.KillerCages,
   schema: z.object({
     style: CageStyle,
   }),
-  instance: Cage(z.number().describe("")),
+  clue: Cage(z.number().describe("")),
   main: {
     title: "Killer cages",
     description:
@@ -707,8 +689,8 @@ export const KillerCagesConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const CloneConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Clone,
+export const CloneElement = new SudokuMakerElement({
+  type: ElementType.Clone,
   schema: z.object({
     // TODO: how does it work?
     groups: z.array(z.array(CellId)).describe(""),
@@ -731,8 +713,8 @@ export const CloneConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const QuadrupleConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Quadruple,
+export const QuadrupleElement = new SudokuMakerElement({
+  type: ElementType.Quadruple,
   schema: z.object({
     style: z
       .object({
@@ -740,7 +722,7 @@ export const QuadrupleConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: {
+  clue: {
     key: "clues",
     schema: z.object({
       corner: CornerId.describe("Quadruple position"),
@@ -768,12 +750,12 @@ export const QuadrupleConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const LookAndSayCagesConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.LookAndSayCages,
+export const LookAndSayCagesElement = new SudokuMakerElement({
+  type: ElementType.LookAndSayCages,
   schema: z.object({
     style: CageStyle,
   }),
-  instance: Cage(z.string().describe("")),
+  clue: Cage(z.string().describe("")),
   main: {
     title: "Look-and-say cages",
     description:
@@ -792,8 +774,8 @@ export const LookAndSayCagesConstraint = new SudokuMakerConstraint({
 });
 
 // Allows specifying only one region
-export const DifferentValuesConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.DifferentValues,
+export const DifferentValuesElement = new SudokuMakerElement({
+  type: ElementType.DifferentValues,
   schema: z.object({
     cells: z.array(CellId).describe(""),
     style: z
@@ -816,10 +798,10 @@ export const DifferentValuesConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const RenbanConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Renban,
-  schema: LineConstraintConfigBase,
-  instance: LineInstance,
+export const RenbanElement = new SudokuMakerElement({
+  type: ElementType.Renban,
+  schema: LineElementConfigBase,
+  clue: LineClue,
   main: {
     title: "Renban lines",
     description:
@@ -833,10 +815,10 @@ export const RenbanConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const PalindromeConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Palindrome,
-  schema: LineConstraintConfigBase,
-  instance: LineInstance,
+export const PalindromeElement = new SudokuMakerElement({
+  type: ElementType.Palindrome,
+  schema: LineElementConfigBase,
+  clue: LineClue,
   main: {
     title: "Palindromes",
     description:
@@ -850,10 +832,10 @@ export const PalindromeConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const BetweenLinesConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.BetweenLines,
+export const BetweenLinesElement = new SudokuMakerElement({
+  type: ElementType.BetweenLines,
   schema: LineWithEndPointsConfigBase,
-  instance: LineInstance,
+  clue: LineClue,
   main: {
     title: "Between lines",
     description:
@@ -877,15 +859,15 @@ export const BetweenLinesConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const RegionSumLineConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.RegionSumLine,
+export const RegionSumLineElement = new SudokuMakerElement({
+  type: ElementType.RegionSumLine,
   schema: z.intersection(
-    LineConstraintConfigBase,
+    LineElementConfigBase,
     z.object({
       singleRegionTotals: z.boolean().describe(""),
     }),
   ),
-  instance: LineInstance,
+  clue: LineClue,
   main: {
     title: "Region sum lines",
     description:
@@ -900,10 +882,10 @@ export const RegionSumLineConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const SequenceConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Sequence,
-  schema: LineConstraintConfigBase,
-  instance: LineInstance,
+export const SequenceElement = new SudokuMakerElement({
+  type: ElementType.Sequence,
+  schema: LineElementConfigBase,
+  clue: LineClue,
   main: {
     title: "Sequence lines",
     description:
@@ -917,10 +899,10 @@ export const SequenceConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const LockoutLinesConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.LockoutLines,
+export const LockoutLinesElement = new SudokuMakerElement({
+  type: ElementType.LockoutLines,
   schema: LineWithEndPointsConfigBase,
-  instance: LineInstance,
+  clue: LineClue,
   main: {
     title: "Lockout lines",
     description:
@@ -944,8 +926,8 @@ export const LockoutLinesConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const ArrowConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Arrow,
+export const ArrowElement = new SudokuMakerElement({
+  type: ElementType.Arrow,
   schema: z.object({
     style: z
       .object({
@@ -960,7 +942,7 @@ export const ArrowConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: {
+  clue: {
     key: "bulbsWithArrows",
     schema: z.object({
       bulbCells: z.array(CellId).describe(""), // Important: index 0 is 1s, index 1 is 10s, etc
@@ -995,10 +977,10 @@ export const ArrowConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const DoubleArrowConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.DoubleArrow,
+export const DoubleArrowElement = new SudokuMakerElement({
+  type: ElementType.DoubleArrow,
   schema: LineWithEndPointsConfigBase,
-  instance: LineInstance,
+  clue: LineClue,
   main: {
     title: "Double arrows",
     description:
@@ -1022,8 +1004,8 @@ export const DoubleArrowConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const LittleKillersConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.LittleKillers,
+export const LittleKillersElement = new SudokuMakerElement({
+  type: ElementType.LittleKillers,
   schema: z.object({
     style: z
       .object({
@@ -1040,7 +1022,7 @@ export const LittleKillersConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: {
+  clue: {
     key: "clues",
     schema: z
       .object({
@@ -1068,12 +1050,12 @@ export const LittleKillersConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const SandwichSumsConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.SandwichSums,
+export const SandwichSumsElement = new SudokuMakerElement({
+  type: ElementType.SandwichSums,
   schema: z.object({
     style: OuterClueStyle,
   }),
-  instance: OuterClue(z.number().describe("")),
+  clue: OuterClue(z.number().describe("")),
   main: {
     title: "Sandwich sums",
     description:
@@ -1086,12 +1068,12 @@ export const SandwichSumsConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const XSumsConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.XSums,
+export const XSumsElement = new SudokuMakerElement({
+  type: ElementType.XSums,
   schema: z.object({
     style: OuterClueStyle,
   }),
-  instance: OuterClue(z.number().optional().describe("")),
+  clue: OuterClue(z.number().optional().describe("")),
   main: {
     title: "X-sums",
     description:
@@ -1104,12 +1086,12 @@ export const XSumsConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const SkyscrapersConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Skyscrapers,
+export const SkyscrapersElement = new SudokuMakerElement({
+  type: ElementType.Skyscrapers,
   schema: z.object({
     style: OuterClueStyle,
   }),
-  instance: OuterClue(z.number().optional().describe("")),
+  clue: OuterClue(z.number().optional().describe("")),
   main: {
     title: "Skyscrapers",
     description:
@@ -1122,12 +1104,12 @@ export const SkyscrapersConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const NumberedRoomsConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.NumberedRooms,
+export const NumberedRoomsElement = new SudokuMakerElement({
+  type: ElementType.NumberedRooms,
   schema: z.object({
     style: OuterClueStyle,
   }),
-  instance: OuterClue(z.number().optional().describe("")),
+  clue: OuterClue(z.number().optional().describe("")),
   main: {
     title: "Numbered rooms",
     description:
@@ -1140,8 +1122,8 @@ export const NumberedRoomsConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const RowIndexerConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.RowIndexer,
+export const RowIndexerElement = new SudokuMakerElement({
+  type: ElementType.RowIndexer,
   schema: z.object({
     style: z
       .object({
@@ -1149,7 +1131,7 @@ export const RowIndexerConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: SingleCellInstance,
+  clue: SingleCellClue,
   main: {
     title: "Row indexers",
     description:
@@ -1162,8 +1144,8 @@ export const RowIndexerConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const ColumnIndexerConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.ColumnIndexer,
+export const ColumnIndexerElement = new SudokuMakerElement({
+  type: ElementType.ColumnIndexer,
   schema: z.object({
     style: z
       .object({
@@ -1171,7 +1153,7 @@ export const ColumnIndexerConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: SingleCellInstance,
+  clue: SingleCellClue,
   main: {
     title: "Column indexers",
     description:
@@ -1234,8 +1216,8 @@ export const CustomConstraintDefinition = z
   .describe("");
 // endregion
 
-export const CustomConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Custom,
+export const CustomElement = new SudokuMakerElement({
+  type: ElementType.Custom,
   schema: z.object({
     definition: CustomConstraintDefinition,
     input: CustomConstraintConfigInput,
@@ -1261,8 +1243,8 @@ export const CustomConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const CosmeticLineConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.CosmeticLine,
+export const CosmeticLineElement = new SudokuMakerElement({
+  type: ElementType.CosmeticLine,
   schema: z.object({
     lines: z.array(z.array(IVector2)).describe(""),
     style: z
@@ -1288,12 +1270,12 @@ export const CosmeticLineConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const CosmeticCageConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.CosmeticCage,
+export const CosmeticCageElement = new SudokuMakerElement({
+  type: ElementType.CosmeticCage,
   schema: z.object({
     style: CageStyle,
   }),
-  instance: Cage(z.string().describe("")),
+  clue: Cage(z.string().describe("")),
   main: {
     title: "Cosmetic cages",
     description:
@@ -1394,8 +1376,8 @@ export const CosmeticSymbol = z
   .describe("");
 // endregion
 
-export const CosmeticSymbolConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.CosmeticSymbol,
+export const CosmeticSymbolElement = new SudokuMakerElement({
+  type: ElementType.CosmeticSymbol,
   schema: z.object({
     symbols: z.array(CosmeticSymbol).describe(""),
   }),
@@ -1409,10 +1391,10 @@ export const CosmeticSymbolConstraint = new SudokuMakerConstraint({
   },
 });
 
-export const FogLightsConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.FogLights,
-  instance: {
-    ...SingleCellInstance,
+export const FogLightsElement = new SudokuMakerElement({
+  type: ElementType.FogLights,
+  clue: {
+    ...SingleCellClue,
     key: "lightCells",
   },
   main: {
@@ -1435,8 +1417,8 @@ export const CustomFogClearingPattern = z
   .enum(CustomFogClearingPatternNative)
   .describe("");
 
-export const FogTriggersConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.FogTriggers,
+export const FogTriggersElement = new SudokuMakerElement({
+  type: ElementType.FogTriggers,
   schema: z.object({
     patterns: z.array(CustomFogClearingPattern).optional().describe(""),
     overrides: z.array(CellId).optional().describe(""),
@@ -1480,7 +1462,7 @@ export const FogTriggersConstraint = new SudokuMakerConstraint({
 });
 // endregion
 
-// region Multi-option constraints
+// region Multi-option elements
 const describeDigitGroups = (groups: number[][]) =>
   groups.length ? groups.map((digits) => digits.join("")).join("/") : "???";
 
@@ -1534,8 +1516,8 @@ const areSameDigitGroups = (
 const GlobalEntropyParamsSchema = z.object({
   groups: z.array(DigitSetSchema).describe("digit groups"),
 });
-export const GlobalEntropyConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.GlobalEntropy,
+export const GlobalEntropyElement = new SudokuMakerElement({
+  type: ElementType.GlobalEntropy,
   schema: GlobalEntropyParamsSchema,
   main: {
     title: "Global 2x2 groups",
@@ -1568,8 +1550,8 @@ export const GlobalEntropyConstraint = new SudokuMakerConstraint({
   ],
 });
 
-export const ThermometerConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Thermometer,
+export const ThermometerElement = new SudokuMakerElement({
+  type: ElementType.Thermometer,
   schema: z.object({
     thermometers: z.array(z.array(CellId)).describe(""),
     slow: z.boolean().describe(""),
@@ -1581,8 +1563,8 @@ export const ThermometerConstraint = new SudokuMakerConstraint({
       })
       .describe(""),
   }),
-  instance: {
-    ...LineInstance,
+  clue: {
+    ...LineClue,
     key: "thermometers",
   },
   main: {
@@ -1629,10 +1611,10 @@ const WhisperParamsSchema = z.object({
     ),
 });
 
-export const WhisperConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.Whisper,
-  schema: z.intersection(LineConstraintConfigBase, WhisperParamsSchema),
-  instance: LineInstance,
+export const WhisperElement = new SudokuMakerElement({
+  type: ElementType.Whisper,
+  schema: z.intersection(LineElementConfigBase, WhisperParamsSchema),
+  clue: LineClue,
   main: {
     title: "Whisper lines",
     getTitle: ({ minDifference }) => `${minDifference}-whisper lines`,
@@ -1686,10 +1668,10 @@ export const WhisperConstraint = new SudokuMakerConstraint({
 const EntropyLinesParamsSchema = z.object({
   groups: z.array(DigitSetSchema).describe("digit groups"),
 });
-export const EntropyLinesConstraint = new SudokuMakerConstraint({
-  type: ConstraintType.EntropyLines,
-  schema: z.intersection(LineConstraintConfigBase, EntropyLinesParamsSchema),
-  instance: LineInstance,
+export const EntropyLinesElement = new SudokuMakerElement({
+  type: ElementType.EntropyLines,
+  schema: z.intersection(LineElementConfigBase, EntropyLinesParamsSchema),
+  clue: LineClue,
   main: {
     title: "Digit group lines",
     getTitle: ({ groups }) => `${describeDigitGroups(groups)} lines`,
@@ -1751,119 +1733,119 @@ export const EntropyLinesConstraint = new SudokuMakerConstraint({
 });
 // endregion
 
-const AllConstraintsMap = {
-  [ConstraintType.SudokuRules]: SudokuRulesConstraint,
-  [ConstraintType.Givens]: GivensConstraint,
-  [ConstraintType.Regions]: RegionsConstraint,
-  [ConstraintType.DiagonalMinus]: DiagonalMinusConstraint,
-  [ConstraintType.DiagonalPlus]: DiagonalPlusConstraint,
-  [ConstraintType.Antiking]: AntikingConstraint,
-  [ConstraintType.Antiknight]: AntiknightConstraint,
-  [ConstraintType.DisjointGroups]: DisjointGroupsConstraint,
-  [ConstraintType.Nonconsecutive]: NonconsecutiveConstraint,
-  [ConstraintType.Even]: EvenConstraint,
-  [ConstraintType.Odd]: OddConstraint,
-  [ConstraintType.Maximum]: MaximumConstraint,
-  [ConstraintType.Minimum]: MinimumConstraint,
-  [ConstraintType.Difference]: DifferenceConstraint,
-  [ConstraintType.Ratio]: RatioConstraint,
-  [ConstraintType.XV]: XVConstraint,
-  [ConstraintType.KillerCages]: KillerCagesConstraint,
-  [ConstraintType.Clone]: CloneConstraint,
-  [ConstraintType.Quadruple]: QuadrupleConstraint,
-  [ConstraintType.LookAndSayCages]: LookAndSayCagesConstraint,
-  [ConstraintType.DifferentValues]: DifferentValuesConstraint,
-  [ConstraintType.Renban]: RenbanConstraint,
-  [ConstraintType.Palindrome]: PalindromeConstraint,
-  [ConstraintType.BetweenLines]: BetweenLinesConstraint,
-  [ConstraintType.RegionSumLine]: RegionSumLineConstraint,
-  [ConstraintType.Sequence]: SequenceConstraint,
-  [ConstraintType.LockoutLines]: LockoutLinesConstraint,
-  [ConstraintType.Arrow]: ArrowConstraint,
-  [ConstraintType.DoubleArrow]: DoubleArrowConstraint,
-  [ConstraintType.LittleKillers]: LittleKillersConstraint,
-  [ConstraintType.SandwichSums]: SandwichSumsConstraint,
-  [ConstraintType.XSums]: XSumsConstraint,
-  [ConstraintType.Skyscrapers]: SkyscrapersConstraint,
-  [ConstraintType.NumberedRooms]: NumberedRoomsConstraint,
-  [ConstraintType.RowIndexer]: RowIndexerConstraint,
-  [ConstraintType.ColumnIndexer]: ColumnIndexerConstraint,
-  [ConstraintType.Custom]: CustomConstraint,
-  [ConstraintType.CosmeticLine]: CosmeticLineConstraint,
-  [ConstraintType.CosmeticCage]: CosmeticCageConstraint,
-  [ConstraintType.CosmeticSymbol]: CosmeticSymbolConstraint,
-  [ConstraintType.FogLights]: FogLightsConstraint,
-  [ConstraintType.FogTriggers]: FogTriggersConstraint,
-  [ConstraintType.GlobalEntropy]: GlobalEntropyConstraint,
-  [ConstraintType.Thermometer]: ThermometerConstraint,
-  [ConstraintType.Whisper]: WhisperConstraint,
-  [ConstraintType.EntropyLines]: EntropyLinesConstraint,
+const AllElementsMap = {
+  [ElementType.SudokuRules]: SudokuRulesElement,
+  [ElementType.Givens]: GivensElement,
+  [ElementType.Regions]: RegionsElement,
+  [ElementType.DiagonalMinus]: DiagonalMinusElement,
+  [ElementType.DiagonalPlus]: DiagonalPlusElement,
+  [ElementType.Antiking]: AntikingElement,
+  [ElementType.Antiknight]: AntiknightElement,
+  [ElementType.DisjointGroups]: DisjointGroupsElement,
+  [ElementType.Nonconsecutive]: NonconsecutiveElement,
+  [ElementType.Even]: EvenElement,
+  [ElementType.Odd]: OddElement,
+  [ElementType.Maximum]: MaximumElement,
+  [ElementType.Minimum]: MinimumElement,
+  [ElementType.Difference]: DifferenceElement,
+  [ElementType.Ratio]: RatioElement,
+  [ElementType.XV]: XVElement,
+  [ElementType.KillerCages]: KillerCagesElement,
+  [ElementType.Clone]: CloneElement,
+  [ElementType.Quadruple]: QuadrupleElement,
+  [ElementType.LookAndSayCages]: LookAndSayCagesElement,
+  [ElementType.DifferentValues]: DifferentValuesElement,
+  [ElementType.Renban]: RenbanElement,
+  [ElementType.Palindrome]: PalindromeElement,
+  [ElementType.BetweenLines]: BetweenLinesElement,
+  [ElementType.RegionSumLine]: RegionSumLineElement,
+  [ElementType.Sequence]: SequenceElement,
+  [ElementType.LockoutLines]: LockoutLinesElement,
+  [ElementType.Arrow]: ArrowElement,
+  [ElementType.DoubleArrow]: DoubleArrowElement,
+  [ElementType.LittleKillers]: LittleKillersElement,
+  [ElementType.SandwichSums]: SandwichSumsElement,
+  [ElementType.XSums]: XSumsElement,
+  [ElementType.Skyscrapers]: SkyscrapersElement,
+  [ElementType.NumberedRooms]: NumberedRoomsElement,
+  [ElementType.RowIndexer]: RowIndexerElement,
+  [ElementType.ColumnIndexer]: ColumnIndexerElement,
+  [ElementType.Custom]: CustomElement,
+  [ElementType.CosmeticLine]: CosmeticLineElement,
+  [ElementType.CosmeticCage]: CosmeticCageElement,
+  [ElementType.CosmeticSymbol]: CosmeticSymbolElement,
+  [ElementType.FogLights]: FogLightsElement,
+  [ElementType.FogTriggers]: FogTriggersElement,
+  [ElementType.GlobalEntropy]: GlobalEntropyElement,
+  [ElementType.Thermometer]: ThermometerElement,
+  [ElementType.Whisper]: WhisperElement,
+  [ElementType.EntropyLines]: EntropyLinesElement,
 };
-export const AllConstraints = Object.values(AllConstraintsMap);
-export const getConstraintByTypeName = (typeName: string) =>
-  AllConstraints.find((constraint) => constraint.typeName === typeName)!;
-export const getConstraintByConfig = <TypeT extends ConstraintType>(
-  config: ConstraintConfigByType<TypeT>,
+export const AllElements = Object.values(AllElementsMap);
+export const getElementByTypeName = (typeName: string) =>
+  AllElements.find((element) => element.typeName === typeName)!;
+export const getElementByConfig = <TypeT extends ElementType>(
+  config: ElementConfigByType<TypeT>,
 ) =>
-  getConstraintByTypeName(config.type) as unknown as SudokuMakerConstraint<
+  getElementByTypeName(config.type) as unknown as SudokuMakerElement<
     TypeT,
-    z.ZodType<unknown, ConstraintConfigByType<TypeT>>,
+    z.ZodType<unknown, ElementConfigByType<TypeT>>,
     any,
     any,
     any
   >;
 
-export const ConstraintConfig = z
-  .union(AllConstraints.map(({ schema }) => schema))
+export const ElementConfigSchema = z
+  .union(AllElements.map(({ schema }) => schema))
   .meta({
-    id: "ConstraintConfig",
-    description: "Constraint configuration",
+    id: "ElementConfig",
+    description: "Element configuration",
   });
 
-export const ConstraintSchema = z
+export const ElementSchema = z
   .intersection(
     z.object({
       id: z
         .number()
         .optional()
-        .describe("Constraint ID, must be unique within the puzzle"),
+        .describe("Element ID, must be unique within the puzzle"),
       name: z
         .string()
         .optional()
         .describe(
-          "Constraint name. Leave it empty to use the default (recommended when there is only one constraint group of the type).",
+          "Element name. Leave it empty to use the default (recommended when there is only one element of the type).",
         ),
       enabled: z
         .boolean()
         .describe(
-          "Is the constraint enabled? Disabling a constraint will hide its visual clues from the grid and exclude its logic from the solver, which is the same as if the constraint doesn't exist. Useful to temporarily exclude the constraint from the puzzle without deleting it from the list.",
+          "Is the element enabled? Disabling an element will hide its visual clues from the grid and exclude its logic from the solver, which is the same as if the element doesn't exist. Useful to temporarily exclude the element from the puzzle without deleting it from the list.",
         ),
       solverIgnored: z
         .boolean()
         .describe(
-          "Ignore the constraint's logic in the solver while still showing the visuals in the grid. Use it to make constraint cosmetic-only, or if you want to temporarily ignore its logic.",
+          "Ignore the element's logic in the solver while still showing the visuals in the grid. Use it to make element cosmetic-only, or if you want to temporarily ignore its logic.",
         ),
-      config: ConstraintConfig,
+      config: ElementConfigSchema,
     }),
     z.codec(
       z.object({
-        constraintMetadata: z
+        elementMetadata: z
           .object({
             defaultName: z
               .string()
               .describe(
-                'Constraint name, adjusted to the specific constraint\'s config - this value would be displayed if the "name" field omitted',
+                'Element name, adjusted to the specific element\'s config - this value would be displayed if the "name" field omitted',
               ),
             description: z
               .string()
               .describe(
-                "Constraint description, adjusted to the specific constraint's config",
+                "Element description, adjusted to the specific element's config",
               ),
           })
           .optional()
           .readonly()
           .describe(
-            "Constraint metadata adjusted to the specific constraint's config (more accurate than the general constraint info from the schema)",
+            "Element metadata adjusted to the specific element's config (more accurate than the general element info from the schema)",
           ),
       }),
       z.object({}),
@@ -1875,11 +1857,11 @@ export const ConstraintSchema = z
   )
   .describe("");
 
-export type ConstraintConfigByType<TypeT extends ConstraintType> = z.input<
-  (typeof AllConstraintsMap)[TypeT]["schema"]
+export type ElementConfigByType<TypeT extends ElementType> = z.input<
+  (typeof AllElementsMap)[TypeT]["schema"]
 >;
 
-export type ConstraintByType<TypeT extends ConstraintType> = Omit<
-  z.input<typeof ConstraintSchema>,
+export type ElementByType<TypeT extends ElementType> = Omit<
+  z.input<typeof ElementSchema>,
   "config"
-> & { config: ConstraintConfigByType<TypeT> };
+> & { config: ElementConfigByType<TypeT> };

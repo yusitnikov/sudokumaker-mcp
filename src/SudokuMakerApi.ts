@@ -1,6 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
-import type { ConstraintType } from "./SudokuMakerConstraint";
+import type { ElementType } from "./SudokuMakerElement.ts";
 import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema";
 
@@ -87,7 +87,7 @@ declare global {
 
       triggerAction(action: TriggerableAction): void;
 
-      PuzzleElementType: typeof ConstraintType;
+      PuzzleElementType: typeof ElementType;
 
       DigitSet: typeof DigitSet;
       SmallNumberSet: typeof DigitSet;

@@ -6,14 +6,14 @@ import type { Tool, WorkerInitOptions } from "./shared";
 import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema.ts";
 import {
-  AllConstraints,
-  ConstraintSchema,
-  type ConstraintByType,
-  ConstraintType,
-  getConstraintByConfig,
-  getConstraintByTypeName,
-  ConstraintConfig,
-} from "./SudokuMakerConstraint.ts";
+  AllElements,
+  ElementSchema,
+  type ElementByType,
+  ElementType,
+  getElementByConfig,
+  getElementByTypeName,
+  ElementConfigSchema,
+} from "./SudokuMakerElement.ts";
 import {
   type CellCoords,
   CellId,
@@ -41,18 +41,18 @@ tabSyncClient.onExtraPingDataChanged = ({ connected }) =>
 const getPuzzle = () => {
   const puzzle = PuzzleSchema.encode(window.Api.getPuzzle());
 
-  puzzle.allConstraints.forEach(
-    <TypeT extends ConstraintType>(constraint: ConstraintByType<TypeT>) => {
-      const constraintType = getConstraintByConfig<TypeT>(constraint.config);
+  puzzle.allElements.forEach(
+    <TypeT extends ElementType>(element: ElementByType<TypeT>) => {
+      const elementType = getElementByConfig<TypeT>(element.config);
 
-      const constraintMetadata = constraintType.getConstraintMetadata(
-        constraint.config,
+      const elementMetadata = elementType.getElementMetadata(
+        element.config,
         puzzle.spec,
       );
 
-      constraint.constraintMetadata = {
-        defaultName: constraintMetadata.title,
-        description: constraintMetadata.description,
+      element.elementMetadata = {
+        defaultName: elementMetadata.title,
+        description: elementMetadata.description,
       };
     },
   );
@@ -229,7 +229,7 @@ const updatePuzzleTool = new ToolImplementation(
               ]),
             )
             .describe(
-              'The affected path of the puzzle object, e.g. ["allConstraints", 0, "config"] to modify puzzle.allConstraints[0].config',
+              'The affected path of the puzzle object, e.g. ["allElements", 0, "config"] to modify puzzle.allElements[0].config',
             ),
           update: z
             .union([
@@ -642,47 +642,41 @@ const updateCellMarksTool = new ToolImplementation(
   },
 );
 
-// region Constraints
-const getConstraintGroupFinalName = ({
+// region Elements
+const getElementFinalName = ({
   name,
   config: { type },
-  constraintMetadata,
-}: z.input<typeof ConstraintSchema>) =>
-  name || constraintMetadata?.defaultName || type;
+  elementMetadata,
+}: z.input<typeof ElementSchema>) =>
+  name || elementMetadata?.defaultName || type;
 
-const getConstraintGroupSummary = (
-  constraint: z.input<typeof ConstraintSchema>,
-) =>
-  `"${getConstraintGroupFinalName(constraint)}" (type ${constraint.config.type}, ID ${constraint.id}, ${!constraint.enabled ? "disabled" : constraint.solverIgnored ? "solver-ignored" : "enabled"})`;
+const getElementSummary = (element: z.input<typeof ElementSchema>) =>
+  `"${getElementFinalName(element)}" (type ${element.config.type}, ID ${element.id}, ${!element.enabled ? "disabled" : element.solverIgnored ? "solver-ignored" : "enabled"})`;
 
-const getConstraintGroupById = (constraintId: number, type?: string) => {
-  const { allConstraints: currentConstraints } = getPuzzle();
+const getElementById = (elementId: number, type?: string) => {
+  const { allElements: currentElements } = getPuzzle();
 
-  const targetConstraint = currentConstraints.find(
-    ({ id }) => id === constraintId,
-  );
-  if (!targetConstraint) {
+  const targetElement = currentElements.find(({ id }) => id === elementId);
+  if (!targetElement) {
+    throw new Error(`Element with ID ${elementId} not found in the puzzle`);
+  }
+  if (type !== undefined && targetElement.config.type !== type) {
     throw new Error(
-      `Constraint with ID ${constraintId} not found in the puzzle`,
+      `Type mismatch: element with ID ${elementId} is of type "${targetElement.config.type}", but type "${type}" requested. Are you sure that it's the element that you wanted to edit?`,
     );
   }
-  if (type !== undefined && targetConstraint.config.type !== type) {
-    throw new Error(
-      `Type mismatch: constraint with ID ${constraintId} is of type "${targetConstraint.config.type}", but type "${type}" requested. Are you sure that it's the constraint that you wanted to edit?`,
-    );
-  }
-  const index = currentConstraints.indexOf(targetConstraint);
+  const index = currentElements.indexOf(targetElement);
 
-  return { index, targetConstraint };
+  return { index, targetElement };
 };
 
-const addConstraintGroupTool = new ToolImplementation(
+const addElementTool = new ToolImplementation(
   {
     definition: {
-      name: "add_constraint_group",
-      title: "Add constraint group to the puzzle",
+      name: "add_element",
+      title: "Add Sudoku Maker element",
       description:
-        "Add an empty constraint group of specified type with default parameters to the puzzle",
+        "Add an empty element of specified type with default parameters to the puzzle",
     },
   },
   z.object({
@@ -690,21 +684,22 @@ const addConstraintGroupTool = new ToolImplementation(
       .string()
       .optional()
       .describe(
-        "Constraint group name. Leave it empty to use the default name according to the constraint type (recommended when there's only one constraint group of this type in the puzzle)",
+        "Element name. Leave it empty to use the default name according to the element type " +
+          "(recommended when there's only one element of this type in the puzzle)",
       ),
-    constraint: z
+    element: z
       .union(
-        AllConstraints.flatMap((constraint) =>
-          [constraint.main, ...constraint.options].map((option) =>
+        AllElements.flatMap((element) =>
+          [element.main, ...element.options].map((option) =>
             z
               .object({
-                type: z.literal(constraint.typeName),
+                type: z.literal(element.typeName),
                 subType: z.literal(option.title),
                 ...(option.paramsSchema ? { params: option.paramsSchema } : {}),
-                ...(constraint.globalSchema
+                ...(element.globalSchema
                   ? {
                       overrides: ZodDeepPartial(
-                        constraint.globalSchema,
+                        element.globalSchema,
                       ).optional(),
                     }
                   : {}),
@@ -713,7 +708,7 @@ const addConstraintGroupTool = new ToolImplementation(
           ),
         ),
       )
-      .describe("Constraint to add"),
+      .describe("Element to add"),
     position: z
       .union([
         z
@@ -721,68 +716,65 @@ const addConstraintGroupTool = new ToolImplementation(
             at: z.number().int().min(1),
           })
           .describe(
-            "Place the new constraint at Nth place, e.g. 1 to place it as the first item",
+            "Place the new element at Nth place, e.g. 1 to place it as the first item",
           ),
         z
           .object({
             at: z.literal("end"),
           })
-          .describe("Insert the new constraint to the end of the list"),
+          .describe("Insert the new element to the end of the list"),
         z
           .object({
-            constraintId: z.number().int().describe("Target constraint ID"),
+            elementId: z.number().int().describe("Target element ID"),
             position: z.enum(["before", "after"]),
           })
           .describe(
-            "Place the new constraint before or after another constraint with given ID",
+            "Place the new element before or after another element with given ID",
           ),
       ])
-      .describe("Position where to insert the new constraint to"),
+      .describe("Position where to insert the new element to"),
   }),
-  ({ name, constraint, position }) => {
-    const { spec, allConstraints: currentConstraints } = getPuzzle();
+  ({ name, element, position }) => {
+    const { spec, allElements: currentElements } = getPuzzle();
 
     let index: number;
-    if ("constraintId" in position) {
-      index = getConstraintGroupById(position.constraintId).index;
+    if ("elementId" in position) {
+      index = getElementById(position.elementId).index;
       if (position.position === "after") {
         index++;
       }
     } else if (position.at === "end") {
-      index = currentConstraints.length;
+      index = currentElements.length;
     } else {
       index = position.at - 1;
-      if (index > currentConstraints.length) {
+      if (index > currentElements.length) {
         throw new Error(
-          `Cannot insert constraint at position ${position.at} - there are only ${currentConstraints.length} constraints in the puzzle`,
+          `Cannot insert element at position ${position.at} - there are only ${currentElements.length} elements in the puzzle`,
         );
       }
     }
 
-    const constraintType = getConstraintByTypeName(constraint.type);
-    const constraintSubType = [
-      constraintType.main,
-      ...constraintType.options,
-    ].find(({ title }) => title === constraint.subType)!;
-    const config = mergeDeepUpdates<z.input<typeof ConstraintConfig>>(
+    const elementType = getElementByTypeName(element.type);
+    const elementSubType = [elementType.main, ...elementType.options].find(
+      ({ title }) => title === element.subType,
+    )!;
+    const config = mergeDeepUpdates<z.input<typeof ElementConfigSchema>>(
       {
-        type: constraint.type,
-        ...(constraintType.instance
-          ? { [constraintType.instance.key]: [] }
-          : {}),
-        ...(typeof constraintSubType.defaultConfig === "function"
-          ? (constraintSubType.defaultConfig as any)(spec, constraint.params)
-          : (constraintSubType.defaultConfig ?? constraint.params)),
+        type: element.type,
+        ...(elementType.clue ? { [elementType.clue.key]: [] } : {}),
+        ...(typeof elementSubType.defaultConfig === "function"
+          ? (elementSubType.defaultConfig as any)(spec, element.params)
+          : (elementSubType.defaultConfig ?? element.params)),
       },
-      constraint.overrides ?? {},
+      element.overrides ?? {},
     );
-    const id = currentConstraints.length
-      ? Math.max(...currentConstraints.map(({ id = 0 }) => id)) + 1
+    const id = currentElements.length
+      ? Math.max(...currentElements.map(({ id = 0 }) => id)) + 1
       : 1;
 
     updatePuzzle(
       (puzzle) => {
-        puzzle.allConstraints.splice(index, 0, {
+        puzzle.allElements.splice(index, 0, {
           id,
           name,
           config,
@@ -793,17 +785,17 @@ const addConstraintGroupTool = new ToolImplementation(
       (from, to) => {
         to.allConstraints.splice(index, 0, from.allConstraints[index]);
       },
-      `Add ${constraintSubType.title}`,
+      `Add ${elementSubType.title}`,
     );
 
-    const newConstraints = getPuzzle().allConstraints;
-    const newConstraint = newConstraints[index];
-    if (newConstraint?.id !== id) {
+    const newElements = getPuzzle().allElements;
+    const newElement = newElements[index];
+    if (newElement?.id !== id) {
       return {
         content: [
           {
             type: "text",
-            text: "Something went wrong - failed to add the constraint. Please report the error to the Sudoku Maker MCP server developer (Chameleon)",
+            text: "Something went wrong - failed to add the element. Please report the error to the Sudoku Maker MCP server developer (Chameleon)",
           },
         ],
         isError: true,
@@ -814,32 +806,32 @@ const addConstraintGroupTool = new ToolImplementation(
       content: [
         {
           type: "text",
-          text: `New constraint added at position ${index + 1}.`,
+          text: `New element added at position ${index + 1}.`,
         },
         {
           type: "text",
-          text: `The new constraints list: ${newConstraints.map(getConstraintGroupSummary).join(", ")}.`,
+          text: `The new elements list: ${newElements.map(getElementSummary).join(", ")}.`,
         },
         {
           type: "text",
-          text: `New constraint: ${JSON.stringify(newConstraint, null, 2)}`,
+          text: `New element: ${JSON.stringify(newElement, null, 2)}`,
         },
       ],
     };
   },
 );
 
-const updateConstraintGroupTool = new ToolImplementation(
+const updateElementTool = new ToolImplementation(
   {
     definition: {
-      name: "update_constraint_group",
-      title: "Update constraint group",
+      name: "update_element",
+      title: "Update Sudoku Maker element",
       description:
-        "Update global properties of a constraint group and/or batch-update properties of all instances of this constraint group",
+        "Update global properties of an element and/or batch-update properties of all clues of this element",
     },
   },
   z.object({
-    constraintId: z.number().int().describe("Constraint group ID to update"),
+    elementId: z.number().int().describe("Element ID to update"),
     operationDescription: z
       .string()
       .optional()
@@ -849,22 +841,22 @@ const updateConstraintGroupTool = new ToolImplementation(
       ),
     updates: z
       .union(
-        AllConstraints.filter(
-          ({ globalSchema, instance }) => globalSchema || instance,
-        ).map((constraint) =>
+        AllElements.filter(
+          ({ globalSchema, clue }) => globalSchema || clue,
+        ).map((element) =>
           z.object({
-            type: z.literal(constraint.typeName),
-            ...(constraint.globalSchema
+            type: z.literal(element.typeName),
+            ...(element.globalSchema
               ? {
-                  groupUpdates: ZodDeepPartial(
-                    constraint.globalSchema,
+                  elementUpdates: ZodDeepPartial(
+                    element.globalSchema,
                   ).optional(),
                 }
               : {}),
-            ...(constraint.instance
+            ...(element.clue
               ? {
-                  instanceBatchUpdates: ZodDeepPartial(
-                    constraint.instance.schema,
+                  clueBatchUpdates: ZodDeepPartial(
+                    element.clue.schema,
                   ).optional(),
                 }
               : {}),
@@ -872,139 +864,131 @@ const updateConstraintGroupTool = new ToolImplementation(
         ),
       )
       .describe(
-        "Updates to apply to the constraint group: " +
-          "type - target constraint group type name (should match the actual type or the operation will fail), " +
-          "groupUpdates - update parameters of the constraint group itself, " +
-          "instanceBatchUpdates - update parameters of EVERY instance of the constraint group " +
+        "Updates to apply to the element: " +
+          "type - target element type name (should match the actual type or the operation will fail), " +
+          "elementUpdates - update parameters of the element itself, " +
+          "clueBatchUpdates - update parameters of EVERY clue of the element " +
           "(don't update cell coords there, batch-updating them to the same value doesn't make sense!)",
       ),
   }),
   ({
-    constraintId,
-    updates: { type, groupUpdates, instanceBatchUpdates },
+    elementId,
+    updates: { type, elementUpdates, clueBatchUpdates },
     operationDescription,
   }) => {
-    const { index, targetConstraint } = getConstraintGroupById(
-      constraintId,
-      type,
-    );
+    const { index, targetElement } = getElementById(elementId, type);
 
-    const constraintType = getConstraintByTypeName(type);
-    const instanceKey = constraintType.instance?.key;
+    const elementType = getElementByTypeName(type);
+    const cluesKey = elementType.clue?.key;
 
     updatePuzzle(
       (puzzle) => {
-        const constraint = puzzle.allConstraints[index];
-        if (groupUpdates) {
-          constraint.config = mergeDeepUpdates<typeof constraint.config>(
-            constraint.config,
-            groupUpdates,
+        const element = puzzle.allElements[index];
+        if (elementUpdates) {
+          element.config = mergeDeepUpdates<typeof element.config>(
+            element.config,
+            elementUpdates,
           );
         }
-        if (instanceBatchUpdates && instanceKey) {
-          const config = constraint.config as {
-            [key in typeof instanceKey]: any[];
+        if (clueBatchUpdates && cluesKey) {
+          const config = element.config as {
+            [key in typeof cluesKey]: any[];
           };
-          config[instanceKey] = config[instanceKey].map((value) =>
-            mergeDeepUpdates(value, instanceBatchUpdates),
+          config[cluesKey] = config[cluesKey].map((value) =>
+            mergeDeepUpdates(value, clueBatchUpdates),
           );
         }
       },
       (from, to) => {
         to.allConstraints[index].config = from.allConstraints[index].config;
       },
-      operationDescription ||
-        `Update ${getConstraintGroupFinalName(targetConstraint)}`,
+      operationDescription || `Update ${getElementFinalName(targetElement)}`,
     );
 
-    const updatedConstraint = getPuzzle().allConstraints[index];
+    const updatedElement = getPuzzle().allElements[index];
 
-    const updatedConfig = { ...updatedConstraint.config } as any;
-    const excludeInstances = instanceKey && !instanceBatchUpdates;
-    if (excludeInstances) {
-      delete updatedConfig[instanceKey];
+    const updatedConfig = { ...updatedElement.config } as any;
+    const excludeClues = cluesKey && !clueBatchUpdates;
+    if (excludeClues) {
+      delete updatedConfig[cluesKey];
     }
 
     return {
       content: [
         {
           type: "text",
-          text: `Constraint group "${getConstraintGroupFinalName(updatedConstraint)}" updated successfully.`,
+          text: `Element "${getElementFinalName(updatedElement)}" updated successfully.`,
         },
         {
           type: "text",
-          text: `Here's the updated config spec${excludeInstances ? " (excluding the instances list)" : ""}: ${JSON.stringify(updatedConfig, null, 2)}`,
+          text: `Here's the updated config spec${excludeClues ? " (excluding the clues list)" : ""}: ${JSON.stringify(updatedConfig, null, 2)}`,
         },
       ],
     };
   },
 );
 
-const removeConstraintGroupTool = new ToolImplementation(
+const removeElementTool = new ToolImplementation(
   {
     definition: {
-      name: "remove_constraint_group",
-      title: "Remove constraint group",
-      description: "Remove constraint group from the puzzle by ID",
+      name: "remove_element",
+      title: "Remove Sudoku Maker element",
+      description: "Remove element from the puzzle by ID",
     },
   },
   z.object({
-    constraintId: z.number().int().describe("Constraint group ID to delete"),
-    constraintName: z
+    elementId: z.number().int().describe("Element ID to delete"),
+    elementName: z
       .string()
       .optional()
       .describe(
-        "The name of the constraint group that's going to be deleted - use this parameter to make the AI user understand which constraint is going to be removed when looking at the MCP tool call parameters",
+        "The name of the element that's going to be deleted - use this parameter to make the LLM user understand which element is going to be removed when looking at the MCP tool call parameters",
       ),
   }),
-  ({ constraintId }) => {
-    const { index, targetConstraint } = getConstraintGroupById(constraintId);
+  ({ elementId }) => {
+    const { index, targetElement } = getElementById(elementId);
 
     updatePuzzle(
       (puzzle) => {
-        puzzle.allConstraints.splice(index, 1);
+        puzzle.allElements.splice(index, 1);
       },
       (_from, to) => {
         to.allConstraints.splice(index, 1);
       },
-      `Remove ${getConstraintGroupFinalName(targetConstraint)}`,
+      `Remove ${getElementFinalName(targetElement)}`,
     );
 
-    const remainingConstraints = getPuzzle().allConstraints;
+    const remainingElements = getPuzzle().allElements;
 
     return {
       content: [
         {
           type: "text",
-          text: `Constraint group "${getConstraintGroupFinalName(targetConstraint)}" of type "${targetConstraint.config.type}" removed from position ${index + 1}.`,
+          text: `Element "${getElementFinalName(targetElement)}" of type "${targetElement.config.type}" removed from position ${index + 1}.`,
         },
         {
           type: "text",
-          text: `The remaining constraints: ${remainingConstraints.map(getConstraintGroupSummary).join(", ") || "none"}.`,
+          text: `The remaining elements: ${remainingElements.map(getElementSummary).join(", ") || "none"}.`,
         },
         {
           type: "text",
-          text: `The full spec of the removed constraint (verify that it's the constraint that you wanted to delete!): ${JSON.stringify(targetConstraint, null, 2)}`,
+          text: `The full spec of the removed element (verify that it's the element that you wanted to delete!): ${JSON.stringify(targetElement, null, 2)}`,
         },
       ],
     };
   },
 );
 
-const addConstraintInstancesTool = new ToolImplementation(
+const addCluesTool = new ToolImplementation(
   {
     definition: {
-      name: "add_constraint_instances",
-      title: "Add constraint instances",
-      description:
-        "Add one or more instances to an existing constraint group in the puzzle",
+      name: "add_clues",
+      title: "Add Sudoku Maker clues",
+      description: "Add one or more clues to an existing element in the puzzle",
     },
   },
   z.object({
-    constraintId: z
-      .number()
-      .int()
-      .describe("Constraint group ID to insert the constraints to"),
+    elementId: z.number().int().describe("Element ID to insert the clues to"),
     operationDescription: z
       .string()
       .optional()
@@ -1013,172 +997,161 @@ const addConstraintInstancesTool = new ToolImplementation(
           "This helps the non-technical user understand the action they're approving.",
       ),
     insert: z.union(
-      AllConstraints.filter(({ instance }) => instance).map((constraint) =>
+      AllElements.filter(({ clue }) => clue).map((element) =>
         z.object({
           type: z
-            .literal(constraint.typeName)
+            .literal(element.typeName)
             .describe(
-              "The type of the target constraint group. The operation will fail if they don't match.",
+              "The type of the target element. The operation will fail if they don't match.",
             ),
-          instances: z
-            .array(constraint.instance!.schema)
-            .describe("Constraint instances to add"),
+          clues: z.array(element.clue!.schema).describe("Clues to add"),
         }),
       ),
     ),
   }),
-  ({ constraintId, operationDescription, insert: { type, instances } }) => {
-    const { index, targetConstraint } = getConstraintGroupById(
-      constraintId,
-      type,
-    );
+  ({ elementId, operationDescription, insert: { type, clues } }) => {
+    const { index, targetElement } = getElementById(elementId, type);
 
-    const constraintType = getConstraintByTypeName(type);
-    const instancesKey = constraintType.instance!.key;
+    const elementType = getElementByTypeName(type);
+    const cluesKey = elementType.clue!.key;
 
     updatePuzzle(
       (puzzle) => {
-        (puzzle.allConstraints[index].config as any)[instancesKey].push(
-          ...instances,
-        );
+        (puzzle.allElements[index].config as any)[cluesKey].push(...clues);
       },
       (from, to) => {
-        (to.allConstraints[index].config as any)[instancesKey] = (
+        (to.allConstraints[index].config as any)[cluesKey] = (
           from.allConstraints[index].config as any
-        )[instancesKey];
+        )[cluesKey];
       },
       operationDescription ||
-        `Add ${instances.length} instances of "${getConstraintGroupFinalName(targetConstraint)}"`,
+        `Add ${clues.length} clues of "${getElementFinalName(targetElement)}"`,
     );
 
-    const updatedConstraint = getPuzzle().allConstraints[index];
+    const updatedElement = getPuzzle().allElements[index];
 
     return {
       content: [
         {
           type: "text",
-          text: `Add ${instances.length} instances of "${getConstraintGroupFinalName(targetConstraint)}", there are ${(updatedConstraint.config as any)[instancesKey].length} instances in total now.`,
+          text: `Added ${clues.length} clues of "${getElementFinalName(targetElement)}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
         },
       ],
     };
   },
 );
 
-const ConstraintInstanceCellsGroupFilter = z.array(CellIdPublic).meta({
-  id: "ConstraintInstanceCellsGroupFilter",
+const ClueCellsGroupFilter = z.array(CellIdPublic).meta({
+  id: "ClueCellsGroupFilter",
   description:
-    "A group of cells that indicates which constraint to target. Only constraint that affect ALL cells in the group will be targeted. Please pass enough cells here to identify the constraint instance uniquely unless you want to target multiple constraints at the time.",
+    "A group of cells that indicates which clue to target. Only clues that affect ALL cells in the group will be targeted. " +
+    "Please pass enough cells here to identify the clue uniquely unless you want to target multiple clues at the time.",
 });
-const updateConstraintsByCellGroups = (
-  constraintId: number,
+const updateCluesByCellGroups = (
+  elementId: number,
   type: string,
-  constraintCellGroups: CellCoords[][],
+  clueCellGroups: CellCoords[][],
   updateCallback: (
-    instances: any[],
+    clues: any[],
     matchingIndexGroups: number[][],
     allMatchingIndexes: Set<number>,
   ) => any[] | void,
   operationDescription: (
-    targetConstraint: z.input<typeof ConstraintSchema>,
-    affectedInstancesCount: number,
+    targetElement: z.input<typeof ElementSchema>,
+    affectedCluesCount: number,
   ) => string,
 ) => {
-  const { index, targetConstraint } = getConstraintGroupById(
-    constraintId,
-    type,
-  );
+  const { index, targetElement } = getElementById(elementId, type);
 
-  const constraintType = getConstraintByTypeName(type);
-  const instancesKey = constraintType.instance!.key;
-  const instances = (
-    (targetConstraint.config as any)[instancesKey] as any[]
-  ).map((instance, index) => ({
-    index,
-    instance,
-    cells: constraintType.instance!.getAffectedCells(instance),
-  }));
-  const matchingInstances = constraintCellGroups.map((cells) =>
-    instances.filter((instance) =>
+  const elementType = getElementByTypeName(type);
+  const cluesKey = elementType.clue!.key;
+  const clues = ((targetElement.config as any)[cluesKey] as any[]).map(
+    (clue, index) => ({
+      index,
+      clue,
+      cells: elementType.clue!.getAffectedCells(clue),
+    }),
+  );
+  const matchingClues = clueCellGroups.map((cells) =>
+    clues.filter((clue) =>
       cells.every((cell1) =>
-        instance.cells.some(
+        clue.cells.some(
           (cell2) => cell2.row === cell1.row && cell2.column === cell1.column,
         ),
       ),
     ),
   );
   const allMatchingIndexes = new Set(
-    matchingInstances.flat().map(({ index }) => index),
+    matchingClues.flat().map(({ index }) => index),
   );
 
   if (allMatchingIndexes.size === 0) {
-    const allInstanceCells = instances
+    const allClueCells = clues
       .map(({ cells }) => toShortCellNotation(cells))
       .map((cellsStr) => `(${cellsStr || "none"})`);
 
     throw new Error(
-      `No matching constraints found, please check the filters. There are constraints with the following affected cells - you can target only these cells: ${allInstanceCells.join("; ") || "none"}`,
+      `No matching clues found, please check the filters. There are clues with the following affected cells - you can target only these cells: ${allClueCells.join("; ") || "none"}`,
     );
   }
 
   updatePuzzle(
     (puzzle) => {
-      const config = puzzle.allConstraints[index].config as any;
+      const config = puzzle.allElements[index].config as any;
       const result = updateCallback(
-        config[instancesKey],
-        matchingInstances.map((group) => group.map(({ index }) => index)),
+        config[cluesKey],
+        matchingClues.map((group) => group.map(({ index }) => index)),
         allMatchingIndexes,
       );
       if (result) {
-        config[instancesKey] = result;
+        config[cluesKey] = result;
       }
     },
     (from, to) => {
-      (to.allConstraints[index].config as any)[instancesKey] = (
+      (to.allConstraints[index].config as any)[cluesKey] = (
         from.allConstraints[index].config as any
-      )[instancesKey];
+      )[cluesKey];
     },
-    operationDescription(targetConstraint, allMatchingIndexes.size),
+    operationDescription(targetElement, allMatchingIndexes.size),
   );
 
-  const updatedConstraint = getPuzzle().allConstraints[index];
-  const updatedInstances = (updatedConstraint.config as any)[
-    instancesKey
-  ] as any[];
+  const updatedElement = getPuzzle().allElements[index];
+  const updatedClues = (updatedElement.config as any)[cluesKey] as any[];
 
   return {
     index,
-    targetConstraint,
-    constraintType,
-    instancesKey,
-    instances,
-    matchingInstances,
+    targetElement,
+    elementType,
+    cluesKey,
+    clues,
+    matchingClues,
     allMatchingIndexes,
-    updatedConstraint,
-    updatedInstances,
+    updatedElement,
+    updatedClues,
     messages: [
-      ...matchingInstances.map((matches, groupIndex) => ({
+      ...matchingClues.map((matches, groupIndex) => ({
         type: "text" as const,
-        text: `Cells group #${groupIndex + 1} - targeted ${matches.length} constraints: ${JSON.stringify(matches.map(({ instance }) => instance))}`,
+        text: `Cells group #${groupIndex + 1} - targeted ${matches.length} clues: ${JSON.stringify(matches.map(({ clue }) => clue))}`,
       })),
       {
         type: "text" as const,
-        text: "If some of the targeted constraints above don't match your expectations, please undo the operation immediately!",
+        text: "If some of the targeted clues above don't match your expectations, please undo the operation immediately!",
       },
     ],
   };
 };
 
-const updateConstraintInstancesTool = new ToolImplementation(
+const updateCluesTool = new ToolImplementation(
   {
     definition: {
-      name: "update_constraint_instances",
-      title: "Update constraint instances",
+      name: "update_clues",
+      title: "Update Sudoku Maker clues",
       description:
-        "Update properties of one or more instances of an existing constraint group in the puzzle",
+        "Update properties of one or more clues of an existing element in the puzzle",
     },
   },
   z.object({
-    constraintId: z.number().int().describe("Constraint group ID to update"),
+    elementId: z.number().int().describe("Element ID to update"),
     operationDescription: z
       .string()
       .optional()
@@ -1188,50 +1161,46 @@ const updateConstraintInstancesTool = new ToolImplementation(
       ),
     updates: z
       .union(
-        AllConstraints.filter(({ instance }) => instance).map((constraint) =>
+        AllElements.filter(({ clue }) => clue).map((element) =>
           z.object({
-            type: z.literal(constraint.typeName),
+            type: z.literal(element.typeName),
             updateGroups: z.array(
               z.object({
-                constraintCells: ConstraintInstanceCellsGroupFilter,
-                updates: ZodDeepPartial(constraint.instance!.schema),
+                clueCells: ClueCellsGroupFilter,
+                updates: ZodDeepPartial(element.clue!.schema),
               }),
             ),
           }),
         ),
       )
       .describe(
-        "Updates to apply to the constraint group: " +
-          "type - target constraint group type name (should match the actual type or the operation will fail), " +
-          "updates - parameters to update for every matching constraint instance",
+        "Updates to apply to the clues: " +
+          "type - target element type name (should match the actual type or the operation will fail), " +
+          "updates - parameters to update for every matching clue",
       ),
   }),
-  ({ constraintId, updates: { type, updateGroups }, operationDescription }) => {
-    const {
-      allMatchingIndexes,
-      updatedConstraint,
-      updatedInstances,
-      messages,
-    } = updateConstraintsByCellGroups(
-      constraintId,
-      type,
-      updateGroups.map(({ constraintCells }) => constraintCells),
-      (instances, matchingIndexGroups) => {
-        for (const [updateGroupIndex, { updates }] of updateGroups.entries()) {
-          for (const instanceIndex of matchingIndexGroups[updateGroupIndex]) {
-            instances[instanceIndex] = mergeDeepUpdates(
-              instances[instanceIndex],
-              updates,
-            );
+  ({ elementId, updates: { type, updateGroups }, operationDescription }) => {
+    const { allMatchingIndexes, updatedElement, updatedClues, messages } =
+      updateCluesByCellGroups(
+        elementId,
+        type,
+        updateGroups.map(({ clueCells }) => clueCells),
+        (clues, matchingIndexGroups) => {
+          for (const [
+            updateGroupIndex,
+            { updates },
+          ] of updateGroups.entries()) {
+            for (const clueIndex of matchingIndexGroups[updateGroupIndex]) {
+              clues[clueIndex] = mergeDeepUpdates(clues[clueIndex], updates);
+            }
           }
-        }
-      },
-      (targetConstraint) =>
-        operationDescription ||
-        `Update "${getConstraintGroupFinalName(targetConstraint)}"`,
-    );
+        },
+        (targetElement) =>
+          operationDescription ||
+          `Update "${getElementFinalName(targetElement)}" clues`,
+      );
 
-    const affectedInstances = updatedInstances.filter((_, index) =>
+    const affectedClues = updatedClues.filter((_, index) =>
       allMatchingIndexes.has(index),
     );
 
@@ -1239,32 +1208,29 @@ const updateConstraintInstancesTool = new ToolImplementation(
       content: [
         {
           type: "text",
-          text: `Updated ${allMatchingIndexes.size} instances of "${getConstraintGroupFinalName(updatedConstraint)}".`,
+          text: `Updated ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}".`,
         },
         ...messages,
         {
           type: "text",
-          text: `Here are the affected constraints after the update: ${JSON.stringify(affectedInstances, null, 2)}`,
+          text: `Here are the affected clues after the update: ${JSON.stringify(affectedClues, null, 2)}`,
         },
       ],
     };
   },
 );
 
-const removeConstraintInstancesTool = new ToolImplementation(
+const removeCluesTool = new ToolImplementation(
   {
     definition: {
-      name: "remove_constraint_instances",
-      title: "Remove constraint instances",
+      name: "remove_clues",
+      title: "Remove Sudoku Maker clues",
       description:
-        "Remove one or more instances of an existing constraint group in the puzzle",
+        "Remove one or more clues of an existing element in the puzzle",
     },
   },
   z.object({
-    constraintId: z
-      .number()
-      .int()
-      .describe("Constraint group ID to remove the constraints from"),
+    elementId: z.number().int().describe("Element ID to remove the clues from"),
     operationDescription: z
       .string()
       .optional()
@@ -1272,48 +1238,42 @@ const removeConstraintInstancesTool = new ToolImplementation(
         "Human-readable summary of what this operation does. " +
           "This helps the non-technical user understand the action they're approving.",
       ),
-    constraintType: z
+    elementType: z
       .enum(
-        AllConstraints.filter(({ instance }) => instance).map(
-          ({ typeName }) => typeName,
-        ),
+        AllElements.filter(({ clue }) => clue).map(({ typeName }) => typeName),
       )
       .describe(
-        "The type of the target constraint group. The operation will fail if they don't match.",
+        "The type of the target element. The operation will fail if they don't match.",
       ),
-    constraintCellGroups: z
-      .array(ConstraintInstanceCellsGroupFilter)
+    clueCellGroups: z
+      .array(ClueCellsGroupFilter)
       .describe(
-        "Groups of cells that indicate which constraints to remove. Each group triggers a separate removal.",
+        "Groups of cells that indicate which clues to remove. Each group triggers a separate removal.",
       ),
   }),
   ({
-    constraintId,
-    constraintType: type,
-    constraintCellGroups,
+    elementId,
+    elementType: type,
+    clueCellGroups,
     operationDescription,
   }): CallToolResult => {
-    const {
-      allMatchingIndexes,
-      updatedConstraint,
-      updatedInstances,
-      messages,
-    } = updateConstraintsByCellGroups(
-      constraintId,
-      type,
-      constraintCellGroups,
-      (instances, _, allMatchingIndexes) =>
-        instances.filter((_value, index) => !allMatchingIndexes.has(index)),
-      (targetConstraint, affectedInstancesCount) =>
-        operationDescription ||
-        `Remove ${affectedInstancesCount} instances of "${getConstraintGroupFinalName(targetConstraint)}"`,
-    );
+    const { allMatchingIndexes, updatedElement, updatedClues, messages } =
+      updateCluesByCellGroups(
+        elementId,
+        type,
+        clueCellGroups,
+        (clues, _, allMatchingIndexes) =>
+          clues.filter((_value, index) => !allMatchingIndexes.has(index)),
+        (targetElement, affectedCluesCount) =>
+          operationDescription ||
+          `Remove ${affectedCluesCount} clues of "${getElementFinalName(targetElement)}"`,
+      );
 
     return {
       content: [
         {
           type: "text",
-          text: `Removed ${allMatchingIndexes.size} instances of "${getConstraintGroupFinalName(updatedConstraint)}", there are ${updatedInstances.length} instances in total now.`,
+          text: `Removed ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}", there are ${updatedClues.length} clues in total now.`,
         },
         ...messages,
       ],
@@ -1697,8 +1657,8 @@ The common features:
   cell values, possible candidates, corner marks, colors that usually specify relations between certain cells.
 - Automated solver tools - perform logic steps based on logical puzzle elements,
   find/count all solutions to the puzzle (all valid combinations of digits in the cells).
-  As a computer solving tool, it recognizes only built-in constraints -
-  it cannot perform logic based on free-text rules description or based on cosmetic-only constraints.
+  As a computer solving tool, it recognizes only built-in elements -
+  it cannot perform logic based on free-text rules description or based on cosmetic-only elements.
   The automated solver can handle only digit-based puzzles - it cannot make deductions/checks on shading, lines, etc.
   (unless they are somehow represented by digits in the cells).
   The solver will write all possible candidates for every cell (based on eliminations it did so far) as center marks,
@@ -1711,9 +1671,10 @@ The common features:
 
 **Terminology:**
 - **Element**: An entry in the Elements panel (e.g., "Arrows", "Regions").
-  Each element corresponds to one item in the puzzle's \`allConstraints\` array and may contain multiple clues.
+  Each element corresponds to one item in the puzzle's \`allElements\` array and may contain multiple clues.
 - **Clue**: An individual instance placed on the grid (e.g., one arrow, one cage).
   For element types that support multiple placements, clues are stored in an array within the element's configuration.
+- **Constraint**: Restrictions that *element*'s logic enforces to the digits in the grid.
 
 Users may use "constraint", "clue", or "element" interchangeably. Infer meaning from context.
 
@@ -1721,7 +1682,7 @@ Sudoku Maker has a wide range of popular variant sudoku constraints built in,
 but it's flexible to support any constraint that the setter can imagine.
 The visual representation of user-defined constraints is achieved
 by combining multiple elementary cosmetic shapes (e.g. lines, circles, texts, etc.).
-The logical part of user-defined constraints is achieved by creating so called "custom constraint" -
+The logical part of user-defined constraints is achieved by creating a "custom constraint" element -
 a set of JavaScript snippets that implement the logical deductions and validation of the constraint.
 
 The end goal is to create a puzzle that has exactly one solution, i.e. exactly one option of which digit to put in each cell.
@@ -1842,7 +1803,7 @@ So it's similar to the cell naming system, but slightly offset.
 
 When to use each system:
 - **In MCP tool calls:** Use the coordinate system specified in each tool's JSON schema:
-  - Cell coordinates (row/column) for constraints, given digits, cell marks,
+  - Cell coordinates (row/column) for given digits, cell marks,
     and puzzle elements that reference specific cells (which is almost every element).
   - Point coordinates (x, y) for cosmetic elements that need arbitrary positioning.
 - **When talking to the user:** Always use cell coordinates and Snider notation (e.g. r7c2),
@@ -1862,19 +1823,19 @@ Elements fall into three categories based on how their clues are managed:
 
 2. **Multi-clue elements**: Support placing multiple clues on the grid
    - Examples: "Arrows", "Thermometers", "Killer cages", "Renban lines"
-   - Use \`${addConstraintInstancesTool.name}\`, \`${updateConstraintInstancesTool.name}\`, \`${removeConstraintInstancesTool.name}\` tools to manage individual clues
+   - Use \`${addCluesTool.name}\`, \`${updateCluesTool.name}\`, \`${removeCluesTool.name}\` tools to manage individual clues
    - Clues are stored in arrays within the element's configuration (e.g., \`lines\`, \`cages\`, \`clues\`)
 
 3. **Special-case elements**: Have clues conceptually, but use specialized tools
    - **Given digits**: Each given digit is conceptually a clue, but use \`${updateGivenDigitsTool.name}\` tool instead. Given digits are stored in individual cells, not in the element's configuration.
-   - **Regions**: Each region is conceptually a clue, but defined by a grid mapping where each cell has a region number. Update via \`${updateConstraintGroupTool.name}\` with the full region grid.
+   - **Regions**: Each region is conceptually a clue, but defined by a grid mapping where each cell has a region number. Update via \`${updateElementTool.name}\` with the full region grid.
 
 ## MCP tool call transparency
 
 Many tools include "tabDescription" and "operationDescription" parameters.
 These are not for you - they're shown to the user in the JSON dump when they approve/reject tool calls.
 Always populate these with clear, non-technical descriptions of what you're doing and which of the tabs you're targeting,
-since the user sees the raw JSON but may not understand technical parameters like numeric tab IDs or constraint config specifications.
+since the user sees the raw JSON but may not understand technical parameters like numeric tab IDs or element config specifications.
 
 ## JSON schemas
 
@@ -1916,12 +1877,12 @@ const tools = [
   updateGivenDigitsTool,
   updateCellValuesTool,
   updateCellMarksTool,
-  addConstraintGroupTool,
-  updateConstraintGroupTool,
-  removeConstraintGroupTool,
-  addConstraintInstancesTool,
-  updateConstraintInstancesTool,
-  removeConstraintInstancesTool,
+  addElementTool,
+  updateElementTool,
+  removeElementTool,
+  addCluesTool,
+  updateCluesTool,
+  removeCluesTool,
   undoTool,
   redoTool,
   clearGridTool,
@@ -1937,7 +1898,7 @@ const tools = [
 tabSyncClient.onCustomMessage<undefined, string>("getInfo", () => {
   const puzzle = getPuzzle();
 
-  return `Puzzle author: "${puzzle.author}"; Puzzle spec: ${JSON.stringify(puzzle.spec)}; Puzzle constraints count: ${puzzle.allConstraints.length}; Call the ${getPuzzleTool.name} tool to get the full puzzle contents.`;
+  return `Puzzle author: "${puzzle.author}"; Puzzle spec: ${JSON.stringify(puzzle.spec)}; Puzzle elements count: ${puzzle.allElements.length}; Call the ${getPuzzleTool.name} tool to get the full puzzle contents.`;
 });
 
 tabSyncClient.onCustomMessage<undefined, Tool[]>("listTools", () =>
