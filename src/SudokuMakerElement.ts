@@ -13,6 +13,7 @@ import {
   CellsArray,
 } from "./SudokuMakerSchemas";
 import { z } from "zod";
+import { SmartDiscriminatedUnion } from "./SmartDiscriminatedUnion.ts";
 
 // region Core
 type PublicConfigT<
@@ -1851,12 +1852,13 @@ export const getElementByConfig = <TypeT extends ElementType>(
     any
   >;
 
-export const ElementConfigSchema = z
-  .union(AllElements.map(({ schema }) => schema))
-  .meta({
-    id: "ElementConfig",
-    description: "Element configuration",
-  });
+export const ElementConfigSchema = SmartDiscriminatedUnion(
+  "type",
+  AllElements.map(({ schema }) => schema),
+).meta({
+  id: "ElementConfig",
+  description: "Element configuration",
+});
 
 export const ElementSchema = z
   .intersection(

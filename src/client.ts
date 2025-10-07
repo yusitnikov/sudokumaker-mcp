@@ -22,6 +22,7 @@ import {
   CellSchemaNoId,
 } from "./SudokuMakerSchemas.ts";
 import { mergeDeepUpdates, ZodDeepPartial } from "./DeepPartial.ts";
+import { SmartDiscriminatedUnion } from "./SmartDiscriminatedUnion.ts";
 
 const code = `
     import { run } from "${import.meta.url.replace("/client", "/worker")}";
@@ -839,11 +840,10 @@ const updateElementTool = new ToolImplementation(
         "Human-readable summary of what this operation does. " +
           "This helps the non-technical user understand the action they're approving.",
       ),
-    updates: z
-      .union(
-        AllElements.filter(
-          ({ globalSchema, clue }) => globalSchema || clue,
-        ).map((element) =>
+    updates: SmartDiscriminatedUnion(
+      "type",
+      AllElements.filter(({ globalSchema, clue }) => globalSchema || clue).map(
+        (element) =>
           z.object({
             type: z.literal(element.typeName),
             ...(element.globalSchema
@@ -861,15 +861,14 @@ const updateElementTool = new ToolImplementation(
                 }
               : {}),
           }),
-        ),
-      )
-      .describe(
-        "Updates to apply to the element: " +
-          "type - target element type name (should match the actual type or the operation will fail), " +
-          "elementUpdates - update parameters of the element itself, " +
-          "clueBatchUpdates - update parameters of EVERY clue of the element " +
-          "(don't update cell coords there, batch-updating them to the same value doesn't make sense!)",
       ),
+    ).describe(
+      "Updates to apply to the element: " +
+        "type - target element type name (should match the actual type or the operation will fail), " +
+        "elementUpdates - update parameters of the element itself, " +
+        "clueBatchUpdates - update parameters of EVERY clue of the element " +
+        "(don't update cell coords there, batch-updating them to the same value doesn't make sense!)",
+    ),
   }),
   ({
     elementId,
@@ -996,7 +995,8 @@ const addCluesTool = new ToolImplementation(
         "Human-readable summary of what this operation does. " +
           "This helps the non-technical user understand the action they're approving.",
       ),
-    insert: z.union(
+    insert: SmartDiscriminatedUnion(
+      "type",
       AllElements.filter(({ clue }) => clue).map((element) =>
         z.object({
           type: z
@@ -1159,25 +1159,24 @@ const updateCluesTool = new ToolImplementation(
         "Human-readable summary of what this operation does. " +
           "This helps the non-technical user understand the action they're approving.",
       ),
-    updates: z
-      .union(
-        AllElements.filter(({ clue }) => clue).map((element) =>
-          z.object({
-            type: z.literal(element.typeName),
-            updateGroups: z.array(
-              z.object({
-                clueCells: ClueCellsGroupFilter,
-                updates: ZodDeepPartial(element.clue!.schema),
-              }),
-            ),
-          }),
-        ),
-      )
-      .describe(
-        "Updates to apply to the clues: " +
-          "type - target element type name (should match the actual type or the operation will fail), " +
-          "updates - parameters to update for every matching clue",
+    updates: SmartDiscriminatedUnion(
+      "type",
+      AllElements.filter(({ clue }) => clue).map((element) =>
+        z.object({
+          type: z.literal(element.typeName),
+          updateGroups: z.array(
+            z.object({
+              clueCells: ClueCellsGroupFilter,
+              updates: ZodDeepPartial(element.clue!.schema),
+            }),
+          ),
+        }),
       ),
+    ).describe(
+      "Updates to apply to the clues: " +
+        "type - target element type name (should match the actual type or the operation will fail), " +
+        "updates - parameters to update for every matching clue",
+    ),
   }),
   ({ elementId, updates: { type, updateGroups }, operationDescription }) => {
     const { allMatchingIndexes, updatedElement, updatedClues, messages } =
