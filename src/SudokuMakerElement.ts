@@ -945,8 +945,22 @@ export const ArrowElement = new SudokuMakerElement({
   clue: {
     key: "bulbsWithArrows",
     schema: z.object({
-      bulbCells: z.array(CellId).describe(""), // Important: index 0 is 1s, index 1 is 10s, etc
-      arrows: z.array(z.array(CellId)).describe(""),
+      bulbCells: z
+        .array(CellId)
+        .describe(
+          "Cells occupied by the arrow's bulb. " +
+            'Usually the bulb is only one cell (and it\'s called just "circle"), ' +
+            "but it could take several orthogonally connected cells, " +
+            "meaning that the digits in these cells read as a multi-digit number.",
+        ), // Important: index 0 is 1s, index 1 is 10s, etc
+      arrows: z
+        .array(z.array(CellId))
+        .describe(
+          "Arrow lines attached to the bulb. " +
+            "Every arrow line array MUST include one of the bulb cells as its first element, followed by the cells along the arrow path. " +
+            "The bulb cell itself is not counted towards the sum - only the subsequent cells are. " +
+            "If multiple arrows attached to the bulb, digits on each arrow line sum to the number in the bulb INDIVIDUALLY.",
+        ),
     }),
     getAffectedCells: ({ bulbCells, arrows }) => [
       ...bulbCells,
