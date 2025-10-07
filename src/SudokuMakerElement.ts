@@ -1180,66 +1180,108 @@ export const ColumnIndexerElement = new SudokuMakerElement({
   },
 });
 
-export const UserDefined = z.any().describe("");
-export const CustomConstraintConfigInput = z.record(
-  z.string().describe(""),
-  UserDefined,
-);
-export const CustomConstraintConfigStyle = z.record(
-  z.string().describe(""),
-  UserDefined,
+export const CustomConstraintInputGroupsSchema = z.array(
+  z.object({
+    cells: z.array(CellId),
+    value: z.string(),
+  }),
 );
 
-// region Custom constraint
-export const RawInput = z
+export const CustomComponentSchema = z
   .object({
-    type: z.literal("raw").describe(""),
+    type: z.literal("code"),
+    name: z.string(),
+    code: z.string(),
   })
   .describe("");
-
-export const CustomConstraintInput = z
-  .object({
-    id: z.string().describe(""),
-    label: z.string().describe(""),
-    params: RawInput,
-  })
-  .describe("");
-
-export const CustomConstraintBackend = z
-  .object({
-    type: z.literal("code").describe(""),
-    code: z.string().describe(""),
-  })
-  .describe("");
-
-export const CustomConstraintComponent = z
-  .object({
-    type: z.literal("code").describe(""),
-    name: z.string().describe(""),
-    code: z.string().describe(""),
-  })
-  .describe("");
-
-export const CustomConstraintDefinition = z
-  .object({
-    name: z.string().describe(""),
-    input: z.array(CustomConstraintInput).describe(""),
-    backend: CustomConstraintBackend,
-    components: z.array(CustomConstraintComponent).describe(""),
-  })
-  .describe("");
-// endregion
 
 export const CustomElement = new SudokuMakerElement({
   type: ElementType.Custom,
-  schema: z.object({
-    definition: CustomConstraintDefinition,
-    input: CustomConstraintConfigInput,
-    style: CustomConstraintConfigStyle,
-  }),
+  schema: z.codec(
+    z.object({
+      name: z.string(),
+      isGlobal: z
+        .boolean()
+        .describe(
+          "Is it a global constraint? " +
+            "Global constraints don't have input groups, they iterate over the cells in the initialization code instead. " +
+            "Local constraints use input groups to define which cells they apply to.",
+        ),
+      inputGroups: CustomConstraintInputGroupsSchema,
+      initializationCode: z.string(),
+      customComponents: z.array(CustomComponentSchema),
+    }),
+    z.object({
+      definition: z.object({
+        name: z.string(),
+        input: z.array(
+          z.object({
+            id: z.string(),
+            label: z.string(),
+            params: z.object({ type: z.literal("raw") }),
+          }),
+        ),
+        backend: z.object({
+          type: z.literal("code"),
+          code: z.string(),
+        }),
+        components: z.array(CustomComponentSchema),
+      }),
+      input: z.object({
+        groups: CustomConstraintInputGroupsSchema.optional(),
+      }),
+      style: z.record(z.string(), z.any()),
+    }),
+    {
+      encode: ({
+        definition: {
+          name,
+          input,
+          backend: { code },
+          components,
+        },
+        input: { groups = [] },
+      }) => ({
+        name,
+        isGlobal: !input.some(({ id }) => id === "groups"),
+        inputGroups: CustomConstraintInputGroupsSchema.decode(groups),
+        initializationCode: code,
+        customComponents: components,
+      }),
+      decode: ({
+        name,
+        isGlobal,
+        inputGroups,
+        initializationCode,
+        customComponents,
+      }) => ({
+        definition: {
+          name,
+          input: isGlobal
+            ? []
+            : [
+                {
+                  id: "groups",
+                  label: "Groups",
+                  params: { type: "raw" as const },
+                },
+              ],
+          backend: {
+            type: "code" as const,
+            code: initializationCode,
+          },
+          components: customComponents,
+        },
+        input: isGlobal
+          ? {}
+          : { groups: CustomConstraintInputGroupsSchema.encode(inputGroups) },
+        style: {},
+      }),
+    },
+  ),
   main: {
     title: "Custom constraint",
-    getTitle: (config) => config.definition.name || "Custom constraint",
+    getTitle: (config) => config.name || "Custom constraint",
     description: "Code your own constraints in Javascript",
     defaultConfig: {
       definition: {
