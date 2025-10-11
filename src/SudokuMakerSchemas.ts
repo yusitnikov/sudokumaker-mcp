@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { CellCoordsTransformHelper } from "./SudokuMakerApi.ts";
+import type { CellCoordsTransformHelper } from "./SudokuMakerApi";
 
 /*
   AI comment about critical documentation investment areas:

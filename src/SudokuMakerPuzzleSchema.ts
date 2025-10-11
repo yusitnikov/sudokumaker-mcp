@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CellsArray, CellSchema, Spec } from "./SudokuMakerSchemas";
-import { ElementSchema } from "./SudokuMakerElement.ts";
+import { ElementSchema } from "./SudokuMakerElement";
 
 export const PuzzleSchema = z
   .intersection(

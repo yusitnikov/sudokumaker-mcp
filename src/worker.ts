@@ -7,11 +7,7 @@ import {
   ListToolsRequestSchema,
   type ListToolsResult,
 } from "@modelcontextprotocol/sdk/types.js";
-import {
-  getTabsToolName,
-  type Tool,
-  type WorkerInitOptions,
-} from "./shared.ts";
+import { getTabsToolName, type Tool, type WorkerInitOptions } from "./shared";
 
 // TODO: extract this file as a generic package
 // noinspection JSUnusedGlobalSymbols

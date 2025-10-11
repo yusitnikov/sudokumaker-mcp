@@ -13,7 +13,7 @@ import {
   CellsArray,
 } from "./SudokuMakerSchemas";
 import { z } from "zod";
-import { SmartDiscriminatedUnion } from "./SmartDiscriminatedUnion.ts";
+import { SmartDiscriminatedUnion } from "./SmartDiscriminatedUnion";
 
 // region Core
 type PublicConfigT<

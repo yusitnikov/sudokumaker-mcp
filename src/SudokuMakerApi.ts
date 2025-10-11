@@ -1,6 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
-import type { ElementType } from "./SudokuMakerElement.ts";
+import type { ElementType } from "./SudokuMakerElement";
 import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema";
 
