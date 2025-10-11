@@ -849,7 +849,9 @@ const updateElementTool = new ToolImplementation(
             ...(element.globalSchema
               ? {
                   elementUpdates: ZodDeepPartial(
-                    element.globalSchema,
+                    element.globalSchema instanceof z.ZodCodec
+                      ? element.globalSchema.def.in
+                      : element.globalSchema,
                   ).optional(),
                 }
               : {}),

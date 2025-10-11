@@ -14,13 +14,13 @@ export const mergeDeepUpdates = <T>(object: T, updates: DeepPartial<T>) =>
     arrayMerge: (_target, source) => source,
   });
 
-const cache = new Map<z.core.$ZodType, z.core.ZodType>();
+const cache = new Map<z.core.$ZodType, z.ZodType>();
 export const ZodDeepPartial = <OutputT, InputT>(
   schema: z.core.$ZodType<OutputT, InputT>,
 ): z.ZodType<DeepPartial<OutputT>, DeepPartial<InputT>> => {
   const cached = cache.get(schema);
   if (cached) {
-    return cached;
+    return cached as z.ZodType<DeepPartial<OutputT>, DeepPartial<InputT>>;
   }
 
   let result = ZodDeepPartialInner(schema);
