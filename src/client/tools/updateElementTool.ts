@@ -24,41 +24,69 @@ export const updateElementTool = new ToolImplementation(
         "Human-readable summary of what this operation does. " +
           "This helps the non-technical user understand the action they're approving.",
       ),
-    updates: SmartDiscriminatedUnion(
-      "type",
-      AllElements.filter(({ globalSchema, clue }) => globalSchema || clue).map(
-        (element) =>
-          z.object({
-            type: z.literal(element.typeName),
-            ...(element.globalSchema
-              ? {
-                  elementUpdates: ZodDeepPartial(
-                    element.globalSchema instanceof z.ZodCodec
-                      ? element.globalSchema.def.in
-                      : element.globalSchema,
-                  ).optional(),
-                }
-              : {}),
-            ...(element.clue
-              ? {
-                  clueBatchUpdates: ZodDeepPartial(
-                    element.clue.schema,
-                  ).optional(),
-                }
-              : {}),
-          }),
+    updates: z
+      .intersection(
+        SmartDiscriminatedUnion(
+          "type",
+          AllElements.map((element) =>
+            z.object({
+              type: z.literal(element.typeName),
+              ...(element.globalSchema
+                ? {
+                    elementUpdates: ZodDeepPartial(
+                      element.globalSchema instanceof z.ZodCodec
+                        ? element.globalSchema.def.in
+                        : element.globalSchema,
+                    ).optional(),
+                  }
+                : {}),
+              ...(element.clue
+                ? {
+                    clueBatchUpdates: ZodDeepPartial(
+                      element.clue.schema,
+                    ).optional(),
+                  }
+                : {}),
+            }),
+          ),
+        ),
+        z.object({
+          name: z
+            .string()
+            .optional()
+            .describe(
+              "Rename the element (skip to leave the current name, pass empty string to revert to the default name)",
+            ),
+          enabled: z
+            .boolean()
+            .optional()
+            .describe("Enable or disable the element (both logic and visuals)"),
+          solverIgnored: z
+            .boolean()
+            .optional()
+            .describe(
+              "Enable or disable the element for the solver (logic only)",
+            ),
+        }),
+      )
+      .describe(
+        "Updates to apply to the element: " +
+          "type - target element type name (should match the actual type or the operation will fail), " +
+          "elementUpdates - update parameters of the element itself, " +
+          "clueBatchUpdates - update parameters of EVERY clue of the element " +
+          "(don't update cell coords there, batch-updating them to the same value doesn't make sense!)",
       ),
-    ).describe(
-      "Updates to apply to the element: " +
-        "type - target element type name (should match the actual type or the operation will fail), " +
-        "elementUpdates - update parameters of the element itself, " +
-        "clueBatchUpdates - update parameters of EVERY clue of the element " +
-        "(don't update cell coords there, batch-updating them to the same value doesn't make sense!)",
-    ),
   }),
   ({
     elementId,
-    updates: { type, elementUpdates, clueBatchUpdates },
+    updates: {
+      type,
+      elementUpdates,
+      clueBatchUpdates,
+      name,
+      enabled,
+      solverIgnored,
+    },
     operationDescription,
   }) => {
     const { index, targetElement } = getElementById(elementId, type);
@@ -83,9 +111,18 @@ export const updateElementTool = new ToolImplementation(
             mergeDeepUpdates(value, clueBatchUpdates),
           );
         }
+        if (name !== undefined) {
+          element.name = name;
+        }
+        if (enabled !== undefined) {
+          element.enabled = enabled;
+        }
+        if (solverIgnored !== undefined) {
+          element.solverIgnored = solverIgnored;
+        }
       },
       (from, to) => {
-        to.allConstraints[index].config = from.allConstraints[index].config;
+        to.allConstraints[index] = from.allConstraints[index];
       },
       operationDescription || `Update ${getElementFinalName(targetElement)}`,
     );
