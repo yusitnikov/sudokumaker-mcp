@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   AllElements,
   ElementConfigSchema,
+  ElementMainSchema,
   getElementByTypeName,
 } from "../../SudokuMakerElement";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
@@ -19,13 +20,9 @@ export const addElementTool = new ToolImplementation(
     },
   },
   z.object({
-    name: z
-      .string()
-      .optional()
-      .describe(
-        "Element name. Leave it empty to use the default name according to the element type " +
-          "(recommended when there's only one element of this type in the puzzle)",
-      ),
+    name: ElementMainSchema.shape.name,
+    enabled: ElementMainSchema.shape.enabled.default(true),
+    solverIgnored: ElementMainSchema.shape.solverIgnored.default(false),
     element: z
       .union(
         AllElements.flatMap((element) =>
@@ -73,7 +70,7 @@ export const addElementTool = new ToolImplementation(
       ])
       .describe("Position where to insert the new element to"),
   }),
-  ({ name, element, position }) => {
+  ({ name, enabled = true, solverIgnored = false, element, position }) => {
     const { spec, allElements: currentElements } = getPuzzle();
 
     let index: number;
@@ -117,8 +114,8 @@ export const addElementTool = new ToolImplementation(
           id,
           name,
           config,
-          enabled: true,
-          solverIgnored: false,
+          enabled,
+          solverIgnored,
         });
       },
       (from, to) => {

@@ -1860,31 +1860,35 @@ export const ElementConfigSchema = SmartDiscriminatedUnion(
   description: "Element configuration",
 });
 
+export const ElementMainSchema = z.object({
+  id: z
+    .number()
+    .optional()
+    .describe("Element ID, must be unique within the puzzle"),
+  name: z
+    .string()
+    .optional()
+    .describe(
+      "Element name. Leave it empty to use the default (recommended when there is only one element of the type).",
+    ),
+  enabled: z
+    .boolean()
+    .describe(
+      "Is the element enabled? Disabling an element will hide its visual clues from the grid and exclude its logic from the solver, " +
+        "which is the same as if the element doesn't exist. " +
+        "Useful to temporarily exclude the element from the puzzle without deleting it from the list.",
+    ),
+  solverIgnored: z
+    .boolean()
+    .describe(
+      "Ignore the element's logic in the solver while still showing the visuals in the grid. " +
+        "Use it to make element cosmetic-only, or if you want to temporarily ignore its logic.",
+    ),
+  config: ElementConfigSchema,
+});
 export const ElementSchema = z
   .intersection(
-    z.object({
-      id: z
-        .number()
-        .optional()
-        .describe("Element ID, must be unique within the puzzle"),
-      name: z
-        .string()
-        .optional()
-        .describe(
-          "Element name. Leave it empty to use the default (recommended when there is only one element of the type).",
-        ),
-      enabled: z
-        .boolean()
-        .describe(
-          "Is the element enabled? Disabling an element will hide its visual clues from the grid and exclude its logic from the solver, which is the same as if the element doesn't exist. Useful to temporarily exclude the element from the puzzle without deleting it from the list.",
-        ),
-      solverIgnored: z
-        .boolean()
-        .describe(
-          "Ignore the element's logic in the solver while still showing the visuals in the grid. Use it to make element cosmetic-only, or if you want to temporarily ignore its logic.",
-        ),
-      config: ElementConfigSchema,
-    }),
+    ElementMainSchema,
     z.codec(
       z.object({
         elementMetadata: z
