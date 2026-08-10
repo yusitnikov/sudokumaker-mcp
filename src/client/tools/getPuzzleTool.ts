@@ -1,7 +1,6 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzle } from "../utils";
-import { myTabId } from "../myTabId";
 
 export const getPuzzleTool = new ToolImplementation(
   {
@@ -26,7 +25,7 @@ export const getPuzzleTool = new ToolImplementation(
           "DO NOT guess the puzzle structure, you have the exact schema in the instructions!",
       ),
   }),
-  ({ path = [] }) => {
+  ({ path = [] }, { tabId }) => {
     let result: any = getPuzzle();
     for (const key of path) {
       result = result?.[key];
@@ -49,7 +48,7 @@ export const getPuzzleTool = new ToolImplementation(
         {
           type: "resource",
           resource: {
-            uri: ["puzzle:", "", myTabId.get(), ...path].join("/"),
+            uri: ["puzzle:", "", tabId, ...path].join("/"),
             mimeType: "application/json",
             text: JSON.stringify(result, null, 2),
           },

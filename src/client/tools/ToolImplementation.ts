@@ -1,6 +1,21 @@
 import { z } from "zod";
-import type { Tool } from "../../shared";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type {
+  CallToolResult,
+  Tool as SdkTool,
+} from "@modelcontextprotocol/sdk/types.js";
+
+export interface Tool {
+  definition: SdkTool;
+  global?: boolean;
+  timeout?: number;
+}
+
+/**
+ * Data that only the Node side knows, passed inward to the page on every call.
+ */
+export interface ToolContext {
+  tabId: number;
+}
 
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
   constructor(
@@ -10,6 +25,7 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
     private readonly inputSchema: SchemaT,
     private readonly _run: (
       params: z.input<SchemaT>,
+      context: ToolContext,
     ) => CallToolResult | Promise<CallToolResult>,
   ) {}
 
@@ -27,9 +43,9 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
     };
   }
 
-  run(params: unknown) {
+  run(params: unknown, context: ToolContext) {
     const validatedParams = this.inputSchema.parse(params);
 
-    return this._run(this.inputSchema.encode(validatedParams));
+    return this._run(this.inputSchema.encode(validatedParams), context);
   }
 }

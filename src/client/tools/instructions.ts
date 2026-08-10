@@ -4,11 +4,27 @@ import { removeCluesTool } from "./removeCluesTool";
 import { updateGivenDigitsTool } from "./updateGivenDigitsTool";
 import { updateElementTool } from "./updateElementTool";
 
+/**
+ * The site's own description, lifted from its `<meta>` tag.
+ *
+ * This module is imported in Node too — the tool's description is built at registration time, long
+ * before any page is involved — so the read has to tolerate `document` not existing at all. There it
+ * degrades to the empty string, exactly as it already did for a page without the meta tag.
+ */
+const siteDescription =
+  typeof document === "undefined"
+    ? ""
+    : ((
+        document.head.querySelector(
+          'meta[name="description"]',
+        ) as HTMLMetaElement | null
+      )?.content ?? "");
+
 // language=markdown
 export const instructions = `
 # Sudoku Maker software description
 
-${(document.head.querySelector('meta[name="description"]') as HTMLMetaElement)?.content ?? ""}
+${siteDescription}
 
 Sudoku Maker is a puzzle setting (creation) site with automated solving capabilities.
 While the main focus of the software is variant sudoku,
