@@ -60,11 +60,11 @@ export const copyCells = (
 
 export const waitForSolver = async (timeout: number) => {
   const step = 200;
-  for (let time = 0; time < timeout && window.Api.busy.value; time += step) {
+  for (let time = 0; time < timeout && window.Api.busy; time += step) {
     await new Promise((resolve) => setTimeout(resolve, step));
   }
 
-  const isBusy = window.Api.busy.value;
+  const isBusy = window.Api.busy;
   return {
     isBusy,
     message: isBusy

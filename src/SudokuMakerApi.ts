@@ -92,9 +92,8 @@ declare global {
       DigitSet: typeof DigitSet;
       SmallNumberSet: typeof DigitSet;
 
-      busy: {
-        readonly value: boolean;
-      };
+      /** Whether a solver is currently running. */
+      readonly busy: boolean;
     };
   }
 }
