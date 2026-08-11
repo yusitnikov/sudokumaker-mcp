@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.1",
-    "@sitnikov/browser-automation": "^1.0.2",
+    "@sitnikov/browser-automation": "^2.0.0",
     "commander": "^14.0.1",
     "deepmerge": "^4.3.1",
     "zod": "^4.1.11"

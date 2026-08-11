@@ -36,9 +36,22 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
   });
 
   constructor(logFilePath: string | undefined, brokerUrl: string) {
-    super(logFilePath, brokerUrl, "stdio", /* skipExecuteJs */ true, [
-      sudokuMakerHostname,
-    ]);
+    super({
+      serverInfo: {
+        name: "sudokumaker",
+        version: "1.0.0",
+        title: "Sudoku Maker",
+        description: "MCP for controlling Sudoku Maker tabs in the browser",
+      },
+      // serverOptions: {
+      //   instructions: "TODO",
+      // },
+      logFilePath,
+      brokerUrl,
+      transport: "stdio",
+      skipExecuteJs: true,
+      hostnames: [sudokuMakerHostname],
+    });
   }
 
   /**
