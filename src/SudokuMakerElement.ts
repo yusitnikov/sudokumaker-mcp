@@ -489,7 +489,7 @@ export const AntikingElement = new SudokuMakerElement({
   main: {
     title: "Antiking",
     description:
-      "Cells seperated by a king’s move in chess cannot have the same digit.",
+      "Cells separated by a king’s move in chess cannot have the same digit.",
   },
 });
 
@@ -498,7 +498,7 @@ export const AntiknightElement = new SudokuMakerElement({
   main: {
     title: "Antiknight",
     description:
-      "Cells seperated by a knight’s move in chess cannot have the same digit.",
+      "Cells separated by a knight’s move in chess cannot have the same digit.",
   },
 });
 
