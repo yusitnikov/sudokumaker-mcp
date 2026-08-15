@@ -3,6 +3,8 @@ import { addCluesTool } from "../addCluesTool";
 import { updateCluesTool } from "../updateCluesTool";
 import { removeCluesTool } from "../removeCluesTool";
 import { updateGivenDigitsTool } from "../updateGivenDigitsTool";
+import { updateCellValuesTool } from "../updateCellValuesTool";
+import { updateCellMarksTool } from "../updateCellMarksTool";
 import { updateElementTool } from "../updateElementTool";
 
 /**
@@ -70,6 +72,16 @@ The common features:
 - **Constraint**: Restrictions that *element*'s logic enforces to the digits in the grid.
 
 Users may use "constraint", "clue", or "element" interchangeably. Infer meaning from context.
+
+**Intent map** — cases where the right tool or topic isn't obvious from its name alone:
+- Given digits (part of the puzzle definition) go through \`${updateGivenDigitsTool.name}\`, not \`${updateCellValuesTool.name}\`/\`${updateCellMarksTool.name}\` —
+  those two are for values/marks set by hand outside the given digits, and are separate from whatever the solver itself has written.
+- Adding a constraint or visual element with no dedicated tool: check topic \`elements\` for a matching built-in type first;
+  if none fits, see topic \`custom-constraints\`; if it's purely decorative, see topic \`cosmetics\`.
+- Verifying the puzzle solves or isn't broken: see topic \`solving\` rather than guessing from a solver tool's diff alone.
+
+(The \`elements\`, \`custom-constraints\`, \`cosmetics\`, and \`solving\` topics referenced above don't exist
+yet in this build — ask the user or check the \`docs\` index for what's currently available.)
 
 Sudoku Maker has a wide range of popular variant sudoku constraints built in,
 but it's flexible to support any constraint that the setter can imagine.
