@@ -1,9 +1,9 @@
 import type { DocsTopic } from "./topics";
 
-export const customConstraintsComponentsTopic: DocsTopic = {
-  name: "custom-constraints:components",
+export const customConstraintsTopic: DocsTopic = {
+  name: "custom-constraints",
   description:
-    "The basics of writing a custom constraint - start from this topic",
+    "How to write a custom constraint: standard components, initialization code, input groups, visuals.",
   // language=markdown
   content: () => `
 # Custom constraints
@@ -264,7 +264,7 @@ e.g. "Product cages - visuals" instead of the default "Cosmetic symbols".
 If the constraint cannot be achieved by using standard components only,
 one could write a custom component that uses JavaScript to perform user-defined logic.
 
-Fetch the "custom components" topic to learn more.
+Fetch the \`custom-constraints:custom-components\` topic to learn more.
 
 **Important: think twice before creating a custom component! Are you sure that standard components are not enough for your goal?**
 
@@ -306,7 +306,7 @@ and also accepts it in some component arguments, like \`PredefinedCandidatesComp
 
 The easiest way to create a \`DigitSet\` object is from an array of digits, e.g. \`DigitSet.from([1, 3, 6])\`.
 
-Fetch the "DigitSet" topic if you need to learn more
+Fetch the \`custom-constraints:digit-set\` topic if you need to learn more
 (you likely don't need it unless you work on a custom component).
     `,
 };

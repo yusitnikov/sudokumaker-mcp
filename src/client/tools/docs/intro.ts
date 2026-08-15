@@ -80,8 +80,8 @@ Users may use "constraint", "clue", or "element" interchangeably. Infer meaning 
   if none fits, see topic \`custom-constraints\`; if it's purely decorative, see topic \`cosmetics\`.
 - Verifying the puzzle solves or isn't broken: see topic \`solving\` rather than guessing from a solver tool's diff alone.
 
-(The \`elements\`, \`custom-constraints\`, \`cosmetics\`, and \`solving\` topics referenced above don't exist
-yet in this build — ask the user or check the \`docs\` index for what's currently available.)
+(The \`elements\`, \`cosmetics\`, and \`solving\` topics referenced above don't exist yet in this build —
+ask the user or check the \`docs\` index for what's currently available. \`custom-constraints\` does exist.)
 
 Sudoku Maker has a wide range of popular variant sudoku constraints built in,
 but it's flexible to support any constraint that the setter can imagine.
