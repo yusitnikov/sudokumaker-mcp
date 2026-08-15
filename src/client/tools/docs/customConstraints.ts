@@ -1,4 +1,7 @@
 import type { DocsTopic } from "./topics";
+import { cosmeticsTopic } from "./cosmetics";
+import { customConstraintsCustomComponentsTopic } from "./customConstraintsCustomComponents";
+import { customConstraintsDigitSetTopic } from "./customConstraintsDigitSet";
 
 export const customConstraintsTopic: DocsTopic = {
   name: "custom-constraints",
@@ -247,7 +250,7 @@ and communicate this convention to the user who will use the constraint.
 Custom constraints control only the logic of the puzzle, they don't have any visuals on the grid.
 If the user wants to add visual indications for the user-defined constraint,
 they have to achieve it by manually creating corresponding graphics with cosmetic elements
-(topic \`cosmetics\` covers creating and positioning those).
+(topic \`${cosmeticsTopic.name}\` covers creating and positioning those).
 
 You (the LLM) should be proactive to suggest creating a visual indication for a custom constraint.
 You should be proactive to notice when the constraint's input groups and the relevant visual indications are out sync.
@@ -265,7 +268,7 @@ so that the pairing is obvious when either side is edited later.
 If the constraint cannot be achieved by using standard components only,
 one could write a custom component that uses JavaScript to perform user-defined logic.
 
-Fetch the \`custom-constraints:custom-components\` topic to learn more.
+Fetch the \`${customConstraintsCustomComponentsTopic.name}\` topic to learn more.
 
 **Important: think twice before creating a custom component! Are you sure that standard components are not enough for your goal?**
 
@@ -307,7 +310,7 @@ and also accepts it in some component arguments, like \`PredefinedCandidatesComp
 
 The easiest way to create a \`DigitSet\` object is from an array of digits, e.g. \`DigitSet.from([1, 3, 6])\`.
 
-Fetch the \`custom-constraints:digit-set\` topic if you need to learn more
+Fetch the \`${customConstraintsDigitSetTopic.name}\` topic if you need to learn more
 (you likely don't need it unless you work on a custom component).
     `,
 };

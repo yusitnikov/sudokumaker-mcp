@@ -1,9 +1,12 @@
 import type { DocsTopic } from "./topics";
+import { docsTool } from "../docsTool";
 import { addCluesTool } from "../addCluesTool";
 import { updateCluesTool } from "../updateCluesTool";
 import { removeCluesTool } from "../removeCluesTool";
 import { updateGivenDigitsTool } from "../updateGivenDigitsTool";
 import { updateElementTool } from "../updateElementTool";
+import { customConstraintsTopic } from "./customConstraints";
+import { cosmeticsTopic } from "./cosmetics";
 
 export const elementsTopic: DocsTopic = {
   name: "elements",
@@ -38,13 +41,13 @@ Clues live in an array inside the element's config (key varies by type: \`lines\
 <!-- placeholder: the per-type catalog (exact type name, title, one-liner, subtypes, single/multi-clue nature, each
      pointing to its own \`element:<TypeName>\` topic) is generated from the element registry (\`AllElements\`) in Phase 4
      of the ongoing refactor and isn't wired up yet. Until then, ask the user which built-in type they mean, or check
-     the \`docs\` index for what \`element:<TypeName>\` topics currently exist. -->
+     the \`${docsTool.name}\` index for what \`element:<TypeName>\` topics currently exist. -->
 
 Each entry's own \`element:<TypeName>\` topic has its exact config and clue shape — fetch that before writing its data.
 
 ## When nothing built-in fits
 
-- A rule no built-in type implements: see topic \`custom-constraints\`.
-- Something purely visual, with no effect on solving: see topic \`cosmetics\`.
+- A rule no built-in type implements: see topic \`${customConstraintsTopic.name}\`.
+- Something purely visual, with no effect on solving: see topic \`${cosmeticsTopic.name}\`.
 `.trim(),
 };

@@ -4,6 +4,10 @@ import { updateGivenDigitsTool } from "../updateGivenDigitsTool";
 import { updateCellValuesTool } from "../updateCellValuesTool";
 import { updateCellMarksTool } from "../updateCellMarksTool";
 import { undoTool } from "../undoRedoTools";
+import { elementsTopic } from "./elements";
+import { solvingTopic } from "./solving";
+import { customConstraintsTopic } from "./customConstraints";
+import { cosmeticsTopic } from "./cosmetics";
 
 /**
  * The site's own description, lifted from its `<meta>` tag.
@@ -49,7 +53,7 @@ The common features:
 - Test-solve the puzzle while constructing it - put logically deduced information (based on existing clues) into the grid:
   cell values, possible candidates, corner marks, colors that usually specify relations between certain cells.
 - Automated solver tools - perform logical deduction steps, and find/count all solutions to the puzzle.
-  See topic \`solving\` for what each check can and can't tell you before relying on any of them.
+  See topic \`${solvingTopic.name}\` for what each check can and can't tell you before relying on any of them.
 
 **Terminology:**
 - **Element**: An entry in the Elements panel (e.g., "Arrows", "Regions").
@@ -71,13 +75,13 @@ and making all possible logical deductions based on the existing clues, until al
 its own area in full, and this list exists so you know the capability exists at all:
 
 - **Built-in constraint types** — Sudoku Maker has a wide range of popular variant sudoku constraints built in
-  (killer cages, thermometers, arrows, renban lines, …), each added as an element. Topic \`elements\` lists them and
+  (killer cages, thermometers, arrows, renban lines, …), each added as an element. Topic \`${elementsTopic.name}\` lists them and
   explains how their clues are managed.
 - **User-defined constraints** — any rule the setter can imagine is supported, even with no matching built-in type.
-  Topic \`custom-constraints\`.
-- **Decorative elements** — purely visual things drawn on the grid, with no effect on solving. Topic \`cosmetics\`.
+  Topic \`${customConstraintsTopic.name}\`.
+- **Decorative elements** — purely visual things drawn on the grid, with no effect on solving. Topic \`${cosmeticsTopic.name}\`.
 - **Automated solving and checking** — performing logical steps, finding all solutions, and finding out whether the
-  puzzle is broken or non-unique. Topic \`solving\`.
+  puzzle is broken or non-unique. Topic \`${solvingTopic.name}\`.
 
 Tool-level distinctions that the tool names alone don't settle:
 - Given digits (part of the puzzle definition) go through \`${updateGivenDigitsTool.name}\`, not \`${updateCellValuesTool.name}\`/\`${updateCellMarksTool.name}\` —

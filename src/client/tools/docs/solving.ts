@@ -7,6 +7,8 @@ import {
   waitForSolverTool,
 } from "../solverTools";
 import { redoTool, undoTool } from "../undoRedoTools";
+import { clearGridTool } from "../clearGridTool";
+import { getPuzzleTool } from "../getPuzzleTool";
 
 export const solvingTopic: DocsTopic = {
   name: "solving",
@@ -35,12 +37,12 @@ export const solvingTopic: DocsTopic = {
 Every check treats already-entered cell values and center marks as constraints — the app's own solve log says as much
 ("making use of the filled-in values") when they're present. A verdict returned while the grid has test-solve marks
 on it is therefore conditional on those marks, not a verdict on the puzzle's rules alone. To judge the puzzle itself:
-either report the verdict as conditional, or clear the grid first (\`clear_grid\`, undoable), re-check, then \`undo\`
+either report the verdict as conditional, or clear the grid first (\`${clearGridTool.name}\`, undoable), re-check, then \`${undoTool.name}\`
 to hand the grid back as it was.
 
 ## Reading results
 
-Solver output lands as candidates and values in \`cells\`, inspected via \`get_puzzle\`. The verdict text itself is the
+Solver output lands as candidates and values in \`cells\`, inspected via \`${getPuzzleTool.name}\`. The verdict text itself is the
 app's own words, returned verbatim in the tool response — not something to reinterpret or reword technically; relay
 it in puzzle language.
 

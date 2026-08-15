@@ -1,6 +1,8 @@
 import type { DocsTopic } from "./topics";
 import { addElementTool } from "../addElementTool";
 import { addCluesTool } from "../addCluesTool";
+import { introTopic } from "./intro";
+import { customConstraintsTopic } from "./customConstraints";
 
 export const cosmeticsTopic: DocsTopic = {
   name: "cosmetics",
@@ -26,7 +28,7 @@ See each type's own \`element:<TypeName>\` topic for its exact config and clue s
 ## Positioning symbols
 
 \`CosmeticSymbol\` clues are placed by \`{x, y}\` point coordinates rather than cell notation, because a symbol can sit
-anywhere — a cell centre, an edge, a corner, or between cells. Topic \`intro\` describes that point system.
+anywhere — a cell centre, an edge, a corner, or between cells. Topic \`${introTopic.name}\` describes that point system.
 
 ## Why you'd add them
 
@@ -37,7 +39,7 @@ anywhere — a cell centre, an edge, a corner, or between cells. Topic \`intro\`
 - **Accessibility** — making a drawing readable when its meaning would otherwise rest on something not everyone can
   perceive, e.g. labelling lines when the puzzle distinguishes them by color alone.
 - **Mirroring a custom constraint** — a custom constraint has no visuals of its own, so whatever should indicate it on
-  the grid has to be drawn separately, and kept in sync with it. Topic \`custom-constraints\` covers that case.
+  the grid has to be drawn separately, and kept in sync with it. Topic \`${customConstraintsTopic.name}\` covers that case.
 
 Whatever the reason, give the element a meaningful name (e.g. "Prime cell marks" rather than the default "Cosmetic
 symbols") so it's identifiable later, both to you and to the user browsing the Elements panel.

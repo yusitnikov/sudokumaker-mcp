@@ -5,6 +5,14 @@
  * "runs with no session/tab plumbing," not "lives outside `tools/`."
  */
 
+import { introTopic } from "./intro";
+import { elementsTopic } from "./elements";
+import { solvingTopic } from "./solving";
+import { customConstraintsTopic } from "./customConstraints";
+import { customConstraintsCustomComponentsTopic } from "./customConstraintsCustomComponents";
+import { customConstraintsDigitSetTopic } from "./customConstraintsDigitSet";
+import { cosmeticsTopic } from "./cosmetics";
+
 export interface DocsTopic {
   /** The exact string passed as the `topic` tool parameter. */
   name: string;
@@ -14,24 +22,35 @@ export interface DocsTopic {
   content: () => string;
 }
 
-export const getTopic = (
-  topics: DocsTopic[],
-  name: string,
-): DocsTopic | undefined => topics.find((topic) => topic.name === name);
+/** Every topic the `docs` tool can serve. Adding a topic means adding it here. */
+const topics: DocsTopic[] = [
+  introTopic,
+  elementsTopic,
+  solvingTopic,
+  customConstraintsTopic,
+  customConstraintsCustomComponentsTopic,
+  customConstraintsDigitSetTopic,
+  cosmeticsTopic,
+];
+
+export const getTopic = (name: string): DocsTopic | undefined =>
+  topics.find((topic) => topic.name === name);
 
 /**
  * The response to an unknown topic name: every topic's name and description, one line each, in
- * the order `topics` lists them in `docsTool.ts` (so `intro` stays first).
+ * registration order (so `intro` stays first).
  * Deliberately never the topic content — a wrong guess should cost one cheap round trip, not
  * flood the response with everything.
  */
-export const renderIndex = (topics: DocsTopic[]): string => {
-  const lines = topics.map((topic) => `- \`${topic.name}\`: ${topic.description}`);
+export const renderIndex = (): string => {
+  const lines = topics.map(
+    (topic) => `- \`${topic.name}\`: ${topic.description}`,
+  );
 
   return [
     `Unknown docs topic. Available topics:`,
     ...lines,
     ``,
-    `Element-specific topics follow the pattern \`element:<TypeName>\` (see the \`elements\` topic for the exact type names).`,
+    `Element-specific topics follow the pattern \`element:<TypeName>\` (see the \`${elementsTopic.name}\` topic for the exact type names).`,
   ].join("\n");
 };
