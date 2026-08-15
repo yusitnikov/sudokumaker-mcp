@@ -3,6 +3,7 @@ import { addElementTool } from "../addElementTool";
 import { addCluesTool } from "../addCluesTool";
 import { introTopic } from "./intro";
 import { customConstraintsTopic } from "./customConstraints";
+import { elementTopicPattern } from "./elementTopic";
 
 export const cosmeticsTopic: DocsTopic = {
   name: "cosmetics",
@@ -23,7 +24,7 @@ They're ordinary elements: added with \`${addElementTool.name}\`, and (being mul
 - \`CosmeticCage\` — an outline around a group of cells, with no sum or other rule attached.
 - \`CosmeticSymbol\` — shapes (rectangle, ellipse, text, arrow) placed at an arbitrary point.
 
-See each type's own \`element:<TypeName>\` topic for its exact config and clue shape before writing its data.
+See each type's own \`${elementTopicPattern}\` topic for its exact config and clue shape before writing its data.
 
 ## Positioning symbols
 

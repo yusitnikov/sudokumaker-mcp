@@ -1,5 +1,5 @@
 import type { DocsTopic } from "./topics";
-import { docsTool } from "../docsTool";
+import { AllElements } from "../../../SudokuMakerElement";
 import { addCluesTool } from "../addCluesTool";
 import { updateCluesTool } from "../updateCluesTool";
 import { removeCluesTool } from "../removeCluesTool";
@@ -7,6 +7,13 @@ import { updateGivenDigitsTool } from "../updateGivenDigitsTool";
 import { updateElementTool } from "../updateElementTool";
 import { customConstraintsTopic } from "./customConstraints";
 import { cosmeticsTopic } from "./cosmetics";
+import { elementTopicPattern } from "./elementTopic";
+
+const renderCatalog = (): string =>
+  AllElements.flatMap(({ typeName, main: { title, description }, options }) => [
+    `- \`${typeName}\` — "${title}": ${description}`,
+    ...options.map((option) => `  - "${option.title}": ${option.description}`),
+  ]).join("\n");
 
 export const elementsTopic: DocsTopic = {
   name: "elements",
@@ -38,12 +45,9 @@ Clues live in an array inside the element's config (key varies by type: \`lines\
 
 ## Catalog
 
-<!-- placeholder: the per-type catalog (exact type name, title, one-liner, subtypes, single/multi-clue nature, each
-     pointing to its own \`element:<TypeName>\` topic) is generated from the element registry (\`AllElements\`) in Phase 4
-     of the ongoing refactor and isn't wired up yet. Until then, ask the user which built-in type they mean, or check
-     the \`${docsTool.name}\` index for what \`element:<TypeName>\` topics currently exist. -->
+${renderCatalog()}
 
-Each entry's own \`element:<TypeName>\` topic has its exact config and clue shape — fetch that before writing its data.
+Each entry's own \`${elementTopicPattern}\` topic has its exact config and clue shape — fetch that before writing its data.
 
 ## When nothing built-in fits
 

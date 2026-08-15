@@ -12,6 +12,7 @@ import { customConstraintsTopic } from "./customConstraints";
 import { customConstraintsCustomComponentsTopic } from "./customConstraintsCustomComponents";
 import { customConstraintsDigitSetTopic } from "./customConstraintsDigitSet";
 import { cosmeticsTopic } from "./cosmetics";
+import { elementTopicPattern } from "./elementTopic";
 
 export interface DocsTopic {
   /** The exact string passed as the `topic` tool parameter. */
@@ -23,7 +24,7 @@ export interface DocsTopic {
 }
 
 /** Every topic the `docs` tool can serve. Adding a topic means adding it here. */
-const topics: DocsTopic[] = [
+export const topics: DocsTopic[] = [
   introTopic,
   elementsTopic,
   solvingTopic,
@@ -32,9 +33,6 @@ const topics: DocsTopic[] = [
   customConstraintsDigitSetTopic,
   cosmeticsTopic,
 ];
-
-export const getTopic = (name: string): DocsTopic | undefined =>
-  topics.find((topic) => topic.name === name);
 
 /**
  * The response to an unknown topic name: every topic's name and description, one line each, in
@@ -51,6 +49,6 @@ export const renderIndex = (): string => {
     `Unknown docs topic. Available topics:`,
     ...lines,
     ``,
-    `Element-specific topics follow the pattern \`element:<TypeName>\` (see the \`${elementsTopic.name}\` topic for the exact type names).`,
+    `Element-specific topics follow the pattern \`${elementTopicPattern}\` (see the \`${elementsTopic.name}\` topic for the exact type names).`,
   ].join("\n");
 };

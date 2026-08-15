@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { ToolImplementation } from "./ToolImplementation";
-import { getTopic, renderIndex } from "./docs/topics";
+import { renderIndex, topics } from "./docs/topics";
 import { introTopic } from "./docs/intro";
+import { getElementTopic } from "./docs/elementTopic";
 
 export const docsTool = new ToolImplementation(
   {
@@ -17,14 +18,26 @@ export const docsTool = new ToolImplementation(
   z.object({
     topic: z.string().optional().describe("The documentation topic to fetch."),
   }),
-  ({ topic }) => {
-    const found = topic === undefined ? undefined : getTopic(topic);
+  ({ topic: name }) => {
+    let text = renderIndex();
+
+    if (name !== undefined) {
+      const simpleTopic = topics.find((topic) => topic.name === name);
+      if (simpleTopic) {
+        text = simpleTopic.content().trim();
+      }
+
+      const elementTopic = getElementTopic(name);
+      if (elementTopic !== undefined) {
+        text = elementTopic;
+      }
+    }
 
     return {
       content: [
         {
           type: "text",
-          text: found ? found.content().trim() : renderIndex(),
+          text,
         },
       ],
     };
