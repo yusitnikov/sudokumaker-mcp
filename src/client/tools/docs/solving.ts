@@ -10,6 +10,12 @@ import { redoTool, undoTool } from "../undoRedoTools";
 import { clearGridTool } from "../clearGridTool";
 import { getPuzzleTool } from "../getPuzzleTool";
 
+/**
+ * TODO (phase 12): add `check_validity` — a dedicated existence-plus-uniqueness check that writes
+ * nothing to the grid. Until it exists, `brute_force_solve` is the only verdict authority, which is
+ * why "The checks" presents it as such and why "State effects" has to carry the undo-after-a-
+ * diagnostic-run rule. Both sections need rewording once the side-effect-free tool lands.
+ */
 export const solvingTopic: DocsTopic = {
   name: "solving",
   description:
@@ -20,12 +26,6 @@ export const solvingTopic: DocsTopic = {
 # Solving and checking
 
 ## The checks
-
-<!-- placeholder: check_validity (a dedicated existence-plus-uniqueness check that writes nothing to the grid) is a
-     Phase 12 deliverable of the ongoing refactor and doesn't exist yet. Until then, the authority for "is this puzzle
-     broken / does it have a unique solution" is \`${bruteForceSolveTool.name}\`, even though it also writes solved
-     values/candidates into the grid as a side effect (see "state effects" below) — there's no side-effect-free
-     verdict tool yet. -->
 
 - \`${bruteForceSolveTool.name}\` finds and counts all solutions and computes exact candidates for every cell. On a
   unique solution it fills the solved values into the grid; counting has a cap the app itself reports if hit.
