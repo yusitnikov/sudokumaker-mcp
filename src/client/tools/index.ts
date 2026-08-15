@@ -21,7 +21,7 @@ import { addCluesTool } from "./addCluesTool";
 import { updateCluesTool } from "./updateCluesTool";
 import { removeCluesTool } from "./removeCluesTool";
 import { instructions } from "./instructions";
-import { getCustomConstraintsDocsTool } from "./getCustomConstraintsDocsTool";
+import { docsTool } from "./docsTool";
 
 const globalSchema = z.toJSONSchema(z.globalRegistry, { io: "input" }).schemas;
 for (const schema of Object.values(globalSchema)) {
@@ -70,7 +70,7 @@ export const tools = [
   addCluesTool,
   updateCluesTool,
   removeCluesTool,
-  getCustomConstraintsDocsTool,
+  docsTool,
   undoTool,
   redoTool,
   clearGridTool,
