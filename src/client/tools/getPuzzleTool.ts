@@ -20,9 +20,9 @@ export const getPuzzleTool = new ToolImplementation(
       )
       .optional()
       .describe(
-        'The path of the puzzle object to retrieve, e.g. ["spec", "type"] to get puzzle.spec.type. ' +
-          "Skip the path to get the whole puzzle object (warning: it will produce lots of tokens!). " +
-          "DO NOT guess the puzzle structure, you have the exact schema in the instructions!",
+        "Narrows the response to one part of the puzzle object, e.g. \"path\": [\"spec\", \"type\"] " +
+          "for puzzle.spec.type. Skip it to get the whole puzzle — that's the normal call, and the " +
+          "right one unless you already know the exact path to a specific value you need.",
       ),
   }),
   ({ path = [] }, { tabId }) => {

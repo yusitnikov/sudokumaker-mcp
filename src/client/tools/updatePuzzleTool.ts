@@ -10,7 +10,7 @@ export const updatePuzzleTool = new ToolImplementation(
       description:
         "Modify puzzle object at specified path. " +
         "Please use this tool only as a last resort option when no other puzzle modification tool is fitting. " +
-        "DO NOT guess the puzzle structure, you have the exact schema in the instructions!",
+        "DO NOT guess the puzzle structure — read it first with get_puzzle.",
     },
   },
   z.object({
