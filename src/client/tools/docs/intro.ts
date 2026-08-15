@@ -1,8 +1,9 @@
-import { addCluesTool } from "./addCluesTool";
-import { updateCluesTool } from "./updateCluesTool";
-import { removeCluesTool } from "./removeCluesTool";
-import { updateGivenDigitsTool } from "./updateGivenDigitsTool";
-import { updateElementTool } from "./updateElementTool";
+import type { DocsTopic } from "./topics";
+import { addCluesTool } from "../addCluesTool";
+import { updateCluesTool } from "../updateCluesTool";
+import { removeCluesTool } from "../removeCluesTool";
+import { updateGivenDigitsTool } from "../updateGivenDigitsTool";
+import { updateElementTool } from "../updateElementTool";
 
 /**
  * The site's own description, lifted from its `<meta>` tag.
@@ -20,8 +21,13 @@ const siteDescription =
         ) as HTMLMetaElement | null
       )?.content ?? "");
 
-// language=markdown
-export const instructions = `
+export const introTopic: DocsTopic = {
+  name: "intro",
+  description:
+    "Start here: what Sudoku Maker is, terminology, the user persona, coordinates, tabs.",
+  content: () =>
+    // language=markdown
+    `
 # Sudoku Maker software description
 
 ${siteDescription}
@@ -222,10 +228,5 @@ Many tools include "tabDescription" and "operationDescription" parameters.
 These are not for you - they're shown to the user in the JSON dump when they approve/reject tool calls.
 Always populate these with clear, non-technical descriptions of what you're doing and which of the tabs you're targeting,
 since the user sees the raw JSON but may not understand technical parameters like numeric tab IDs or element config specifications.
-
-## JSON schemas
-
-Here's the full list of all JSON schemas used in this MCP server
-(use it to understand tool params and responses better):
-{{ GLOBAL_SCHEMA }}
-`.trim();
+`.trim(),
+};

@@ -1,7 +1,7 @@
 /**
- * Registry for the `docs` tool's topics. `docsTool` is `global: true` like `instructionsTool` —
- * it still lives in `src/client/tools/` and is dispatched through the same `tools` array and the
- * same `if (global)` branch in `SudokuMakerMcpServer.setupHandlers`; `global: true` only means
+ * Registry for the `docs` tool's topics. `docsTool` is `global: true` — it lives in
+ * `src/client/tools/` like every other tool and is dispatched through the same `tools` array and
+ * the same `if (global)` branch in `SudokuMakerMcpServer.setupHandlers`; `global: true` only means
  * "runs with no session/tab plumbing," not "lives outside `tools/`."
  */
 
@@ -20,14 +20,13 @@ export const getTopic = (
 ): DocsTopic | undefined => topics.find((topic) => topic.name === name);
 
 /**
- * The response to an unknown topic name: every topic's name and description, one line each.
+ * The response to an unknown topic name: every topic's name and description, one line each, in
+ * the order `topics` lists them in `docsTool.ts` (so `intro` stays first).
  * Deliberately never the topic content — a wrong guess should cost one cheap round trip, not
  * flood the response with everything.
  */
 export const renderIndex = (topics: DocsTopic[]): string => {
-  const lines = [...topics]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((topic) => `- \`${topic.name}\`: ${topic.description}`);
+  const lines = topics.map((topic) => `- \`${topic.name}\`: ${topic.description}`);
 
   return [
     `Unknown docs topic. Available topics:`,

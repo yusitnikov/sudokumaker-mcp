@@ -1,12 +1,14 @@
 import { z } from "zod";
 import { ToolImplementation } from "./ToolImplementation";
 import { getTopic, renderIndex, type DocsTopic } from "./docs/topics";
+import { introTopic } from "./docs/intro";
 import { customConstraintsComponentsTopic } from "./docs/customConstraintsComponents";
 import { customConstraintsCustomComponentsTopic } from "./docs/customConstraintsCustomComponents";
 import { customConstraintsDigitSetTopic } from "./docs/customConstraintsDigitSet";
 
 /** Every topic the `docs` tool can serve. Adding a topic means adding it here. */
 const topics: DocsTopic[] = [
+  introTopic,
   customConstraintsComponentsTopic,
   customConstraintsCustomComponentsTopic,
   customConstraintsDigitSetTopic,
