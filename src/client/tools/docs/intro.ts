@@ -1,11 +1,9 @@
 import type { DocsTopic } from "./topics";
-import { addCluesTool } from "../addCluesTool";
-import { updateCluesTool } from "../updateCluesTool";
-import { removeCluesTool } from "../removeCluesTool";
+import { updatePuzzleTool } from "../updatePuzzleTool";
 import { updateGivenDigitsTool } from "../updateGivenDigitsTool";
 import { updateCellValuesTool } from "../updateCellValuesTool";
 import { updateCellMarksTool } from "../updateCellMarksTool";
-import { updateElementTool } from "../updateElementTool";
+import { undoTool } from "../undoRedoTools";
 
 /**
  * The site's own description, lifted from its `<meta>` tag.
@@ -50,19 +48,8 @@ The common features:
   the digits sum is the logic, and the arrow line and the circle are visual indications of which cells are affected).
 - Test-solve the puzzle while constructing it - put logically deduced information (based on existing clues) into the grid:
   cell values, possible candidates, corner marks, colors that usually specify relations between certain cells.
-- Automated solver tools - perform logic steps based on logical puzzle elements,
-  find/count all solutions to the puzzle (all valid combinations of digits in the cells).
-  As a computer solving tool, it recognizes only built-in elements -
-  it cannot perform logic based on free-text rules description or based on cosmetic-only elements.
-  The automated solver can handle only digit-based puzzles - it cannot make deductions/checks on shading, lines, etc.
-  (unless they are somehow represented by digits in the cells).
-  The solver will write all possible candidates for every cell (based on eliminations it did so far) as center marks,
-  write a final value into the cells that have only one possible candidate, and declare that the puzzle is broken if a cell has no valid candidates at all.
-  The result of performing logical deductions will be narrowing down the list of candidates within the cells.
-  The result of finding all solutions to the puzzle will also be marking every cell with all possible candidates.
-  The difference between the logical solver and the solutions finder is that
-  the candidates list produced by the solutions finder is 100% accurate,
-  while the logical solver might miss some candidate eliminations that are too hard to deduce logically.
+- Automated solver tools - perform logical deduction steps, and find/count all solutions to the puzzle.
+  See topic \`solving\` for what each check can and can't tell you before relying on any of them.
 
 **Terminology:**
 - **Element**: An entry in the Elements panel (e.g., "Arrows", "Regions").
@@ -73,23 +60,6 @@ The common features:
 
 Users may use "constraint", "clue", or "element" interchangeably. Infer meaning from context.
 
-**Intent map** — cases where the right tool or topic isn't obvious from its name alone:
-- Given digits (part of the puzzle definition) go through \`${updateGivenDigitsTool.name}\`, not \`${updateCellValuesTool.name}\`/\`${updateCellMarksTool.name}\` —
-  those two are for values/marks set by hand outside the given digits, and are separate from whatever the solver itself has written.
-- Adding a constraint or visual element with no dedicated tool: check topic \`elements\` for a matching built-in type first;
-  if none fits, see topic \`custom-constraints\`; if it's purely decorative, see topic \`cosmetics\`.
-- Verifying the puzzle solves or isn't broken: see topic \`solving\` rather than guessing from a solver tool's diff alone.
-
-(The \`elements\`, \`cosmetics\`, and \`solving\` topics referenced above don't exist yet in this build —
-ask the user or check the \`docs\` index for what's currently available. \`custom-constraints\` does exist.)
-
-Sudoku Maker has a wide range of popular variant sudoku constraints built in,
-but it's flexible to support any constraint that the setter can imagine.
-The visual representation of user-defined constraints is achieved
-by combining multiple elementary cosmetic shapes (e.g. lines, circles, texts, etc.).
-The logical part of user-defined constraints is achieved by creating a "custom constraint" element -
-a set of JavaScript snippets that implement the logical deductions and validation of the constraint.
-
 The end goal is to create a puzzle that has exactly one solution, i.e. exactly one option of which digit to put in each cell.
 Puzzles that have no solutions at all are called broken.
 Puzzles that have more than one solution are called non-unique (which is sometimes referred as "broken" as well).
@@ -97,10 +67,23 @@ Puzzles that have more than one solution are called non-unique (which is sometim
 The typical process of setting a puzzle is to alternate steps of adding given digits and clues to the puzzle,
 and making all possible logical deductions based on the existing clues, until all digits of the puzzle are deduced.
 
-Different setters have different preferences regarding how much to rely on the automatic solver during puzzle construction:
-some of them will make the deductions only manually and only use the automated solver to check that they didn't accidentally break the puzzle yet,
-some setters will only use the automated solver (logical or solutions finder) to make the deductions,
-and others will combine both approaches.
+**What's available, and where it's documented.** Fetch a topic when its subject becomes relevant — each one explains
+its own area in full, and this list exists so you know the capability exists at all:
+
+- **Built-in constraint types** — Sudoku Maker has a wide range of popular variant sudoku constraints built in
+  (killer cages, thermometers, arrows, renban lines, …), each added as an element. Topic \`elements\` lists them and
+  explains how their clues are managed.
+- **User-defined constraints** — any rule the setter can imagine is supported, even with no matching built-in type.
+  Topic \`custom-constraints\`.
+- **Decorative elements** — purely visual things drawn on the grid, with no effect on solving. Topic \`cosmetics\`.
+- **Automated solving and checking** — performing logical steps, finding all solutions, and finding out whether the
+  puzzle is broken or non-unique. Topic \`solving\`.
+
+Tool-level distinctions that the tool names alone don't settle:
+- Given digits (part of the puzzle definition) go through \`${updateGivenDigitsTool.name}\`, not \`${updateCellValuesTool.name}\`/\`${updateCellMarksTool.name}\` —
+  those two are for values/marks set by hand outside the given digits, and are separate from whatever the solver itself has written.
+- Puzzle metadata (title, author, rules text) goes through \`${updatePuzzleTool.name}\`.
+- A mistake — yours or the user's — is reverted with \`${undoTool.name}\`; the history is shared with the user's own UI actions.
 
 # MCP server description and instructions
 
@@ -216,29 +199,11 @@ When to use each system:
   Describe such points relative to nearby cells (e.g., "on the edge between r3c4 and r3c5" or "in the center of r2c6")
   rather than using numeric x/y coordinates.
 
-## Element types and clues:
-
-Elements fall into three categories based on how their clues are managed:
-
-1. **Single-clue elements**: Only one clue of this type can exist in a puzzle
-   - Examples: "Rows and columns", "Positive diagonal", "Antiking"
-   - Adding the element automatically adds the single clue
-   - No separate clue management needed
-
-2. **Multi-clue elements**: Support placing multiple clues on the grid
-   - Examples: "Arrows", "Thermometers", "Killer cages", "Renban lines"
-   - Use \`${addCluesTool.name}\`, \`${updateCluesTool.name}\`, \`${removeCluesTool.name}\` tools to manage individual clues
-   - Clues are stored in arrays within the element's configuration (e.g., \`lines\`, \`cages\`, \`clues\`)
-
-3. **Special-case elements**: Have clues conceptually, but use specialized tools
-   - **Given digits**: Each given digit is conceptually a clue, but use \`${updateGivenDigitsTool.name}\` tool instead. Given digits are stored in individual cells, not in the element's configuration.
-   - **Regions**: Each region is conceptually a clue, but defined by a grid mapping where each cell has a region number. Update via \`${updateElementTool.name}\` with the full region grid.
-
 ## MCP tool call transparency
 
-Many tools include "tabDescription" and "operationDescription" parameters.
-These are not for you - they're shown to the user in the JSON dump when they approve/reject tool calls.
-Always populate these with clear, non-technical descriptions of what you're doing and which of the tabs you're targeting,
+Mutating tools include an "operationDescription" parameter.
+It's not for you - it's shown to the user in the JSON dump when they approve/reject the tool call.
+Always populate it with a clear, non-technical description of what you're doing,
 since the user sees the raw JSON but may not understand technical parameters like numeric tab IDs or element config specifications.
 `.trim(),
 };

@@ -45,10 +45,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
       },
       serverOptions: {
         instructions:
-          "This server controls Sudoku Maker puzzles open in browser tabs (sudokumaker.app). " +
-          "Start every session with: (1) initiate_session, (2) list_tabs to find the target tab, " +
-          "(3) the docs tool with topic \"intro\" — it explains the workflow, who the user is, " +
-          "the terminology, and indexes all documentation topics.",
+          'Read the "intro" topic of the docs tool before using any other tool of this MCP server.',
       },
       logFilePath,
       brokerUrl,

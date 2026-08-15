@@ -246,7 +246,8 @@ and communicate this convention to the user who will use the constraint.
 
 Custom constraints control only the logic of the puzzle, they don't have any visuals on the grid.
 If the user wants to add visual indications for the user-defined constraint,
-they have to achieve it by manually creating corresponding graphics with cosmetic elements.
+they have to achieve it by manually creating corresponding graphics with cosmetic elements
+(topic \`cosmetics\` covers creating and positioning those).
 
 You (the LLM) should be proactive to suggest creating a visual indication for a custom constraint.
 You should be proactive to notice when the constraint's input groups and the relevant visual indications are out sync.
@@ -256,8 +257,8 @@ If you're not confident enough about which part is up-to-date and which is outda
 e.g. "I see that you added 3 new input groups to constraint XXX, I will draw the corresponding lines in the grid"
 or "I see that you moved the circle for constraint XXX from r2c5 to r3c6, I will update the input groups respectively".
 
-When creating new elements for custom constraint's visual clues, make sure to name the element properly,
-e.g. "Product cages - visuals" instead of the default "Cosmetic symbols".
+Name such an element after the constraint it mirrors, e.g. "Product cages - visuals",
+so that the pairing is obvious when either side is edited later.
 
 ## Custom components
 
