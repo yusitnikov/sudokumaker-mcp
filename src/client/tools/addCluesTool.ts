@@ -34,6 +34,8 @@ export const addCluesTool = new ToolImplementation(
           clues: z.array(element.clue!.schema).describe("Clues to add"),
         }),
       ),
+    ).describe(
+      "The target element's type and the clues to add. Clue shape depends on the element type — see docs topic `element:<TypeName>`.",
     ),
   }),
   ({ elementId, operationDescription, insert: { type, clues } }) => {

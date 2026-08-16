@@ -68,32 +68,26 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
 
     for (const tool of tools) {
       const { definition, global, timeout } = tool.definition;
-      const { name, title, description, inputSchema } = definition;
+      const { name, title, description } = definition;
 
       // The MCP SDK uses one schema object both to advertise the tool and to validate arguments in
       // Node before the handler runs. Our schemas are codecs that read grid geometry off
-      // `window.Api`: they render to JSON Schema headless, but parsing throws `window is not
-      // defined`. Registering a permissive schema that carries the real JSON Schema as metadata
-      // keeps the advertised shape exact and defers validation to the page, where it can work.
-      //
-      // The tool's arguments are nested under `params` rather than sitting at the top level: the
-      // metadata is only honored when it hangs off a *field*, so a whole-object schema carrying the
-      // same metadata renders as an empty object and the tool advertises no arguments at all.
-      // Optional so that tools taking no arguments can be called with nothing at all: `z.any()`
-      // still rejects a missing value in Zod v4, which turns an argument-less call into a
-      // validation error before the handler ever runs.
-      const registeredSchema = { params: z.any().meta(inputSchema).optional() };
+      // `window.Api`: they parse fine headless once unwrapped down to their public side, but the
+      // full schema's `.parse()` would reach the codec's `decode` and throw `window is not defined`.
+      // `tool.publicShape` projects the tool's real zod input schema into a shallow zod object —
+      // cheap fields (primitives, enums, arrays of either) typed and checked here in Node,
+      // structured fields advertised as `z.any()` — so each tool advertises its real top-level
+      // parameters by name instead of one opaque `params` blob. Full validation still only runs
+      // page-side, in `tool.run`.
+      const registeredSchema = tool.publicShape;
 
       if (global) {
         // Never touches the page, so it needs neither a session nor a tab.
         this.server.registerTool(
           name,
           { title, description, inputSchema: registeredSchema },
-          // `params ?? {}` for the same reason as the dispatch below: the field is optional, but a
-          // tool's own schema may still require an object, so an argument-less call has to arrive as
-          // an empty one rather than as `undefined`.
-          ({ params }): CallToolResult | Promise<CallToolResult> =>
-            tool.run(params ?? {}, { tabId: 0 }),
+          (params): CallToolResult | Promise<CallToolResult> =>
+            tool.run(params, { tabId: 0 }),
         );
         continue;
       }
@@ -108,7 +102,10 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
         async (args: Record<string, unknown>): Promise<CallToolResult> => {
           const { sessionToken, extensionConnectionId, tabId } =
             sessionSchema.parse(args);
-          const { params } = args;
+          const params = { ...args };
+          delete params.sessionToken;
+          delete params.extensionConnectionId;
+          delete params.tabId;
 
           // Only the dispatch gets the tool's timeout: the solver tools poll in the page for longer
           // than the transport's default wait, so it has to outlast them or the caller sees a
@@ -137,7 +134,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
           }
 
           const response = await run(
-            `${runtimeRef}.call(${JSON.stringify(name)},${JSON.stringify(params ?? {})},{tabId:${tabId}})`,
+            `${runtimeRef}.call(${JSON.stringify(name)},${JSON.stringify(params)},{tabId:${tabId}})`,
             timeout,
           );
           if (!response.success) {
