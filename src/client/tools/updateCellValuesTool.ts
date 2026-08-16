@@ -8,18 +8,24 @@ export const updateCellValuesTool = new ToolImplementation(
     definition: {
       name: "update_cell_values",
       title: "Update cell values",
-      description: "Modify (add, update or delete) final values of grid cells",
+      description:
+        // language=markdown
+        `
+Set or clear the solver-entered value (a hand-entered digit, not a given/fixed clue)
+in one or more grid cells - what a human solver would type in while solving.
+
+To change given digits instead, use \`update_given_digits\`.
+
+Setting a value also clears any candidates/corner marks already in that cell.
+`.trim(),
     },
   },
   z.object({
-    cells: z.array(CellId).describe("Cells to modify"),
-    digit: z
-      .number()
-      .int()
-      .min(-1)
-      .describe(
-        "The digit to place into the cells, or -1 to remove digits from the specified cells",
-      ),
+    cells: z.array(CellId).describe("Target cells."),
+    digit: z.number().int().min(-1).describe(
+      // language=markdown
+      `The digit to place in each target cell, or \`-1\` to clear the cell's value.`,
+    ),
   }),
   ({ cells, digit }) => {
     const updatedCells: CellCoords[] = [];

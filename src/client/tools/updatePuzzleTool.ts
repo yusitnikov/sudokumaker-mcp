@@ -1,6 +1,7 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { copyCells, updatePuzzle } from "../utils";
+import { operationDescriptionParam } from "./descriptionSnippets";
 
 export const updatePuzzleTool = new ToolImplementation(
   {
@@ -8,19 +9,21 @@ export const updatePuzzleTool = new ToolImplementation(
       name: "update_puzzle",
       title: "Update puzzle contents for tab",
       description:
-        "Modify puzzle object at specified path. " +
-        "Please use this tool only as a last resort option when no other puzzle modification tool is fitting. " +
-        "DO NOT guess the puzzle structure — read it first with get_puzzle.",
+        // language=markdown
+        `
+Directly modify arbitrary paths of the raw puzzle object (title, rules text, or any nested field) -
+a **last-resort escape hatch** for changes no dedicated tool covers (\`update_given_digits\`,
+\`update_cell_values\`, \`update_cell_marks\`, \`add_element\`/\`update_element\`/\`remove_element\`,
+\`add_clues\`/\`update_clues\`/\`remove_clues\`). Prefer those tools whenever one fits - they validate
+their inputs and produce readable echoes, this tool does neither.
+
+Applies multiple \`{path, update}\` operations in order, as one atomic change; later operations see
+the puzzle state after earlier ones already applied.
+`.trim(),
     },
   },
   z.object({
-    operationDescription: z
-      .string()
-      .optional()
-      .describe(
-        "Human-readable summary of what this operation does. " +
-          "This helps the non-technical user understand the action they're approving.",
-      ),
+    operationDescription: operationDescriptionParam,
     updates: z
       .array(
         z.object({
@@ -32,69 +35,70 @@ export const updatePuzzleTool = new ToolImplementation(
               ]),
             )
             .describe(
-              'The affected path of the puzzle object, e.g. ["allElements", 0, "config"] to modify puzzle.allElements[0].config',
+              // language=markdown
+              `The affected path of the puzzle object, e.g. \`["allElements", 0, "config"]\` to modify \`puzzle.allElements[0].config\`.`,
             ),
           update: z
             .union([
               z.object({
-                type: z
-                  .literal("set")
-                  .describe(
-                    "Set the specified path of the puzzle to the given value. The previous value will be overridden",
-                  ),
-                value: z
-                  .any()
-                  .optional()
-                  .describe(
-                    "New value to put into the specified place. Skipping this parameter will set the value to undefined",
-                  ),
+                type: z.literal("set").describe(
+                  // language=markdown
+                  `Set the specified path of the puzzle to the given value. The previous value is overridden.`,
+                ),
+                value: z.any().optional().describe(
+                  // language=markdown
+                  `New value to put into the specified place. Skipping this parameter sets the value to \`undefined\`.`,
+                ),
               }),
               z.object({
-                type: z
-                  .literal("modifyItems")
-                  .describe(
-                    "Insert/delete/replace array items or string lines at the specified path and index",
-                  ),
+                type: z.literal("modifyItems").describe(
+                  // language=markdown
+                  `Insert/delete/replace array items or string lines at the specified path and index.`,
+                ),
                 index: z.union([
-                  z
-                    .number()
-                    .int()
-                    .min(1)
-                    .describe(
-                      "Insert/delete/replace items/lines at this specific one-based index (notice: AT this index, not AFTER this index)",
-                    ),
-                  z
-                    .literal("end")
-                    .describe(
-                      "Insert items/lines to the end of the array/text (not applicable for items/lines deletion)",
-                    ),
+                  z.number().int().min(1).describe(
+                    // language=markdown
+                    `Insert/delete/replace items/lines at this specific one-based index (notice: **at** this index, not after it).`,
+                  ),
+                  z.literal("end").describe(
+                    // language=markdown
+                    `Insert items/lines at the end of the array/text (not applicable for items/lines deletion).`,
+                  ),
                 ]),
-                insertItems: z
-                  .array(z.any())
-                  .optional()
-                  .describe(
-                    "New items/lines to insert. Skip this parameter to just delete items/lines without inserting new ones",
-                  ),
-                deleteItemsCount: z
-                  .number()
-                  .int()
-                  .min(0)
-                  .optional()
-                  .describe(
-                    "Amount of items/lines that would be removed starting from the specified index. For instance, in order to delete items 4-9 from the array, specify index = 4 and deleteItemsCount = 6. Skip this parameter to just add new items/lines without deleting old ones",
-                  ),
+                insertItems: z.array(z.any()).optional().describe(
+                  // language=markdown
+                  `New items/lines to insert. Skip this parameter to just delete items/lines without inserting new ones.`,
+                ),
+                deleteItemsCount: z.number().int().min(0).optional().describe(
+                  // language=markdown
+                  `Number of existing items/lines to remove starting at \`index\`, e.g. \`{"index": 4, "deleteItemsCount": 6}\` deletes items 4-9. Skip this parameter to just insert without deleting.`,
+                ),
               }),
             ])
             .describe(
-              "Operation performed to the specified path of the object",
+              // language=markdown
+              `Operation performed on the specified path of the object.`,
             ),
         }),
       )
       .describe(
-        "Update operations list. IMPORTANT: operations will be applied to the puzzle object in the order of definition. " +
-          "All update paths are relevant to the state of the puzzle AFTER performing all previous updates. " +
-          'So, for instance, if we have an array ["A", "B", "C"], and the operations are "insert D at position 2" and "insert E at position 4", ' +
-          'then the result would be ["A", "D", "B", "E", "C"], not ["A", "D", "B", "C", "E"], because it\'s position 4 AFTER inserting D.',
+        // language=markdown
+        `
+Array of \`{path, update}\` operations to apply in order, as one atomic change.
+
+- **\`path\`** (required): array of property names (strings) and/or zero-based array indexes
+  (numbers) locating the target inside the puzzle object, e.g. \`["allElements", 0, "config"]\` for
+  \`puzzle.allElements[0].config\`.
+- **\`update\`** (required): one of two shapes, chosen by its \`type\` field:
+  - \`{"type": "set", "value"?: any}\` - replaces the entire value at \`path\` with \`value\` (omit
+    \`value\` to set it to \`undefined\`).
+  - \`{"type": "modifyItems", "index": number | "end", "insertItems"?: array, "deleteItemsCount"?: number}\`
+    - splices an array (or the lines of a string, split/joined on \`"\\n"\`) at \`path\`:
+    - \`index\`: the 1-based position to splice **at** (not after), or \`"end"\` to append.
+    - \`insertItems\`: new items to insert there (omit to only delete).
+    - \`deleteItemsCount\`: how many existing items/lines to remove starting at \`index\` (omit to
+      only insert). Example: \`{"index": 4, "deleteItemsCount": 6}\` deletes items 4-9.
+`.trim(),
       ),
   }),
   ({ updates, operationDescription }) => {

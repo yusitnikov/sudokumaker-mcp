@@ -12,17 +12,20 @@ export const removeElementTool = new ToolImplementation(
     definition: {
       name: "remove_element",
       title: "Remove Sudoku Maker element",
-      description: "Remove element from the puzzle by ID",
+      description:
+        // language=markdown
+        `Delete an entire element (and all of its clues, if any) from the puzzle by ID.`,
     },
   },
   z.object({
-    elementId: z.number().int().describe("Element ID to delete"),
-    elementName: z
-      .string()
-      .optional()
-      .describe(
-        "The name of the element that's going to be deleted - use this parameter to make the LLM user understand which element is going to be removed when looking at the MCP tool call parameters",
-      ),
+    elementId: z.number().int().describe(
+      // language=markdown
+      `ID of the element to remove, as returned by \`get_puzzle\`/\`add_element\`.`,
+    ),
+    elementName: z.string().optional().describe(
+      // language=markdown
+      `The element's display name - set it so the user sees which element they're deleting when reviewing this call, not just a bare ID.`,
+    ),
   }),
   ({ elementId }) => {
     const { index, targetElement } = getElementById(elementId);

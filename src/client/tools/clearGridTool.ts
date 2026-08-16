@@ -1,5 +1,5 @@
 import { ToolImplementation } from "./ToolImplementation";
-import { reversibleActionNote } from "./undoRedoTools";
+import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 
 export const clearGridTool = new ToolImplementation(
@@ -7,7 +7,14 @@ export const clearGridTool = new ToolImplementation(
     definition: {
       name: "clear_grid",
       title: "Clear the grid",
-      description: `Clear all (non-given) digits and markings in the puzzle grid cells. ${reversibleActionNote}`,
+      description:
+        // language=markdown
+        `
+Clear all non-given digits and markings (values, candidates, corner marks, colors) from every grid
+cell, leaving given digits untouched.
+
+${reversibleActionNote}
+        `.trim(),
     },
   },
   z.object({}),

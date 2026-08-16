@@ -40,7 +40,7 @@ export const getElementTopic = (name: string): string | undefined => {
 
   const { globalSchema, clue, main, options } = element;
 
-  const lines: string[] = [`# Element type \`${typeName}\``, ``];
+  const lines: string[] = [`# Element type \`${typeName}\``, ``, `## Variants`, ``];
 
   lines.push(
     `"${main.title}" — ${main.description}`,

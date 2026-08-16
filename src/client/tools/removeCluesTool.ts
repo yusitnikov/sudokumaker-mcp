@@ -7,6 +7,7 @@ import {
   updateCluesByCellGroups,
 } from "./elementUtils";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { operationDescriptionParam } from "./descriptionSnippets";
 
 export const removeCluesTool = new ToolImplementation(
   {
@@ -14,30 +15,37 @@ export const removeCluesTool = new ToolImplementation(
       name: "remove_clues",
       title: "Remove Sudoku Maker clues",
       description:
-        "Remove one or more clues of an existing element in the puzzle",
+        // language=markdown
+        `
+Delete one or more existing clues of a multi-clue element (e.g. remove a thermometer, delete an arrow).
+
+The response lists which clues were matched and removed - **undo immediately** if a match wasn't
+the clue you intended.
+`.trim(),
     },
   },
   z.object({
-    elementId: z.number().int().describe("Element ID to remove the clues from"),
-    operationDescription: z
-      .string()
-      .optional()
-      .describe(
-        "Human-readable summary of what this operation does. " +
-          "This helps the non-technical user understand the action they're approving.",
-      ),
+    elementId: z.number().int().describe(
+      // language=markdown
+      `ID of the target element (the multi-clue element to remove clues from), as returned by \`get_puzzle\`/\`add_element\`.`,
+    ),
+    operationDescription: operationDescriptionParam,
     elementType: z
       .enum(
         AllElements.filter(({ clue }) => clue).map(({ typeName }) => typeName),
       )
       .describe(
-        "The type of the target element. The operation will fail if they don't match.",
+        // language=markdown
+        `The target element's exact type name (must match its actual type, e.g. \`"Thermometer"\`, or the operation fails) - read it off the \`type\` shown for that element in \`get_puzzle\`'s output.`,
       ),
-    clueCellGroups: z
-      .array(ClueCellsGroupFilter)
-      .describe(
-        "Groups of cells that indicate which clues to remove. Each group triggers a separate removal.",
-      ),
+    clueCellGroups: z.array(ClueCellsGroupFilter).describe(
+      // language=markdown
+      `
+Array of cell groups - a clue is deleted if **all** cells of a group are among the cells it affects
+(pass enough cells to identify one clue uniquely, or fewer to target several clues at once).
+Each group in this array independently selects clues to remove.
+`.trim(),
+    ),
   }),
   ({
     elementId,

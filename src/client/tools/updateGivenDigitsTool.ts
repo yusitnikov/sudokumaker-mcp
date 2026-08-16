@@ -8,18 +8,22 @@ export const updateGivenDigitsTool = new ToolImplementation(
     definition: {
       name: "update_given_digits",
       title: "Update given digits",
-      description: "Modify (add, update or delete) given digits in the cells",
+      description:
+        // language=markdown
+        `
+Set or clear the given digits in one or more grid cells.
+
+Setting a given digit also clears any candidates/corner marks already in that cell.
+Marking a cell as given wipes any solver-entered value there and replaces it with the given digit.
+`.trim(),
     },
   },
   z.object({
-    cells: z.array(CellId).describe("Cells to modify"),
-    digit: z
-      .number()
-      .int()
-      .min(-1)
-      .describe(
-        "The digit to place into the cells, or -1 to remove given digits from the specified cells",
-      ),
+    cells: z.array(CellId).describe("Target cells."),
+    digit: z.number().int().min(-1).describe(
+      // language=markdown
+      `The given digit to place in each target cell, or \`-1\` to remove the given digit from each target cell.`,
+    ),
   }),
   ({ cells, digit }) => {
     updatePuzzle(

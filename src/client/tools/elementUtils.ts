@@ -33,8 +33,13 @@ export const getElementById = (elementId: number, type?: string) => {
 export const ClueCellsGroupFilter = z.array(CellIdPublic).meta({
   id: "ClueCellsGroupFilter",
   description:
-    "A group of cells that indicates which clue to target. Only clues that affect ALL cells in the group will be targeted. " +
-    "Please pass enough cells here to identify the clue uniquely unless you want to target multiple clues at the time.",
+    // language=markdown
+    `
+A group of cells that identifies which clue(s) to target.
+A clue matches only if **all** cells in the group are among the cells it affects.
+
+Pass enough cells to identify one clue uniquely, or fewer to target several clues at once.
+    `.trim(),
 });
 
 export const updateCluesByCellGroups = (

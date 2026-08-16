@@ -10,13 +10,25 @@ export const docsTool = new ToolImplementation(
       name: "docs",
       title: "Read Sudoku Maker MCP documentation",
       description:
-        "Fetch a documentation topic by name. Call with an unknown or omitted topic to get the index of available topics. " +
-        `Start every session with the \`${introTopic.name}\` topic.`,
+        // language=markdown
+        `
+Fetch a documentation topic by name.
+Start every session with the \`${introTopic.name}\` topic.
+        `.trim(),
     },
     global: true,
   },
   z.object({
-    topic: z.string().optional().describe("The documentation topic to fetch."),
+    topic: z
+      .string()
+      .optional()
+      .describe(
+        // language=markdown
+        `
+The documentation topic to fetch.
+Omit to get the index of available topics.
+        `.trim(),
+      ),
   }),
   ({ topic: name }) => {
     let text = renderIndex();

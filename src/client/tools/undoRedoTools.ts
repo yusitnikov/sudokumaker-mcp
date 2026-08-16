@@ -9,7 +9,9 @@ export const undoTool = new ToolImplementation(
     definition: {
       name: "undo",
       title: "Undo the last action in the puzzle",
-      description: "Undo the last action in the puzzle",
+      description:
+        // language=markdown
+        `Revert the last action taken in the puzzle - whether it was made by this MCP server or by the user directly in the app's UI.`,
     },
   },
   z.object({}),
@@ -38,7 +40,9 @@ export const redoTool = new ToolImplementation(
     definition: {
       name: "redo",
       title: "Redo the last action in the puzzle",
-      description: "Redo the last action in the puzzle",
+      description:
+        // language=markdown
+        `Re-apply the last action that was undone (via \`undo\` or directly in the app's UI).`,
     },
   },
   z.object({}),
@@ -61,5 +65,3 @@ export const redoTool = new ToolImplementation(
     };
   },
 );
-
-export const reversibleActionNote = `Note: this action could be undone and redone by calling "${undoTool.name}" and "${redoTool.name}" tools, similar to any other action in the puzzle`;

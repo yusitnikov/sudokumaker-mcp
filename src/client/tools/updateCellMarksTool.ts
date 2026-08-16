@@ -11,6 +11,7 @@ import {
   toShortCellNotation,
   updatePuzzle,
 } from "../utils";
+import { operationDescriptionParam } from "./descriptionSnippets";
 
 export const updateCellMarksTool = new ToolImplementation(
   {
@@ -18,30 +19,54 @@ export const updateCellMarksTool = new ToolImplementation(
       name: "update_cell_marks",
       title: "Update cell marks and colors",
       description:
-        "Modify (add, update or delete) the marks (candidates, corner marks, colors) in the grid cells",
+        // language=markdown
+        `
+Add, replace, or remove pencil marks and/or cell colors in one or more grid cells:
+candidates (center marks), corner pencil marks, and cell background colors.
+
+A solved cell has no pencil marks, so candidates/\`cornerPencilMarks\` changes don't apply to cells
+that already contain a value; colors can still be applied to such cells.
+`.trim(),
     },
   },
   z.object({
-    operationDescription: z
-      .string()
+    operationDescription: operationDescriptionParam,
+    cells: z.array(CellId).describe("Target cells."),
+    operation: z.enum(["add", "replace", "remove"]).describe(
+      // language=markdown
+      `
+How to combine the given values with each cell's existing marks:
+
+- \`"add"\` unions them in.
+- \`"replace"\` overwrites the mark list outright (use an empty array to clear all marks of a kind).
+- \`"remove"\` subtracts them out.
+`.trim(),
+    ),
+    candidates: CellSchemaNoId.shape.candidates.optional().describe(
+      // language=markdown
+      `
+        Set of possible candidates for the cell.
+        Omit to leave candidates untouched.
+      `.trim(),
+    ),
+    cornerPencilMarks: CellSchemaNoId.shape.cornerPencilMarks
       .optional()
       .describe(
-        "Human-readable summary of what this operation does. " +
-          "This helps the non-technical user understand the action they're approving.",
+        // language=markdown
+        `
+          ${CellSchemaNoId.shape.cornerPencilMarks.description}
+          
+          Omit to leave corner marks untouched.
+        `.trim(),
       ),
-    cells: z.array(CellId).describe("Cells to modify"),
-    operation: z
-      .enum(["add", "replace", "remove"])
-      .describe(
-        "Operation to apply to existing cell marks: " +
-          '"add" - add given marks to the existing cell marks, ' +
-          '"replace" - replace (override) the existing cell marks with the given marks, ' +
-          '"remove" - subtract the given marks from the existing cell marks. ' +
-          'Use the "replace" operation with an empty array to remove all marks of a kind',
-      ),
-    candidates: CellSchemaNoId.shape.candidates.optional(),
-    cornerPencilMarks: CellSchemaNoId.shape.cornerPencilMarks.optional(),
-    colors: CellSchemaNoId.shape.colors.optional(),
+    colors: CellSchemaNoId.shape.colors.optional().describe(
+      // language=markdown
+      `
+        ${CellSchemaNoId.shape.colors.description}
+        
+        Omit to leave colors untouched.
+      `.trim(),
+    ),
   }),
   ({
     operationDescription,
