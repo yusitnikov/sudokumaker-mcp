@@ -9,10 +9,10 @@ import { introTopic } from "./intro";
 import { elementsTopic } from "./elements";
 import { solvingTopic } from "./solving";
 import { customConstraintsTopic } from "./customConstraints";
-import { customConstraintsCustomComponentsTopic } from "./customConstraintsCustomComponents";
-import { customConstraintsDigitSetTopic } from "./customConstraintsDigitSet";
+import { customComponentsTopic } from "./customComponents";
+import { digitSetTopic } from "./digitSet";
 import { cosmeticsTopic } from "./cosmetics";
-import { elementTopicPattern } from "./elementTopic";
+import { elementsTopicName, elementTopicPattern } from "./topicNames";
 
 export interface DocsTopic {
   /** The exact string passed as the `topic` tool parameter. */
@@ -29,8 +29,8 @@ export const topics: DocsTopic[] = [
   elementsTopic,
   solvingTopic,
   customConstraintsTopic,
-  customConstraintsCustomComponentsTopic,
-  customConstraintsDigitSetTopic,
+  customComponentsTopic,
+  digitSetTopic,
   cosmeticsTopic,
 ];
 
@@ -49,6 +49,6 @@ export const renderIndex = (): string => {
     `Unknown docs topic. Available topics:`,
     ...lines,
     ``,
-    `Element-specific topics follow the pattern \`${elementTopicPattern}\` (see the \`${elementsTopic.name}\` topic for the exact type names).`,
+    `Element-specific topics follow the pattern \`${elementTopicPattern}\` (see the \`${elementsTopicName}\` topic for the exact type names).`,
   ].join("\n");
 };

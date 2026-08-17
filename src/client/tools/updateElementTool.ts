@@ -5,11 +5,18 @@ import { getElementById, getElementFinalName } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { getElementByTypeName } from "../../SudokuMakerElement";
+import {
+  addElementToolName,
+  getPuzzleToolName,
+  updateCluesToolName,
+  updateElementToolName,
+} from "./toolNames";
+import { elementTopicPattern } from "./docs/topicNames";
 
 export const updateElementTool = new ToolImplementation(
   {
     definition: {
-      name: "update_element",
+      name: updateElementToolName,
       title: "Update Sudoku Maker element",
       description:
         // language=markdown
@@ -18,7 +25,7 @@ Update global properties of an existing element
 (its name, enabled/solverIgnored flags, or type-specific config like style)
 and/or batch-apply the same partial update to every one of its clues at once.
 
-To update individual clues differently from each other, use \`update_clues\` instead -
+To update individual clues differently from each other, use \`${updateCluesToolName}\` instead -
 the \`clueBatchUpdates\` field here applies identically to ALL clues.
         `.trim(),
     },
@@ -26,7 +33,7 @@ the \`clueBatchUpdates\` field here applies identically to ALL clues.
   z.object({
     elementId: z.number().int().describe(
       // language=markdown
-      `ID of the target element to update, as returned by \`get_puzzle\`/\`add_element\`.`,
+      `ID of the target element to update, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
     ),
     operationDescription: operationDescriptionParam,
     elementUpdates: z
@@ -38,7 +45,7 @@ the \`clueBatchUpdates\` field here applies identically to ALL clues.
 A deep-partial object of the element's config fields to change (e.g. \`{"style": {"bulbRadius": 0.6}}\`
 for a thermometer) - only accepted for element types that have config beyond their clues; unset fields
 keep their current value, arrays are replaced wholesale if included; docs topic
-\`element:<TypeName>\`'s \`## Config\` section shows the full config JSON schema.
+\`${elementTopicPattern}\`'s \`## Config\` section shows the full config JSON schema.
 `.trim(),
       ),
     clueBatchUpdates: z
@@ -49,7 +56,7 @@ keep their current value, arrays are replaced wholesale if included; docs topic
         `
 A deep-partial object applied identically to every clue this element currently has (e.g.
 \`{"value": 0}\` would zero every cage's total) - only accepted for multi-clue element types; docs
-topic \`element:<TypeName>\`'s \`## Clues\` section shows the exact clue JSON schema.
+topic \`${elementTopicPattern}\`'s \`## Clues\` section shows the exact clue JSON schema.
 `.trim(),
       ),
     name: z.string().optional().describe(

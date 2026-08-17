@@ -1,13 +1,15 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzle } from "../utils";
+import { getPuzzleToolName } from "./toolNames";
 
 export const getPuzzleTool = new ToolImplementation(
   {
     definition: {
-      name: "get_puzzle",
+      name: getPuzzleToolName,
       title: "Get puzzle contents for tab",
-      description: "Read the puzzle object for the target tab, or one nested value inside it.",
+      description:
+        "Read the puzzle object for the target tab, or one nested value inside it.",
     },
   },
   z.object({
@@ -32,7 +34,7 @@ Path of property names and zero-based array indexes to a nested value inside the
 e.g. \`["allElements", 0, "config"]\` to read \`puzzle.allElements[0].config\`.
 
 Omit to read the entire puzzle object. Prefer passing \`path\` whenever you already know which part
-you need (e.g. from a previous \`get_puzzle\` call or a mutation echo) - it returns only that
+you need (e.g. from a previous \`${getPuzzleToolName}\` call or a mutation echo) - it returns only that
 sub-value instead of the whole puzzle, which is cheaper for a large puzzle.
         `.trim(),
       ),

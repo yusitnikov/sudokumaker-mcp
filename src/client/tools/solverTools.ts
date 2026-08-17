@@ -3,6 +3,13 @@ import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { getPuzzle, waitForSolver } from "../utils";
 import { diffCells } from "./diff";
+import {
+  bruteForceSolveToolName,
+  doAllLogicalStepsToolName,
+  doLogicalStepToolName,
+  stopSolverToolName,
+  waitForSolverToolName,
+} from "./toolNames";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
@@ -10,7 +17,7 @@ const solverMaxTimeout = 30000;
 export const doLogicalStepTool = new ToolImplementation(
   {
     definition: {
-      name: "logical_step",
+      name: doLogicalStepToolName,
       title: "Do a single logical step",
       description:
         // language=markdown
@@ -18,7 +25,7 @@ export const doLogicalStepTool = new ToolImplementation(
 Run one round of human-style logical deduction and write any newly deduced candidates/eliminations
 into the grid's center marks (overwriting existing center marks).
 
-Blind to free-text rules and cosmetic-only elements; may miss deductions \`brute_force_solve\` would find.
+Blind to free-text rules and cosmetic-only elements; may miss deductions \`${bruteForceSolveToolName}\` would find.
 
 ${reversibleActionNote}
         `.trim(),
@@ -50,7 +57,7 @@ ${reversibleActionNote}
 export const doAllLogicalStepsTool = new ToolImplementation(
   {
     definition: {
-      name: "all_logical_steps",
+      name: doAllLogicalStepsToolName,
       title: "Solve step-by-step, logically",
       description:
         // language=markdown
@@ -59,7 +66,7 @@ Repeatedly run human-style logical deduction until no further step is found, wri
 candidates/eliminations into the grid's center marks (overwriting existing center marks).
 
 Blind to free-text rules and cosmetic-only elements; may leave the puzzle unsolved even when
-\`brute_force_solve\` would succeed.
+\`${bruteForceSolveToolName}\` would succeed.
 
 ${reversibleActionNote} - all steps taken in this call are undone/redone together as one action.
 `.trim(),
@@ -91,7 +98,7 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
 export const bruteForceSolveTool = new ToolImplementation(
   {
     definition: {
-      name: "brute_force_solve",
+      name: bruteForceSolveToolName,
       title: "Find all possible solutions and valid candidates",
       description:
         // language=markdown
@@ -101,7 +108,7 @@ marks; fills in digits if the solution is unique, and always writes the exact va
 center marks (overwriting existing center marks).
 
 This is the only reliable way to know the puzzle's solution count and the exact valid candidates
-for every cell - \`logical_step\`/\`all_logical_steps\` only deduce what a human-style pass finds and
+for every cell - \`${doLogicalStepToolName}\`/\`${doAllLogicalStepsToolName}\` only deduce what a human-style pass finds and
 may miss eliminations or leave the puzzle unsolved even when this tool would succeed.
 
 Blind to free-text rules and cosmetic-only elements. Search is capped - a very high solution count
@@ -137,13 +144,13 @@ ${reversibleActionNote}
 export const waitForSolverTool = new ToolImplementation(
   {
     definition: {
-      name: "wait_for_solver",
+      name: waitForSolverToolName,
       title: "Wait for the solver",
       description:
         // language=markdown
         `
-Block until the currently running solver operation (\`logical_step\`, \`all_logical_steps\`, or
-\`brute_force_solve\`) finishes, then return its result message.
+Block until the currently running solver operation (\`${doLogicalStepToolName}\`, \`${doAllLogicalStepsToolName}\`,
+or \`${bruteForceSolveToolName}\`) finishes, then return its result message.
 
 Use this if a previous solver call's response indicated the solve was still in progress.
 `.trim(),
@@ -169,7 +176,7 @@ Use this if a previous solver call's response indicated the solve was still in p
 export const stopSolverTool = new ToolImplementation(
   {
     definition: {
-      name: "stop_solver",
+      name: stopSolverToolName,
       title: "Stop the solver",
       description:
         "Abort a currently running solver operation before it finishes on its own.",

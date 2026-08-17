@@ -12,11 +12,12 @@ import {
   updatePuzzle,
 } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
+import { updateCellMarksToolName } from "./toolNames";
 
 export const updateCellMarksTool = new ToolImplementation(
   {
     definition: {
-      name: "update_cell_marks",
+      name: updateCellMarksToolName,
       title: "Update cell marks and colors",
       description:
         // language=markdown

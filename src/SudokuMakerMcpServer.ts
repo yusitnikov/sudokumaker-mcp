@@ -8,8 +8,8 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import runtimeCode from "injected:./client/runtime";
 import { runtimeGlobal } from "./client/runtimeGlobal";
 import { tools } from "./client/tools";
-import { docsTool } from "./client/tools/docsTool";
-import { introTopic } from "./client/tools/docs/intro";
+import { docsToolName } from "./client/tools/toolNames";
+import { introTopicName } from "./client/tools/docs/topicNames";
 
 const sudokuMakerHostname = "sudokumaker.app";
 
@@ -46,7 +46,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
         description: "MCP for controlling Sudoku Maker tabs in the browser",
       },
       serverOptions: {
-        instructions: `Read the "${introTopic.name}" topic of the ${docsTool.name} tool before using any other tool of this MCP server.`,
+        instructions: `Read the "${introTopicName}" topic of the ${docsToolName} tool before using any other tool of this MCP server.`,
       },
       logFilePath,
       brokerUrl,

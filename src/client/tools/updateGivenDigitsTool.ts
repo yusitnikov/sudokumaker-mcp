@@ -2,11 +2,12 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { CellId } from "../../SudokuMakerSchemas";
 import { copyCells, toShortCellNotation, updatePuzzle } from "../utils";
+import { updateGivenDigitsToolName } from "./toolNames";
 
 export const updateGivenDigitsTool = new ToolImplementation(
   {
     definition: {
-      name: "update_given_digits",
+      name: updateGivenDigitsToolName,
       title: "Update given digits",
       description:
         // language=markdown

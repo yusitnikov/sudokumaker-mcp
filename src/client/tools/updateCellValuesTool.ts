@@ -2,11 +2,15 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { type CellCoords, CellId } from "../../SudokuMakerSchemas";
 import { copyCells, toShortCellNotation, updatePuzzle } from "../utils";
+import {
+  updateCellValuesToolName,
+  updateGivenDigitsToolName,
+} from "./toolNames";
 
 export const updateCellValuesTool = new ToolImplementation(
   {
     definition: {
-      name: "update_cell_values",
+      name: updateCellValuesToolName,
       title: "Update cell values",
       description:
         // language=markdown
@@ -14,7 +18,7 @@ export const updateCellValuesTool = new ToolImplementation(
 Set or clear the solver-entered value (a hand-entered digit, not a given/fixed clue)
 in one or more grid cells - what a human solver would type in while solving.
 
-To change given digits instead, use \`update_given_digits\`.
+To change given digits instead, use \`${updateGivenDigitsToolName}\`.
 
 Setting a value also clears any candidates/corner marks already in that cell.
 `.trim(),

@@ -7,16 +7,23 @@ import {
 } from "./elementUtils";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { operationDescriptionParam } from "./descriptionSnippets";
+import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
+import {
+  addElementToolName,
+  getPuzzleToolName,
+  removeCluesToolName,
+} from "./toolNames";
 
 export const removeCluesTool = new ToolImplementation(
   {
     definition: {
-      name: "remove_clues",
+      name: removeCluesToolName,
       title: "Remove Sudoku Maker clues",
       description:
         // language=markdown
         `
-Delete one or more existing clues of a multi-clue element (e.g. remove a thermometer, delete an arrow).
+Delete one or more existing clues of a multi-clue element (e.g. remove a \`${ThermometerElement.typeName}\`,
+delete an \`${ArrowElement.typeName}\`).
 
 The response lists which clues were matched and removed - **undo immediately** if a match wasn't
 the clue you intended.
@@ -26,7 +33,7 @@ the clue you intended.
   z.object({
     elementId: z.number().int().describe(
       // language=markdown
-      `ID of the target element (the multi-clue element to remove clues from), as returned by \`get_puzzle\`/\`add_element\`.`,
+      `ID of the target element (the multi-clue element to remove clues from), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
     ),
     operationDescription: operationDescriptionParam,
     clueCellGroups: z.array(ClueCellsGroupFilter).describe(

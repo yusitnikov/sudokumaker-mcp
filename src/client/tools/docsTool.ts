@@ -1,19 +1,20 @@
 import { z } from "zod";
 import { ToolImplementation } from "./ToolImplementation";
 import { renderIndex, topics } from "./docs/topics";
-import { introTopic } from "./docs/intro";
 import { getElementTopic } from "./docs/elementTopic";
+import { docsToolName } from "./toolNames";
+import { introTopicName } from "./docs/topicNames";
 
 export const docsTool = new ToolImplementation(
   {
     definition: {
-      name: "docs",
+      name: docsToolName,
       title: "Read Sudoku Maker MCP documentation",
       description:
         // language=markdown
         `
 Fetch a documentation topic by name.
-Start every session with the \`${introTopic.name}\` topic.
+Start every session with the \`${introTopicName}\` topic.
         `.trim(),
     },
     global: true,

@@ -1,8 +1,8 @@
-import { undoTool, redoTool } from "./undoRedoTools";
 import { z } from "zod";
+import { redoToolName, undoToolName } from "./toolNames";
 
 /** Shared description fragment for actions that can be undone/redone like any other puzzle edit. */
-export const reversibleActionNote = `Note: this action could be undone and redone by calling "${undoTool.name}" and "${redoTool.name}" tools, similar to any other action in the puzzle`;
+export const reversibleActionNote = `Note: this action could be undone and redone by calling "${undoToolName}" and "${redoToolName}" tools, similar to any other action in the puzzle`;
 
 /** Shared description for every mutating tool's `operationDescription` field: the plain-language basis for the user's approve/reject decision, not a log label. */
 export const operationDescriptionNote =

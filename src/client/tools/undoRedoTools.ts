@@ -2,12 +2,13 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzle } from "../utils";
 import { diffCells } from "./diff";
+import { redoToolName, undoToolName } from "./toolNames";
 
 // TODO: tell which action was undone, API to get the undo/redo history, tell what have changed afterwards
 export const undoTool = new ToolImplementation(
   {
     definition: {
-      name: "undo",
+      name: undoToolName,
       title: "Undo the last action in the puzzle",
       description:
         // language=markdown
@@ -38,11 +39,11 @@ export const undoTool = new ToolImplementation(
 export const redoTool = new ToolImplementation(
   {
     definition: {
-      name: "redo",
+      name: redoToolName,
       title: "Redo the last action in the puzzle",
       description:
         // language=markdown
-        `Re-apply the last action that was undone (via \`undo\` or directly in the app's UI).`,
+        `Re-apply the last action that was undone (via \`${undoToolName}\` or directly in the app's UI).`,
     },
   },
   z.object({}),

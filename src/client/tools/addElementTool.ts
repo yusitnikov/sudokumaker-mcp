@@ -2,18 +2,23 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import {
   AllElements,
+  CosmeticSymbolElement,
   ElementConfigSchema,
   ElementMainSchema,
   getElementByTypeName,
+  KillerCagesElement,
+  ThermometerElement,
 } from "../../SudokuMakerElement";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { getElementById, getElementSummary } from "./elementUtils";
+import { addCluesToolName, addElementToolName } from "./toolNames";
+import { elementsTopicName, elementTopicPattern } from "./docs/topicNames";
 
 export const addElementTool = new ToolImplementation(
   {
     definition: {
-      name: "add_element",
+      name: addElementToolName,
       title: "Add Sudoku Maker element",
       description:
         // language=markdown
@@ -54,21 +59,22 @@ into the element list at a chosen position.
 Which type/variant of element to create and its initial config, as an object shaped like
 \`{"type": string, "subType": string, "params"?: object, "overrides"?: object}\`.
 
-- **\`type\`** (required): the exact element type name to create, e.g. \`"KillerCages"\`,
-  \`"Thermometer"\`, \`"CosmeticSymbol"\` - browse valid type names in docs topic \`elements\`.
+- **\`type\`** (required): the exact element type name to create, e.g. \`"${KillerCagesElement.typeName}"\`,
+  \`"${ThermometerElement.typeName}"\`, \`"${CosmeticSymbolElement.typeName}"\` - browse valid type names
+  in docs topic \`${elementsTopicName}\`.
 - **\`subType\`** (required): the exact title of one of that type's variants - docs topic
-  \`element:<TypeName>\`'s \`## Variants\` section lists them.
+  \`${elementTopicPattern}\`'s \`## Variants\` section lists them.
 - **\`params\`** (optional, only for subtypes that need them): an object of subtype-specific creation
   parameters, shape given alongside the variant in \`## Variants\` when it takes one.
 - **\`overrides\`** (optional, only for types with a \`## Config\` section, see below): a deep-partial
   object of initial config values to set instead of the type's defaults (e.g.
-  \`{"style": {"color": "#ff0000"}}\`) - docs topic \`element:<TypeName>\`'s \`## Config\` section shows
+  \`{"style": {"color": "#ff0000"}}\`) - docs topic \`${elementTopicPattern}\`'s \`## Config\` section shows
   the full config JSON schema; \`overrides\` may set any subset of it.
 
 The new element's clue list (for multi-clue types) always starts empty regardless of \`overrides\` -
-use \`add_clues\` afterwards.
+use \`${addCluesToolName}\` afterwards.
 
-Example: \`{"type": "Thermometer", "subType": "Thermometer", "overrides": {"style": {"color": "#888888"}}}\`.
+Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerElement.typeName}", "overrides": {"style": {"color": "#888888"}}}\`.
 `.trim(),
       ),
     position: z

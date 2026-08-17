@@ -2,20 +2,33 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { copyCells, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
+import {
+  addCluesToolName,
+  addElementToolName,
+  removeCluesToolName,
+  removeElementToolName,
+  updateCellMarksToolName,
+  updateCellValuesToolName,
+  updateCluesToolName,
+  updateElementToolName,
+  updateGivenDigitsToolName,
+  updatePuzzleToolName,
+} from "./toolNames";
 
 export const updatePuzzleTool = new ToolImplementation(
   {
     definition: {
-      name: "update_puzzle",
+      name: updatePuzzleToolName,
       title: "Update puzzle contents for tab",
       description:
         // language=markdown
         `
 Directly modify arbitrary paths of the raw puzzle object (title, rules text, or any nested field) -
-a **last-resort escape hatch** for changes no dedicated tool covers (\`update_given_digits\`,
-\`update_cell_values\`, \`update_cell_marks\`, \`add_element\`/\`update_element\`/\`remove_element\`,
-\`add_clues\`/\`update_clues\`/\`remove_clues\`). Prefer those tools whenever one fits - they validate
-their inputs and produce readable echoes, this tool does neither.
+a **last-resort escape hatch** for changes no dedicated tool covers (\`${updateGivenDigitsToolName}\`,
+\`${updateCellValuesToolName}\`, \`${updateCellMarksToolName}\`,
+\`${addElementToolName}\`/\`${updateElementToolName}\`/\`${removeElementToolName}\`,
+\`${addCluesToolName}\`/\`${updateCluesToolName}\`/\`${removeCluesToolName}\`). Prefer those tools
+whenever one fits - they validate their inputs and produce readable echoes, this tool does neither.
 
 Applies multiple \`{path, update}\` operations in order, as one atomic change; later operations see
 the puzzle state after earlier ones already applied.

@@ -1,13 +1,19 @@
 import type { DocsTopic } from "./topics";
-import { updatePuzzleTool } from "../updatePuzzleTool";
-import { updateGivenDigitsTool } from "../updateGivenDigitsTool";
-import { updateCellValuesTool } from "../updateCellValuesTool";
-import { updateCellMarksTool } from "../updateCellMarksTool";
-import { undoTool } from "../undoRedoTools";
-import { elementsTopic } from "./elements";
-import { solvingTopic } from "./solving";
-import { customConstraintsTopic } from "./customConstraints";
-import { cosmeticsTopic } from "./cosmetics";
+import { ArrowElement, RegionsElement } from "../../../SudokuMakerElement";
+import {
+  undoToolName,
+  updateCellMarksToolName,
+  updateCellValuesToolName,
+  updateGivenDigitsToolName,
+  updatePuzzleToolName,
+} from "../toolNames";
+import {
+  cosmeticsTopicName,
+  customConstraintsTopicName,
+  elementsTopicName,
+  introTopicName,
+  solvingTopicName,
+} from "./topicNames";
 
 /**
  * The site's own description, lifted from its `<meta>` tag.
@@ -26,7 +32,7 @@ const siteDescription =
       )?.content ?? "");
 
 export const introTopic: DocsTopic = {
-  name: "intro",
+  name: introTopicName,
   description:
     "Start here: what Sudoku Maker is, terminology, the user persona, coordinates, tabs.",
   content: () =>
@@ -53,10 +59,10 @@ The common features:
 - Test-solve the puzzle while constructing it - put logically deduced information (based on existing clues) into the grid:
   cell values, possible candidates, corner marks, colors that usually specify relations between certain cells.
 - Automated solver tools - perform logical deduction steps, and find/count all solutions to the puzzle.
-  See topic \`${solvingTopic.name}\` for what each check can and can't tell you before relying on any of them.
+  See topic \`${solvingTopicName}\` for what each check can and can't tell you before relying on any of them.
 
 **Terminology:**
-- **Element**: An entry in the Elements panel (e.g., "Arrows", "Regions").
+- **Element**: An entry in the Elements panel (e.g., "${ArrowElement.typeName}", "${RegionsElement.typeName}").
   Each element corresponds to one item in the puzzle's \`allElements\` array and may contain multiple clues.
 - **Clue**: An individual instance placed on the grid (e.g., one arrow, one cage).
   For element types that support multiple placements, clues are stored in an array within the element's configuration.
@@ -75,19 +81,19 @@ and making all possible logical deductions based on the existing clues, until al
 its own area in full, and this list exists so you know the capability exists at all:
 
 - **Built-in constraint types** — Sudoku Maker has a wide range of popular variant sudoku constraints built in
-  (killer cages, thermometers, arrows, renban lines, …), each added as an element. Topic \`${elementsTopic.name}\` lists them and
+  (killer cages, thermometers, arrows, renban lines, …), each added as an element. Topic \`${elementsTopicName}\` lists them and
   explains how their clues are managed.
 - **User-defined constraints** — any rule the setter can imagine is supported, even with no matching built-in type.
-  Topic \`${customConstraintsTopic.name}\`.
-- **Decorative elements** — purely visual things drawn on the grid, with no effect on solving. Topic \`${cosmeticsTopic.name}\`.
+  Topic \`${customConstraintsTopicName}\`.
+- **Decorative elements** — purely visual things drawn on the grid, with no effect on solving. Topic \`${cosmeticsTopicName}\`.
 - **Automated solving and checking** — performing logical steps, finding all solutions, and finding out whether the
-  puzzle is broken or non-unique. Topic \`${solvingTopic.name}\`.
+  puzzle is broken or non-unique. Topic \`${solvingTopicName}\`.
 
 Tool-level distinctions that the tool names alone don't settle:
-- Given digits (part of the puzzle definition) go through \`${updateGivenDigitsTool.name}\`, not \`${updateCellValuesTool.name}\`/\`${updateCellMarksTool.name}\` —
+- Given digits (part of the puzzle definition) go through \`${updateGivenDigitsToolName}\`, not \`${updateCellValuesToolName}\`/\`${updateCellMarksToolName}\` —
   those two are for values/marks set by hand outside the given digits, and are separate from whatever the solver itself has written.
-- Puzzle metadata (title, author, rules text) goes through \`${updatePuzzleTool.name}\`.
-- A mistake — yours or the user's — is reverted with \`${undoTool.name}\`; the history is shared with the user's own UI actions.
+- Puzzle metadata (title, author, rules text) goes through \`${updatePuzzleToolName}\`.
+- A mistake — yours or the user's — is reverted with \`${undoToolName}\`; the history is shared with the user's own UI actions.
 
 # MCP server description and instructions
 

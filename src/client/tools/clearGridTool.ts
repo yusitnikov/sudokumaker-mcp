@@ -1,11 +1,12 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
+import { clearGridToolName } from "./toolNames";
 
 export const clearGridTool = new ToolImplementation(
   {
     definition: {
-      name: "clear_grid",
+      name: clearGridToolName,
       title: "Clear the grid",
       description:
         // language=markdown

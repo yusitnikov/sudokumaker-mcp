@@ -8,11 +8,18 @@ import {
 } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { operationDescriptionParam } from "./descriptionSnippets";
+import { KillerCagesElement } from "../../SudokuMakerElement";
+import {
+  addElementToolName,
+  getPuzzleToolName,
+  updateCluesToolName,
+} from "./toolNames";
+import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 
 export const updateCluesTool = new ToolImplementation(
   {
     definition: {
-      name: "update_clues",
+      name: updateCluesToolName,
       title: "Update Sudoku Maker clues",
       description:
         // language=markdown
@@ -29,7 +36,7 @@ wasn't the clue you intended.
       .number()
       .int()
       .describe(
-        "ID of the target element (the multi-clue element whose clues to update), as returned by get_puzzle/add_element.",
+        `ID of the target element (the multi-clue element whose clues to update), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
       ),
     operationDescription: operationDescriptionParam,
     updateGroups: z
@@ -49,8 +56,9 @@ Array of group objects, each with two keys:
   identify one clue uniquely, or fewer to target several clues at once).
 - **\`updates\`** (required): a deep-partial object holding only the clue fields to change - unset
   fields keep their current value, array-valued fields (e.g. a cage's cell list) are replaced
-  wholesale if included; docs topic \`element:<TypeName>\`'s \`## Clues\` section (substitute the
-  target element's exact type name, e.g. \`element:KillerCages\`) shows the exact clue JSON schema.
+  wholesale if included; docs topic \`${elementTopicPattern}\` (substitute the target element's exact
+  type name, e.g. \`${elementTopicPrefix}${KillerCagesElement.typeName}\`)'s \`## Clues\` section shows the exact clue
+  JSON schema.
 
 Every clue matched by a group receives that same group's \`updates\` object.
 

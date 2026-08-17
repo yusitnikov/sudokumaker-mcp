@@ -1,12 +1,7 @@
 import { z } from "zod";
 import { AllElements } from "../../../SudokuMakerElement";
-import { updateElementTool } from "../updateElementTool";
-
-/** Prefix of every generated per-type topic name. */
-export const elementTopicPrefix = "element:";
-
-/** The generated per-type topic name pattern, with the placeholder spelled out. Shared so no other file retypes it. */
-export const elementTopicPattern = `${elementTopicPrefix}<TypeName>`;
+import { updateElementToolName } from "../toolNames";
+import { elementsTopicName, elementTopicPrefix } from "./topicNames";
 
 /** Renders the `params` schema of one main/option variant, when it declares one, as an inline JSON block. */
 const renderParams = (paramsSchema: z.ZodObject | undefined): string[] =>
@@ -35,12 +30,17 @@ export const getElementTopic = (name: string): string | undefined => {
   const typeName = name.slice(elementTopicPrefix.length);
   const element = AllElements.find((element) => element.typeName === typeName);
   if (!element) {
-    return `Unknown element type \`${typeName}\`. See the \`elements\` topic for the exact type names.`;
+    return `Unknown element type \`${typeName}\`. See the \`${elementsTopicName}\` topic for the exact type names.`;
   }
 
   const { globalSchema, clue, main, options } = element;
 
-  const lines: string[] = [`# Element type \`${typeName}\``, ``, `## Variants`, ``];
+  const lines: string[] = [
+    `# Element type \`${typeName}\``,
+    ``,
+    `## Variants`,
+    ``,
+  ];
 
   lines.push(
     `"${main.title}" — ${main.description}`,
@@ -93,7 +93,7 @@ export const getElementTopic = (name: string): string | undefined => {
     // content. Rather than guess and risk asserting "one clue" where it's false, say only what's
     // true of every case: the fields are set as a whole via `update_element`.
     lines.push(
-      `No separate clue array — the whole config above is set at once via \`${updateElementTool.name}\`.`,
+      `No separate clue array — the whole config above is set at once via \`${updateElementToolName}\`.`,
       ``,
     );
   } else {

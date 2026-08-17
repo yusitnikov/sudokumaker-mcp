@@ -1,14 +1,16 @@
 import type { DocsTopic } from "./topics";
 import {
-  bruteForceSolveTool,
-  doAllLogicalStepsTool,
-  doLogicalStepTool,
-  stopSolverTool,
-  waitForSolverTool,
-} from "../solverTools";
-import { redoTool, undoTool } from "../undoRedoTools";
-import { clearGridTool } from "../clearGridTool";
-import { getPuzzleTool } from "../getPuzzleTool";
+  bruteForceSolveToolName,
+  clearGridToolName,
+  doAllLogicalStepsToolName,
+  doLogicalStepToolName,
+  getPuzzleToolName,
+  redoToolName,
+  stopSolverToolName,
+  undoToolName,
+  waitForSolverToolName,
+} from "../toolNames";
+import { solvingTopicName } from "./topicNames";
 
 /**
  * TODO (phase 12): add `check_validity` — a dedicated existence-plus-uniqueness check that writes
@@ -17,7 +19,7 @@ import { getPuzzleTool } from "../getPuzzleTool";
  * diagnostic-run rule. Both sections need rewording once the side-effect-free tool lands.
  */
 export const solvingTopic: DocsTopic = {
-  name: "solving",
+  name: solvingTopicName,
   description:
     "Performing logical steps, finding all solutions, checking whether the puzzle is broken or non-unique, and reading the results.",
   content: () =>
@@ -27,22 +29,22 @@ export const solvingTopic: DocsTopic = {
 
 ## The checks
 
-- \`${bruteForceSolveTool.name}\` finds and counts all solutions and computes exact candidates for every cell. On a
+- \`${bruteForceSolveToolName}\` finds and counts all solutions and computes exact candidates for every cell. On a
   unique solution it fills the solved values into the grid; counting has a cap the app itself reports if hit.
   This is the reliable source for "broken" (no solutions) vs. "unique" vs. "non-unique" (several solutions).
-- \`${doLogicalStepTool.name}\` / \`${doAllLogicalStepsTool.name}\` deduce the way a human solver would, one step or
+- \`${doLogicalStepToolName}\` / \`${doAllLogicalStepsToolName}\` deduce the way a human solver would, one step or
   all reachable steps. They may miss eliminations that are logically valid but too hard to deduce this way — a step
   finding nothing doesn't mean the puzzle is broken, only that this method didn't find anything (yet).
 
 Every check treats already-entered cell values and center marks as constraints — the app's own solve log says as much
 ("making use of the filled-in values") when they're present. A verdict returned while the grid has test-solve marks
 on it is therefore conditional on those marks, not a verdict on the puzzle's rules alone. To judge the puzzle itself:
-either report the verdict as conditional, or clear the grid first (\`${clearGridTool.name}\`, undoable), re-check, then \`${undoTool.name}\`
+either report the verdict as conditional, or clear the grid first (\`${clearGridToolName}\`, undoable), re-check, then \`${undoToolName}\`
 to hand the grid back as it was.
 
 ## Reading results
 
-Solver output lands as candidates and values in \`cells\`, inspected via \`${getPuzzleTool.name}\`. The verdict text itself is the
+Solver output lands as candidates and values in \`cells\`, inspected via \`${getPuzzleToolName}\`. The verdict text itself is the
 app's own words, returned verbatim in the tool response — not something to reinterpret or reword technically; relay
 it in puzzle language.
 
@@ -54,11 +56,11 @@ such elements exist.
 
 ## State effects
 
-Every writing solver run can be undone/redone like any other action, via \`${undoTool.name}\`/\`${redoTool.name}\`.
+Every writing solver run can be undone/redone like any other action, via \`${undoToolName}\`/\`${redoToolName}\`.
 
 Any solving/checking run that writes values or candidates **overwrites** whatever was already in those cells,
 including the user's own test-solve marks. A diagnostic run (one done only to get a verdict, not because the user
-asked for the deduced values) should be undone with \`${undoTool.name}\` once its verdict has been read, unless the
+asked for the deduced values) should be undone with \`${undoToolName}\` once its verdict has been read, unless the
 user wants the result kept on the grid.
 
 Mutating the givens or any logical element invalidates candidates computed before that change — re-run rather than
@@ -69,8 +71,8 @@ don't assume which the user prefers.
 
 ## Mechanics
 
-\`${waitForSolverTool.name}\` waits for a run to finish and returns the same verdict text; call it again if the
-response says the check is still running. \`${stopSolverTool.name}\` cancels a run in progress (e.g. an
+\`${waitForSolverToolName}\` waits for a run to finish and returns the same verdict text; call it again if the
+response says the check is still running. \`${stopSolverToolName}\` cancels a run in progress (e.g. an
 over-long solution count).
 `.trim(),
 };

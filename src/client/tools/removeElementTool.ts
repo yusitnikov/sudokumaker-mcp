@@ -6,11 +6,16 @@ import {
   getElementSummary,
 } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
+import {
+  addElementToolName,
+  getPuzzleToolName,
+  removeElementToolName,
+} from "./toolNames";
 
 export const removeElementTool = new ToolImplementation(
   {
     definition: {
-      name: "remove_element",
+      name: removeElementToolName,
       title: "Remove Sudoku Maker element",
       description:
         // language=markdown
@@ -20,7 +25,7 @@ export const removeElementTool = new ToolImplementation(
   z.object({
     elementId: z.number().int().describe(
       // language=markdown
-      `ID of the element to remove, as returned by \`get_puzzle\`/\`add_element\`.`,
+      `ID of the element to remove, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
     ),
     elementName: z.string().optional().describe(
       // language=markdown

@@ -1,7 +1,8 @@
 import type { DocsTopic } from "./topics";
+import { digitSetTopicName } from "./topicNames";
 
-export const customConstraintsDigitSetTopic: DocsTopic = {
-  name: "custom-constraints:digit-set",
+export const digitSetTopic: DocsTopic = {
+  name: digitSetTopicName,
   description: "How to work with DigitSet class",
   // language=markdown
   content: () => `
