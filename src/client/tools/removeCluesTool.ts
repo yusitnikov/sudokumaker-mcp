@@ -1,6 +1,5 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import { AllElements } from "../../SudokuMakerElement";
 import {
   ClueCellsGroupFilter,
   getElementFinalName,
@@ -30,14 +29,6 @@ the clue you intended.
       `ID of the target element (the multi-clue element to remove clues from), as returned by \`get_puzzle\`/\`add_element\`.`,
     ),
     operationDescription: operationDescriptionParam,
-    elementType: z
-      .enum(
-        AllElements.filter(({ clue }) => clue).map(({ typeName }) => typeName),
-      )
-      .describe(
-        // language=markdown
-        `The target element's exact type name (must match its actual type, e.g. \`"Thermometer"\`, or the operation fails) - read it off the \`type\` shown for that element in \`get_puzzle\`'s output.`,
-      ),
     clueCellGroups: z.array(ClueCellsGroupFilter).describe(
       // language=markdown
       `
@@ -47,16 +38,10 @@ Each group in this array independently selects clues to remove.
 `.trim(),
     ),
   }),
-  ({
-    elementId,
-    elementType: type,
-    clueCellGroups,
-    operationDescription,
-  }): CallToolResult => {
+  ({ elementId, clueCellGroups, operationDescription }): CallToolResult => {
     const { allMatchingIndexes, updatedElement, updatedClues, messages } =
       updateCluesByCellGroups(
         elementId,
-        type,
         clueCellGroups,
         (clues, _, allMatchingIndexes) =>
           clues.filter((_value, index) => !allMatchingIndexes.has(index)),

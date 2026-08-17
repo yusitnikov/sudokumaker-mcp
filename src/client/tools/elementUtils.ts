@@ -13,21 +13,37 @@ export const getElementFinalName = ({
 export const getElementSummary = (element: z.input<typeof ElementSchema>) =>
   `"${getElementFinalName(element)}" (type ${element.config.type}, ID ${element.id}, ${!element.enabled ? "disabled" : element.solverIgnored ? "solver-ignored" : "enabled"})`;
 
-export const getElementById = (elementId: number, type?: string) => {
+export const getElementById = (elementId: number) => {
   const { allElements: currentElements } = getPuzzle();
 
   const targetElement = currentElements.find(({ id }) => id === elementId);
   if (!targetElement) {
     throw new Error(`Element with ID ${elementId} not found in the puzzle`);
   }
-  if (type !== undefined && targetElement.config.type !== type) {
-    throw new Error(
-      `Type mismatch: element with ID ${elementId} is of type "${targetElement.config.type}", but type "${type}" requested. Are you sure that it's the element that you wanted to edit?`,
-    );
-  }
+
   const index = currentElements.indexOf(targetElement);
 
   return { index, targetElement };
+};
+
+/**
+ * Resolves an element by ID, its real `SudokuMakerElement` type descriptor, and its clue descriptor -
+ * throwing a clear domain error if the resolved type has no clues at all.
+ * Shared by every tool that targets an element's clues, since the element's real type (and whether it has clues)
+ * is always known server-side, never supplied by the caller.
+ */
+export const getElementWithClueById = (elementId: number) => {
+  const { index, targetElement } = getElementById(elementId);
+  const elementType = getElementByTypeName(targetElement.config.type);
+
+  const clueType = elementType.clue;
+  if (!clueType) {
+    throw new Error(
+      `Element type "${targetElement.config.type}" has no clues - this tool only applies to multi-clue element types.`,
+    );
+  }
+
+  return { index, targetElement, elementType, clueType };
 };
 
 export const ClueCellsGroupFilter = z.array(CellIdPublic).meta({
@@ -44,7 +60,6 @@ Pass enough cells to identify one clue uniquely, or fewer to target several clue
 
 export const updateCluesByCellGroups = (
   elementId: number,
-  type: string,
   clueCellGroups: CellCoords[][],
   updateCallback: (
     clues: any[],
@@ -56,15 +71,15 @@ export const updateCluesByCellGroups = (
     affectedCluesCount: number,
   ) => string,
 ) => {
-  const { index, targetElement } = getElementById(elementId, type);
+  const { index, targetElement, elementType, clueType } =
+    getElementWithClueById(elementId);
 
-  const elementType = getElementByTypeName(type);
-  const cluesKey = elementType.clue!.key;
+  const cluesKey = clueType.key;
   const clues = ((targetElement.config as any)[cluesKey] as any[]).map(
     (clue, index) => ({
       index,
       clue,
-      cells: elementType.clue!.getAffectedCells(clue),
+      cells: clueType.getAffectedCells(clue),
     }),
   );
   const matchingClues = clueCellGroups.map((cells) =>

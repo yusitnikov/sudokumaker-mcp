@@ -1,11 +1,10 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import { SmartDiscriminatedUnion } from "../../SmartDiscriminatedUnion";
-import { AllElements, getElementByTypeName } from "../../SudokuMakerElement";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getElementById, getElementFinalName } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
+import { getElementByTypeName } from "../../SudokuMakerElement";
 
 export const updateElementTool = new ToolImplementation(
   {
@@ -30,90 +29,91 @@ the \`clueBatchUpdates\` field here applies identically to ALL clues.
       `ID of the target element to update, as returned by \`get_puzzle\`/\`add_element\`.`,
     ),
     operationDescription: operationDescriptionParam,
-    updates: z
-      .intersection(
-        SmartDiscriminatedUnion(
-          "type",
-          AllElements.map((element) =>
-            z.object({
-              type: z.literal(element.typeName),
-              ...(element.globalSchema
-                ? {
-                    elementUpdates: ZodDeepPartial(
-                      element.globalSchema instanceof z.ZodCodec
-                        ? element.globalSchema.def.in
-                        : element.globalSchema,
-                    ).optional(),
-                  }
-                : {}),
-              ...(element.clue
-                ? {
-                    clueBatchUpdates: ZodDeepPartial(
-                      element.clue.schema,
-                    ).optional(),
-                  }
-                : {}),
-            }),
-          ),
-        ),
-        z.object({
-          name: z.string().optional().describe(
-            // language=markdown
-            `Rename the element (skip to leave the current name, pass an empty string to revert to the default name).`,
-          ),
-          enabled: z.boolean().optional().describe(
-            // language=markdown
-            `Enable or disable the element (both logic and visuals).`,
-          ),
-          solverIgnored: z.boolean().optional().describe(
-            // language=markdown
-            `Enable or disable the element for the solver (logic only).`,
-          ),
-        }),
-      )
+    elementUpdates: z
+      .unknown()
+      .optional()
       .describe(
         // language=markdown
         `
-What to change on the target element: type-specific config/clue updates plus common fields, merged
-together into one object shaped like \`{"type": string, "elementUpdates"?: object,
-"clueBatchUpdates"?: object, "name"?: string, "enabled"?: boolean, "solverIgnored"?: boolean}\`.
-
-- **\`type\`** (required): the target element's exact type name as a string (must match its actual
-  type, e.g. \`"Thermometer"\`) - read it off the \`type\` shown for that element in \`get_puzzle\`'s output.
-- **\`elementUpdates\`** (optional): a deep-partial object of the element's config fields to change
-  (e.g. \`{"style": {"bulbRadius": 0.6}}\` for a thermometer) - only present for element types that
-  have a \`## Config\` section (see below); unset fields keep their current value, arrays are
-  replaced wholesale if included; docs topic \`element:<TypeName>\`'s \`## Config\` section shows the
-  full config JSON schema.
-- **\`clueBatchUpdates\`** (optional): a deep-partial object applied identically to EVERY clue this
-  element currently has (e.g. \`{"value": 0}\` would zero every cage's total) - only present for
-  multi-clue element types; docs topic \`element:<TypeName>\`'s \`## Clues\` section shows the exact
-  clue JSON schema.
-- **\`name\`** (optional): a string to rename the element (send an empty string to revert to its
-  default name; omit to leave unchanged).
-- **\`enabled\`** (optional): a boolean toggling the element on/off entirely (logic and visuals).
-- **\`solverIgnored\`** (optional): a boolean toggling whether the solver treats this element as
-  active (logic only, visuals unaffected).
-
-Example: \`{"type": "Thermometer", "elementUpdates": {"style": {"bulbRadius": 0.6}}}\`.
+A deep-partial object of the element's config fields to change (e.g. \`{"style": {"bulbRadius": 0.6}}\`
+for a thermometer) - only accepted for element types that have config beyond their clues; unset fields
+keep their current value, arrays are replaced wholesale if included; docs topic
+\`element:<TypeName>\`'s \`## Config\` section shows the full config JSON schema.
 `.trim(),
       ),
+    clueBatchUpdates: z
+      .unknown()
+      .optional()
+      .describe(
+        // language=markdown
+        `
+A deep-partial object applied identically to every clue this element currently has (e.g.
+\`{"value": 0}\` would zero every cage's total) - only accepted for multi-clue element types; docs
+topic \`element:<TypeName>\`'s \`## Clues\` section shows the exact clue JSON schema.
+`.trim(),
+      ),
+    name: z.string().optional().describe(
+      // language=markdown
+      `Rename the element (skip to leave the current name, pass an empty string to revert to the default name).`,
+    ),
+    enabled: z.boolean().optional().describe(
+      // language=markdown
+      `Enable or disable the element (both logic and visuals).`,
+    ),
+    solverIgnored: z.boolean().optional().describe(
+      // language=markdown
+      `Enable or disable the element for the solver (logic only).`,
+    ),
   }),
   ({
     elementId,
-    updates: {
-      type,
-      elementUpdates,
-      clueBatchUpdates,
-      name,
-      enabled,
-      solverIgnored,
-    },
+    elementUpdates: rawElementUpdates,
+    clueBatchUpdates: rawClueBatchUpdates,
+    name,
+    enabled,
+    solverIgnored,
     operationDescription,
   }) => {
-    const { index, targetElement } = getElementById(elementId, type);
+    const { index, targetElement } = getElementById(elementId);
+    const elementType = getElementByTypeName(targetElement.config.type);
 
-    const elementType = getElementByTypeName(type);
+    if (rawElementUpdates !== undefined && !elementType.globalSchema) {
+      throw new Error(
+        `Element type "${targetElement.config.type}" has no config to update - "elementUpdates" is not accepted for it.`,
+      );
+    }
+    if (rawClueBatchUpdates !== undefined && !elementType.clue) {
+      throw new Error(
+        `Element type "${targetElement.config.type}" has no clues - "clueBatchUpdates" is not accepted for it.`,
+      );
+    }
+
+    // Manually parse the type-specific data after knowing the type schema.
+    // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
+    const { elementUpdates, clueBatchUpdates } = z
+      .object({
+        ...(elementType.globalSchema
+          ? {
+              elementUpdates: ZodDeepPartial(
+                elementType.globalSchema instanceof z.ZodCodec
+                  ? elementType.globalSchema.def.in
+                  : elementType.globalSchema,
+              ).optional(),
+            }
+          : {}),
+        ...(elementType.clue
+          ? {
+              clueBatchUpdates: ZodDeepPartial(
+                elementType.clue.schema,
+              ).optional(),
+            }
+          : {}),
+      })
+      .parse({
+        elementUpdates: rawElementUpdates,
+        clueBatchUpdates: rawClueBatchUpdates,
+      });
+
     const cluesKey = elementType.clue?.key;
 
     updatePuzzle(

@@ -1,10 +1,9 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import { SmartDiscriminatedUnion } from "../../SmartDiscriminatedUnion";
-import { AllElements } from "../../SudokuMakerElement";
 import {
   ClueCellsGroupFilter,
   getElementFinalName,
+  getElementWithClueById,
   updateCluesByCellGroups,
 } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
@@ -33,48 +32,51 @@ wasn't the clue you intended.
         "ID of the target element (the multi-clue element whose clues to update), as returned by get_puzzle/add_element.",
       ),
     operationDescription: operationDescriptionParam,
-    updates: SmartDiscriminatedUnion(
-      "type",
-      AllElements.filter(({ clue }) => clue).map((element) =>
+    updateGroups: z
+      .array(
         z.object({
-          type: z.literal(element.typeName),
-          updateGroups: z.array(
-            z.object({
-              clueCells: ClueCellsGroupFilter,
-              updates: ZodDeepPartial(element.clue!.schema),
-            }),
-          ),
+          clueCells: ClueCellsGroupFilter,
+          updates: z.unknown(),
         }),
-      ),
-    ).describe(
-      // language=markdown
-      `
-Which element's clues to update and what to change on them, as an object shaped like
-\`{"type": string, "updateGroups": array of {"clueCells": array, "updates": object}}\`.
+      )
+      .describe(
+        // language=markdown
+        `
+Array of group objects, each with two keys:
 
-- **\`type\`** (required): the target element's exact type name as a string (must match its actual
-  type, e.g. \`"KillerCages"\`) - read it off the \`type\` shown for that element in \`get_puzzle\`'s
-  output.
-- **\`updateGroups\`** (required): array of group objects, each with two keys:
-  - **\`clueCells\`** (required): cells that identify which clue(s) to target - a clue matches this
-    group only if **all** of these cells are among the cells it affects (pass enough cells to
-    identify one clue uniquely, or fewer to target several clues at once).
-  - **\`updates\`** (required): a deep-partial object holding only the clue fields to change - unset
-    fields keep their current value, array-valued fields (e.g. a cage's cell list) are replaced
-    wholesale if included; docs topic \`element:<TypeName>\`'s \`## Clues\` section (substitute the
-    type name, e.g. \`element:KillerCages\`) shows the exact clue JSON schema.
+- **\`clueCells\`** (required): cells that identify which clue(s) to target - a clue matches this
+  group only if **all** of these cells are among the cells it affects (pass enough cells to
+  identify one clue uniquely, or fewer to target several clues at once).
+- **\`updates\`** (required): a deep-partial object holding only the clue fields to change - unset
+  fields keep their current value, array-valued fields (e.g. a cage's cell list) are replaced
+  wholesale if included; docs topic \`element:<TypeName>\`'s \`## Clues\` section (substitute the
+  target element's exact type name, e.g. \`element:KillerCages\`) shows the exact clue JSON schema.
 
 Every clue matched by a group receives that same group's \`updates\` object.
 
-Example: \`{"type": "KillerCages", "updateGroups": [{"clueCells": [{"row": 1, "column": 1}], "updates": {"value": 21}}]}\`.
+Example: \`[{"clueCells": [{"row": 1, "column": 1}], "updates": {"value": 21}}]\`.
 `.trim(),
-    ),
+      ),
   }),
-  ({ elementId, updates: { type, updateGroups }, operationDescription }) => {
+  ({ elementId, updateGroups: rawUpdateGroups, operationDescription }) => {
+    const { clueType } = getElementWithClueById(elementId);
+
+    // Manually parse the type-specific data after knowing the type schema.
+    // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
+    const { updateGroups } = z
+      .object({
+        updateGroups: z.array(
+          z.object({
+            clueCells: ClueCellsGroupFilter,
+            updates: ZodDeepPartial(clueType.schema),
+          }),
+        ),
+      })
+      .parse({ updateGroups: rawUpdateGroups });
+
     const { allMatchingIndexes, updatedElement, updatedClues, messages } =
       updateCluesByCellGroups(
         elementId,
-        type,
         updateGroups.map(({ clueCells }) => clueCells),
         (clues, matchingIndexGroups) => {
           for (const [
