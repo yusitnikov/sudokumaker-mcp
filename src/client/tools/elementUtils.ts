@@ -1,6 +1,6 @@
-import { getPuzzle, toShortCellNotation, updatePuzzle } from "../utils";
+import { getPuzzle, updatePuzzle } from "../utils";
 import { ElementSchema, getElementByTypeName } from "../../SudokuMakerElement";
-import { type CellCoords, CellIdPublic } from "../../SudokuMakerSchemas";
+import { type CellNotation, CellIdPublic } from "../../SudokuMakerSchemas";
 import { z } from "zod";
 
 export const getElementFinalName = ({
@@ -60,7 +60,7 @@ Pass enough cells to identify one clue uniquely, or fewer to target several clue
 
 export const updateCluesByCellGroups = (
   elementId: number,
-  clueCellGroups: CellCoords[][],
+  clueCellGroups: CellNotation[][],
   updateCallback: (
     clues: any[],
     matchingIndexGroups: number[][],
@@ -83,22 +83,16 @@ export const updateCluesByCellGroups = (
     }),
   );
   const matchingClues = clueCellGroups.map((cells) =>
-    clues.filter((clue) =>
-      cells.every((cell1) =>
-        clue.cells.some(
-          (cell2) => cell2.row === cell1.row && cell2.column === cell1.column,
-        ),
-      ),
-    ),
+    clues.filter((clue) => cells.every((cell1) => clue.cells.includes(cell1))),
   );
   const allMatchingIndexes = new Set(
     matchingClues.flat().map(({ index }) => index),
   );
 
   if (allMatchingIndexes.size === 0) {
-    const allClueCells = clues
-      .map(({ cells }) => toShortCellNotation(cells))
-      .map((cellsStr) => `(${cellsStr || "none"})`);
+    const allClueCells = clues.map(
+      ({ cells }) => `(${cells.join(", ") || "none"})`,
+    );
 
     throw new Error(
       `No matching clues found, please check the filters. There are clues with the following affected cells - you can target only these cells: ${allClueCells.join("; ") || "none"}`,

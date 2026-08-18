@@ -1,4 +1,4 @@
-import { type CellCoords, CellSchema } from "../SudokuMakerSchemas";
+import { CellSchema } from "../SudokuMakerSchemas";
 import { z } from "zod";
 import { PuzzleSchema } from "../SudokuMakerPuzzleSchema";
 import {
@@ -72,10 +72,3 @@ export const waitForSolver = async (timeout: number) => {
       : "The solver finished running.",
   };
 };
-
-export const toShortCellNotation = (
-  cellOrCells: CellCoords | CellCoords[],
-): string =>
-  Array.isArray(cellOrCells)
-    ? cellOrCells.map(toShortCellNotation).join(", ")
-    : `r${cellOrCells.row}c${cellOrCells.column}`;

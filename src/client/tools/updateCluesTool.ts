@@ -62,7 +62,7 @@ Array of group objects, each with two keys:
 
 Every clue matched by a group receives that same group's \`updates\` object.
 
-Example: \`[{"clueCells": [{"row": 1, "column": 1}], "updates": {"value": 21}}]\`.
+Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
 `.trim(),
       ),
   }),

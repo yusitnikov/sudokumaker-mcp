@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { PuzzleSchema } from "../../SudokuMakerPuzzleSchema";
-import { toShortCellNotation } from "../utils";
 
 export const diffCells = (
   { cells: cells1Map }: z.input<typeof PuzzleSchema>,
@@ -12,8 +11,8 @@ export const diffCells = (
 
   const groupedDiffMap: Record<string, string[]> = {};
 
-  for (const [index, { row, column, ...cell1 }] of cells1.entries()) {
-    const { row: _row, column: _column, ...cell2 } = cells2[index];
+  for (const [index, { coords, ...cell1 }] of cells1.entries()) {
+    const { coords: _coords, ...cell2 } = cells2[index];
 
     const [empty1, empty2] = [cell1, cell2].map(
       (cell) =>
@@ -95,9 +94,7 @@ export const diffCells = (
     }
 
     if (changes.length) {
-      (groupedDiffMap[changes.join(", ")] ??= []).push(
-        toShortCellNotation({ row, column }),
-      );
+      (groupedDiffMap[changes.join(", ")] ??= []).push(coords);
     }
   }
 

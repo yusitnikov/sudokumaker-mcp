@@ -1,16 +1,12 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import {
-  type CellCoords,
+  type CellNotation,
   CellId,
   CellSchemaNoId,
+  parseCellNotation,
 } from "../../SudokuMakerSchemas";
-import {
-  copyCells,
-  getPuzzle,
-  toShortCellNotation,
-  updatePuzzle,
-} from "../utils";
+import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updateCellMarksToolName } from "./toolNames";
 
@@ -77,13 +73,13 @@ How to combine the given values with each cell's existing marks:
     cornerPencilMarks,
     colors,
   }) => {
-    const updatedCells: CellCoords[] = [];
-    const skippedCells: CellCoords[] = [];
+    const updatedCells: CellNotation[] = [];
+    const skippedCells: CellNotation[] = [];
 
     updatePuzzle(
       (puzzle) => {
         for (const coords of cells) {
-          const { row, column } = coords;
+          const { row, column } = parseCellNotation(coords);
           const cell = puzzle.cells[row - 1][column - 1];
 
           if (cell.value !== undefined && (candidates || cornerPencilMarks)) {
@@ -119,7 +115,7 @@ How to combine the given values with each cell's existing marks:
         }
       },
       (from, to) => copyCells(from.cells, to.cells),
-      operationDescription || "Update marks for " + toShortCellNotation(cells),
+      operationDescription || "Update marks for " + cells.join(", "),
     );
 
     const newCells = getPuzzle().cells;
@@ -132,10 +128,11 @@ How to combine the given values with each cell's existing marks:
                 "Here are the cells marks after the update:\n" +
                 updatedCells
                   .map((coords) => {
-                    const cell = newCells[coords.row - 1][coords.column - 1];
+                    const { row, column } = parseCellNotation(coords);
+                    const cell = newCells[row - 1][column - 1];
 
                     return (
-                      `- ${toShortCellNotation(coords)}: ` +
+                      `- ${coords}: ` +
                       // describe only mark types that were requested to change
                       [
                         candidates &&
@@ -179,11 +176,11 @@ How to combine the given values with each cell's existing marks:
       content: [
         {
           type: "text",
-          text: `Updated cells ${toShortCellNotation(updatedCells)} successfully.`,
+          text: `Updated cells ${updatedCells.join(", ")} successfully.`,
         },
         {
           type: "text",
-          text: `Failed to update cells ${toShortCellNotation(skippedCells)} because they contain value.`,
+          text: `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,
         },
         ...updatedCellsDescription,
       ],

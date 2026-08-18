@@ -63,38 +63,93 @@ const CellIdInternal = z.number().meta({
     "It corresponds to the zero-based cell index in the flat cells array, starting from the top left cell, and going in the reading order (left to right, top to bottom). " +
     "So, the top left cell ID is 0, and cell in row 2 column 3 of a 6x6 puzzle would be 8 (row index 1 multiplied by columns number 6, plus column index 2: 1 * 6 + 2 = 8).",
 });
+
+/** Plain `{row, column}` pair, 1-based. Not a schema of its own - it's the shape every cell-like codec below computes internally between parsing/formatting the public "rXcY" string and doing its own row/column math. */
+export interface CellCoords {
+  row: number;
+  column: number;
+}
+
+/** The public "rXcY" cell-coordinate string - what `CellIdPublic` (and, riding on it, `CellId`, `CornerId`, `OuterCellId`, and each side of `EdgeId`) encodes to and decodes from. */
+export type CellNotation = string;
+
+const shortCellNotationPattern = /^r(-?\d+)c(-?\d+)$/;
+
+/** Parses a public "rXcY" string into its row/column. Throws with a message spelling out the expected format, since this is where every cell-like codec's format errors originate. */
+export const parseCellNotation = (cellStr: CellNotation): CellCoords => {
+  const match = shortCellNotationPattern.exec(cellStr);
+  if (!match) {
+    throw new Error(
+      `Invalid cell coordinates "${cellStr}" - expected "rXcY" notation, e.g. "r2c3".`,
+    );
+  }
+
+  const [, row, column] = match;
+  return { row: Number(row), column: Number(column) };
+};
+
+/** Formats a `{row, column}` pair back into the public "rXcY" string. */
+export const formatCellNotation = ({ row, column }: CellCoords): CellNotation =>
+  `r${row}c${column}`;
+
 export const CellIdPublic = z
-  .object({
-    row: z.number().describe("Row number, starting from the top"),
-    column: z.number().describe("Column number, starting from the left"),
-  })
+  .string()
+  .regex(shortCellNotationPattern)
   .meta({
     id: "CellCoords",
-    description: "Coordinates of a cell in the grid",
+    description:
+      'A cell coordinate string in "rXcY" notation, e.g. "r2c3" is row 2, column 3 (both 1-based, counting from the top-left). ' +
+      "Row/column may be 0 or negative, or greater than the grid size, for cells outside the grid.",
   });
-export type CellCoords = z.input<typeof CellIdPublic>;
-// noinspection JSUnusedGlobalSymbols
+
 const getCellCoordsCodecParams = (helper: () => CellCoordsTransformHelper) => ({
   encode: (cellId: number) => {
     const { x, y } = helper().getCoordsFromId(cellId);
 
-    return {
+    return formatCellNotation({
       row: y + 1,
       column: x + 1,
-    };
+    });
   },
-  decode: ({ column, row }: CellCoords) =>
-    helper().getIdFromCoords({
+  decode: (cellStr: CellNotation) => {
+    const { row, column } = parseCellNotation(cellStr);
+
+    return helper().getIdFromCoords({
       x: column - 1,
       y: row - 1,
-    }),
+    });
+  },
 });
+
+// cellIds is the only helper with a "safe" coordinate lookup (returns undefined instead of throwing for
+// out-of-grid coordinates), so CellId - unlike CornerId/OuterCellId below - gets its own codec that reports
+// out-of-grid cells as a proper zod issue instead of an uncaught throw.
 export const CellId: z.ZodCodec<typeof CellIdPublic, typeof CellIdInternal> =
-  z.codec(
-    CellIdPublic,
-    CellIdInternal,
-    getCellCoordsCodecParams(() => window.Api.getPuzzle().helpers.cellIds),
-  );
+  z.codec(CellIdPublic, CellIdInternal, {
+    encode: (cellId) => {
+      const { x, y } =
+        window.Api.getPuzzle().helpers.cellIds.getCoordsFromId(cellId);
+
+      return formatCellNotation({ row: y + 1, column: x + 1 });
+    },
+    decode: (cellStr, payload) => {
+      const { row, column } = parseCellNotation(cellStr);
+
+      const cellId = window.Api.getPuzzle().helpers.cellIds.getIdFromCoordsSafe(
+        { x: column - 1, y: row - 1 },
+      );
+      if (cellId === undefined) {
+        payload.issues.push({
+          code: "custom",
+          message: `Cell "${cellStr}" is outside the grid.`,
+          input: cellStr,
+        });
+        return z.NEVER;
+      }
+
+      return cellId;
+    },
+  });
 
 const CornerIdInternal = z.number().meta({
   id: "CornerId",
@@ -105,7 +160,9 @@ export const CornerId: z.ZodCodec<
   typeof CornerIdInternal
 > = z.codec(
   CellIdPublic.describe(
-    "The desired corner is the top-left corner of this cell (could be a cell outside the grid)",
+    'A cell coordinate string in "rXcY" notation, but naming the cell\'s top-left corner rather than the cell itself ' +
+      '(e.g. the corner shared by r2c3, r2c4, r3c3 and r3c4 is named by "r3c4" - the cell below-right of that corner). ' +
+      "The named cell may be outside the grid.",
   ),
   CornerIdInternal,
   getCellCoordsCodecParams(() => {
@@ -135,31 +192,35 @@ export const EdgeId: z.ZodCodec<typeof EdgeIdPublic, typeof EdgeIdInternal> =
 
       return x % 1 === 0
         ? [
-            {
+            formatCellNotation({
               row: y + 0.5,
               column: x,
-            },
-            {
+            }),
+            formatCellNotation({
               row: y + 0.5,
               column: x + 1,
-            },
+            }),
           ]
         : [
-            {
+            formatCellNotation({
               row: y,
               column: x + 0.5,
-            },
-            {
+            }),
+            formatCellNotation({
               row: y + 1,
               column: x + 0.5,
-            },
+            }),
           ];
     },
-    decode: ([cell1, cell2]) =>
-      window.Api.getPuzzle().helpers.edgeIds.getIdFromCoords({
+    decode: ([cell1Str, cell2Str]) => {
+      const cell1 = parseCellNotation(cell1Str),
+        cell2 = parseCellNotation(cell2Str);
+
+      return window.Api.getPuzzle().helpers.edgeIds.getIdFromCoords({
         x: (cell1.column + cell2.column) / 2 - 0.5,
         y: (cell1.row + cell2.row) / 2 - 0.5,
-      }),
+      });
+    },
   });
 
 const OuterCellIdInternal = z.number().meta({
@@ -281,19 +342,25 @@ export const CellSchema = z
     CellSchemaNoId,
     z
       .codec(
-        CellIdPublic,
+        z.object({ coords: CellIdPublic.describe("This cell's coordinates") }),
         z.object({
           id: CellId.out,
           x: z.number(),
           y: z.number(),
         }),
         {
-          encode: ({ x, y }) => ({ row: y + 1, column: x + 1 }),
-          decode: (cell) => ({
-            x: cell.column - 1,
-            y: cell.row - 1,
-            id: CellId.decode(cell),
+          encode: ({ x, y }) => ({
+            coords: formatCellNotation({ row: y + 1, column: x + 1 }),
           }),
+          decode: ({ coords }) => {
+            const { row, column } = parseCellNotation(coords);
+
+            return {
+              x: column - 1,
+              y: row - 1,
+              id: CellId.decode(coords),
+            };
+          },
         },
       )
       .readonly(),

@@ -20,7 +20,10 @@ interface CellCoordsTransformHelperXY extends CellCoordsTransformHelper {
 
 type Puzzle = z.infer<typeof PuzzleSchema> & {
   helpers: {
-    cellIds: CellCoordsTransformHelperXY;
+    cellIds: CellCoordsTransformHelperXY & {
+      /** Same as `getIdFromCoords`, but returns `undefined` for coordinates outside the grid instead. */
+      getIdFromCoordsSafe(coords: Coords): CellId | undefined;
+    };
     outerCellIds: CellCoordsTransformHelperXY;
     cornerIds: {
       getIdFromCornerCoords(coords: Coords): CellId;

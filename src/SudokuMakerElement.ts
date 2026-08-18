@@ -1,11 +1,13 @@
 import {
   CellId,
-  type CellCoords,
+  type CellNotation,
   CornerId,
   DiagonalType,
   EdgeId,
+  formatCellNotation,
   IVector2,
   OuterCellId,
+  parseCellNotation,
   CellsRectangle,
   Spec,
   SudokuLayer,
@@ -45,7 +47,7 @@ interface ClueDescriptor<
 > {
   key: ClueKeyT;
   schema: ClueConfigSchemaT;
-  getAffectedCells: (clue: z.input<ClueConfigSchemaT>) => CellCoords[];
+  getAffectedCells: (clue: z.input<ClueConfigSchemaT>) => CellNotation[];
 }
 
 export class SudokuMakerElement<
@@ -726,18 +728,25 @@ export const QuadrupleElement = new SudokuMakerElement({
   clue: {
     key: "clues",
     schema: z.object({
-      corner: CornerId.describe("Quadruple position"),
+      corner: CornerId.describe(
+        'The corner where the 4 quadruple digits are written, as the "rXcY" coordinates of the cell below-right of that corner ' +
+          '(e.g. "r3c4" names the corner shared by r2c3, r2c4, r3c3 and r3c4).',
+      ),
       digits: z
         .array(z.number())
         .max(4)
         .describe("Quadruple digits (up to 4 digits)"),
     }),
-    getAffectedCells: ({ corner }) => [
-      corner,
-      { ...corner, row: corner.row - 1 },
-      { ...corner, column: corner.column - 1 },
-      { row: corner.row - 1, column: corner.column - 1 },
-    ],
+    getAffectedCells: ({ corner }) => {
+      const { row, column } = parseCellNotation(corner);
+
+      return [
+        corner,
+        formatCellNotation({ row: row - 1, column }),
+        formatCellNotation({ row, column: column - 1 }),
+        formatCellNotation({ row: row - 1, column: column - 1 }),
+      ];
+    },
   },
   main: {
     title: "Quadruples",

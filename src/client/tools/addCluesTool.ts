@@ -41,7 +41,7 @@ Array of new clues to append to the element's clue list, one array entry per new
 \`${elementTopicPattern}\` (substitute the target element's exact type name, e.g.
 \`${elementTopicPrefix}${ThermometerElement.typeName}\`)'s \`## Clues\` section shows the exact clue JSON schema.
 
-Example (for a \`${ThermometerElement.typeName}\` element): \`[[{"row": 1, "column": 1}, {"row": 1, "column": 2}, {"row": 1, "column": 3}]]\`.
+Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", "r1c3"]]\`.
 `.trim(),
     ),
   }),

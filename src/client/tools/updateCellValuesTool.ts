@@ -1,7 +1,11 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import { type CellCoords, CellId } from "../../SudokuMakerSchemas";
-import { copyCells, toShortCellNotation, updatePuzzle } from "../utils";
+import {
+  type CellNotation,
+  CellId,
+  parseCellNotation,
+} from "../../SudokuMakerSchemas";
+import { copyCells, updatePuzzle } from "../utils";
 import {
   updateCellValuesToolName,
   updateGivenDigitsToolName,
@@ -32,13 +36,13 @@ Setting a value also clears any candidates/corner marks already in that cell.
     ),
   }),
   ({ cells, digit }) => {
-    const updatedCells: CellCoords[] = [];
-    const skippedCells: CellCoords[] = [];
+    const updatedCells: CellNotation[] = [];
+    const skippedCells: CellNotation[] = [];
 
     updatePuzzle(
       (puzzle) => {
         for (const coords of cells) {
-          const { row, column } = coords;
+          const { row, column } = parseCellNotation(coords);
           const cell = puzzle.cells[row - 1][column - 1];
 
           if (cell.given) {
@@ -54,7 +58,7 @@ Setting a value also clears any candidates/corner marks already in that cell.
       },
       (from, to) => copyCells(from.cells, to.cells),
       (digit === -1 ? "Remove values from " : `Put value ${digit} into `) +
-        toShortCellNotation(cells),
+        cells.join(", "),
     );
 
     if (skippedCells.length === 0) {
@@ -79,11 +83,11 @@ Setting a value also clears any candidates/corner marks already in that cell.
       content: [
         {
           type: "text",
-          text: `Updated cells ${toShortCellNotation(updatedCells)} successfully.`,
+          text: `Updated cells ${updatedCells.join(", ")} successfully.`,
         },
         {
           type: "text",
-          text: `Failed to update cells ${toShortCellNotation(skippedCells)} because they contain given digits.`,
+          text: `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,
         },
       ],
     };

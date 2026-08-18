@@ -1,7 +1,7 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import { CellId } from "../../SudokuMakerSchemas";
-import { copyCells, toShortCellNotation, updatePuzzle } from "../utils";
+import { CellId, parseCellNotation } from "../../SudokuMakerSchemas";
+import { copyCells, updatePuzzle } from "../utils";
 import { updateGivenDigitsToolName } from "./toolNames";
 
 export const updateGivenDigitsTool = new ToolImplementation(
@@ -29,7 +29,8 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
   ({ cells, digit }) => {
     updatePuzzle(
       (puzzle) => {
-        for (const { row, column } of cells) {
+        for (const cellStr of cells) {
+          const { row, column } = parseCellNotation(cellStr);
           const cell = puzzle.cells[row - 1][column - 1];
 
           cell.given = digit !== -1;
@@ -41,7 +42,7 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
       (from, to) => copyCells(from.cells, to.cells),
       (digit === -1
         ? "Remove given digits from "
-        : `Put given ${digit} into `) + toShortCellNotation(cells),
+        : `Put given ${digit} into `) + cells.join(", "),
     );
 
     return {
