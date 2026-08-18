@@ -3,6 +3,7 @@ import type {
   CallToolResult,
   Tool as SdkTool,
 } from "@modelcontextprotocol/sdk/types.js";
+import { jsonValue } from "../../jsonValue";
 
 export interface Tool {
   definition: SdkTool;
@@ -56,8 +57,8 @@ const isPrimitiveSchema = (node: z.ZodType): boolean =>
 /**
  * The advertised replacement for one schema node, wrappers and all: strips down to shape first,
  * then is itself if that's a primitive, or an array of the same if it's an array of one —
- * otherwise `z.any()`, since only that's cheap enough to check in Node. `z.array(z.any())` beats
- * bare `z.any()` for an array of anything heavier, so a caller at least sees "this is a list".
+ * otherwise `jsonValue`, since only that's cheap enough to check in Node. `z.array(jsonValue)` beats
+ * bare `jsonValue` for an array of anything heavier, so a caller at least sees "this is a list".
  */
 const toAdvertisedSchema = (schema: z.core.$ZodType): z.ZodType => {
   const node = stripNonShapeWrappers(schema);
@@ -70,7 +71,7 @@ const toAdvertisedSchema = (schema: z.core.$ZodType): z.ZodType => {
     return z.array(toAdvertisedSchema(node.element));
   }
 
-  return z.any();
+  return jsonValue;
 };
 
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
