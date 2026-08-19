@@ -15,6 +15,7 @@ import {
   updateCluesToolName,
 } from "./toolNames";
 import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
+import { jsonValue } from "../../jsonValue";
 
 export const updateCluesTool = new ToolImplementation(
   {
@@ -43,24 +44,23 @@ wasn't the clue you intended.
       .array(
         z.object({
           clueCells: ClueCellsGroupFilter,
-          updates: z.unknown(),
+          updates: jsonValue.describe(
+            // language=markdown
+            `
+A deep-partial update for the clue: usually an object holding only the fields to change (unset
+fields keep their current value, array-valued fields like a cage's cell list are replaced wholesale
+if included), but a clue whose whole shape is a single string or array (e.g. a thermometer's cell
+list) takes that value directly instead. Docs topic \`${elementTopicPattern}\` (substitute the target
+element's exact type name, e.g. \`${elementTopicPrefix}${KillerCagesElement.typeName}\`)'s \`## Clues\`
+section shows the exact clue JSON schema.
+`.trim(),
+          ),
         }),
       )
       .describe(
         // language=markdown
         `
-Array of group objects, each with two keys:
-
-- **\`clueCells\`** (required): cells that identify which clue(s) to target - a clue matches this
-  group only if **all** of these cells are among the cells it affects (pass enough cells to
-  identify one clue uniquely, or fewer to target several clues at once).
-- **\`updates\`** (required): a deep-partial object holding only the clue fields to change - unset
-  fields keep their current value, array-valued fields (e.g. a cage's cell list) are replaced
-  wholesale if included; docs topic \`${elementTopicPattern}\` (substitute the target element's exact
-  type name, e.g. \`${elementTopicPrefix}${KillerCagesElement.typeName}\`)'s \`## Clues\` section shows the exact clue
-  JSON schema.
-
-Every clue matched by a group receives that same group's \`updates\` object.
+Array of group objects. Every clue matched by a group receives that same group's \`updates\` object.
 
 Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
 `.trim(),

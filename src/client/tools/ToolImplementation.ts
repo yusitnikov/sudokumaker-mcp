@@ -3,13 +3,34 @@ import type {
   CallToolResult,
   Tool as SdkTool,
 } from "@modelcontextprotocol/sdk/types.js";
-import { jsonValue } from "../../jsonValue";
 
 export interface Tool {
   definition: SdkTool;
   global?: boolean;
   timeout?: number;
 }
+
+/**
+ * Registry of hand-written advertised-schema replacements, keyed by the real field schema. Used for
+ * fields too large to advertise as-is (`add_element`'s 52-branch element union) or environment-
+ * dependent (a codec reading `window.Api`). A private registry rather than `.meta()`, so the
+ * replacement doesn't leak into `tool.definition`'s JSON Schema, which reflects the true shape.
+ *
+ * Value typed `unknown`, not `z.ZodType`: storing a `z.ZodType` as metadata blows up TS's
+ * instantiation depth. `withAdvertisedSchema` enforces the real type at the boundary instead.
+ */
+const advertisedSchemaOverrides = z.registry<{ advertisedSchema: unknown }>();
+
+/**
+ * Registers `advertisedSchema` as the `publicShape` replacement for `realSchema`, and returns `realSchema` unchanged.
+ */
+export const withAdvertisedSchema = <T extends z.ZodType>(
+  realSchema: T,
+  advertisedSchema: z.ZodType,
+): T => {
+  advertisedSchemaOverrides.add(realSchema, { advertisedSchema });
+  return realSchema;
+};
 
 /**
  * Data that only the Node side knows, passed inward to the page on every call.
@@ -19,9 +40,7 @@ export interface ToolContext {
 }
 
 /**
- * Strips wrappers that don't change schema's advertised shape — `ZodOptional`, `ZodDefault`,
- * and `ZodCodec` (down to its input side, `.def.in`) — down to the node that carries the shape.
- * Read `.description` from the original, pre-strip node: registry metadata rides on the outermost wrapper.
+ * Unwraps `ZodOptional`/`ZodDefault`/`ZodCodec` (to its input side, `.def.in`) down to the shape-carrying node.
  */
 const stripNonShapeWrappers = (schema: z.core.$ZodType): z.ZodType => {
   let current: z.core.$ZodType = schema;
@@ -36,42 +55,12 @@ const stripNonShapeWrappers = (schema: z.core.$ZodType): z.ZodType => {
     }
   }
 
-  // `ZodCodec.def.in` is typed as the narrower `core.$ZodType` when narrowed without explicit
-  // generics, even though every codec here is built via classic `z.codec(...)` and really is a
-  // classic `ZodType` at runtime — this re-check just gets TypeScript to agree.
+  // `ZodCodec.def.in` types as `core.$ZodType`; every codec here is a classic `ZodType` at runtime.
   if (!(current instanceof z.ZodType)) {
     throw new Error("Encountered a non-classic zod schema while unwrapping");
   }
 
   return current;
-};
-
-/** Whether a stripped schema node is a string/number/boolean/enum/literal. */
-const isPrimitiveSchema = (node: z.ZodType): boolean =>
-  node instanceof z.ZodLiteral ||
-  node instanceof z.ZodEnum ||
-  node instanceof z.ZodString ||
-  node instanceof z.ZodNumber ||
-  node instanceof z.ZodBoolean;
-
-/**
- * The advertised replacement for one schema node, wrappers and all: strips down to shape first,
- * then is itself if that's a primitive, or an array of the same if it's an array of one —
- * otherwise `jsonValue`, since only that's cheap enough to check in Node. `z.array(jsonValue)` beats
- * bare `jsonValue` for an array of anything heavier, so a caller at least sees "this is a list".
- */
-const toAdvertisedSchema = (schema: z.core.$ZodType): z.ZodType => {
-  const node = stripNonShapeWrappers(schema);
-
-  if (isPrimitiveSchema(node)) {
-    return node;
-  }
-
-  if (node instanceof z.ZodArray) {
-    return z.array(toAdvertisedSchema(node.element));
-  }
-
-  return jsonValue;
 };
 
 export class ToolImplementation<SchemaT extends z.ZodSchema> {
@@ -102,13 +91,10 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
 
   /**
    * Projects this tool's real input schema into a shallow zod object `registerTool` can advertise
-   * directly — real top-level parameter names instead of one opaque `params` blob, cheap types
-   * (primitives, enums, arrays of either) checked in Node, everything else `z.any()`. Works on the
-   * zod schema graph itself rather than its `z.toJSONSchema` rendering, which collapses distinct zod
-   * constructs (e.g. `ColorsSet` re-`.meta()`ing an already-`.meta()`'d `DigitSetSchema`) into `$ref`
-   * chains that are hard to classify correctly from the outside.
-   *
-   * Every field needs a description, its own or the schema it wraps'.
+   * directly - real top-level parameter names instead of one opaque `params` blob. Each field
+   * advertises its real type unless overridden via `withAdvertisedSchema`. Works on the zod schema
+   * graph rather than its `z.toJSONSchema` rendering, which collapses distinct constructs into `$ref`
+   * chains that are hard to classify from the outside.
    */
   get publicShape(): Record<string, z.ZodType> {
     if (!(this.inputSchema instanceof z.ZodObject)) {
@@ -119,20 +105,12 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
 
     for (const [key, rawField] of Object.entries(this.inputSchema.shape)) {
       const unwrapped = stripNonShapeWrappers(rawField);
-      const description = rawField.description ?? unwrapped.description;
-      if (!description) {
-        throw new Error(
-          `publicShape: field "${key}" has no description on its own schema or the schema it wraps`,
-        );
-      }
 
-      let field = toAdvertisedSchema(unwrapped).describe(description);
-      if (rawField instanceof z.ZodDefault) {
-        field = field.default(rawField.def.defaultValue);
-      } else if (rawField instanceof z.ZodOptional) {
-        field = field.optional();
-      }
-      shape[key] = field;
+      // Cast is safe: `withAdvertisedSchema` is the only writer, and only accepts a `z.ZodType`.
+      const override = advertisedSchemaOverrides.get(unwrapped)
+        ?.advertisedSchema as z.ZodType | undefined;
+
+      shape[key] = override ?? rawField;
     }
 
     return shape;

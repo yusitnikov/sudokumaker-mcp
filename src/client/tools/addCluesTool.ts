@@ -1,5 +1,6 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
+import { jsonValue } from "../../jsonValue";
 import { getElementFinalName, getElementWithClueById } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
@@ -34,7 +35,7 @@ clues are pushed onto the end of the element's clue list; use
       `ID of the target element (the multi-clue element to add clues to), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
     ),
     operationDescription: operationDescriptionParam,
-    clues: z.array(z.unknown()).describe(
+    clues: z.array(jsonValue).describe(
       // language=markdown
       `
 Array of new clues to append to the element's clue list, one array entry per new clue; docs topic

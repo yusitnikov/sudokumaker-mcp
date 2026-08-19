@@ -1,5 +1,6 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
+import { jsonValue } from "../../jsonValue";
 import { copyCells, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import {
@@ -58,7 +59,7 @@ the puzzle state after earlier ones already applied.
                   // language=markdown
                   `Set the specified path of the puzzle to the given value. The previous value is overridden.`,
                 ),
-                value: z.any().optional().describe(
+                value: z.optional(jsonValue).describe(
                   // language=markdown
                   `New value to put into the specified place. Skipping this parameter sets the value to \`undefined\`.`,
                 ),
@@ -78,7 +79,7 @@ the puzzle state after earlier ones already applied.
                     `Insert items/lines at the end of the array/text (not applicable for items/lines deletion).`,
                   ),
                 ]),
-                insertItems: z.array(z.any()).optional().describe(
+                insertItems: z.array(jsonValue).optional().describe(
                   // language=markdown
                   `New items/lines to insert. Skip this parameter to just delete items/lines without inserting new ones.`,
                 ),
@@ -96,22 +97,7 @@ the puzzle state after earlier ones already applied.
       )
       .describe(
         // language=markdown
-        `
-Array of \`{path, update}\` operations to apply in order, as one atomic change.
-
-- **\`path\`** (required): array of property names (strings) and/or zero-based array indexes
-  (numbers) locating the target inside the puzzle object, e.g. \`["allElements", 0, "config"]\` for
-  \`puzzle.allElements[0].config\`.
-- **\`update\`** (required): one of two shapes, chosen by its \`type\` field:
-  - \`{"type": "set", "value"?: any}\` - replaces the entire value at \`path\` with \`value\` (omit
-    \`value\` to set it to \`undefined\`).
-  - \`{"type": "modifyItems", "index": number | "end", "insertItems"?: array, "deleteItemsCount"?: number}\`
-    - splices an array (or the lines of a string, split/joined on \`"\\n"\`) at \`path\`:
-    - \`index\`: the 1-based position to splice **at** (not after), or \`"end"\` to append.
-    - \`insertItems\`: new items to insert there (omit to only delete).
-    - \`deleteItemsCount\`: how many existing items/lines to remove starting at \`index\` (omit to
-      only insert). Example: \`{"index": 4, "deleteItemsCount": 6}\` deletes items 4-9.
-`.trim(),
+        `Array of operations to apply.`,
       ),
   }),
   ({ updates, operationDescription }) => {

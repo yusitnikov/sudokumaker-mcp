@@ -37,7 +37,7 @@ the \`clueBatchUpdates\` field here applies identically to ALL clues.
     ),
     operationDescription: operationDescriptionParam,
     elementUpdates: z
-      .unknown()
+      .looseObject({})
       .optional()
       .describe(
         // language=markdown
@@ -49,7 +49,7 @@ keep their current value, arrays are replaced wholesale if included; docs topic
 `.trim(),
       ),
     clueBatchUpdates: z
-      .unknown()
+      .looseObject({})
       .optional()
       .describe(
         // language=markdown
