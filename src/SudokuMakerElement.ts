@@ -118,7 +118,6 @@ export class SudokuMakerElement<
         }),
       )
       .meta({
-        id: `${this.typeName}Config`,
         description: `"${main.title}" element config. Element description: ${main.description}`,
       }) as any;
     this.globalSchema = schema;
@@ -272,7 +271,6 @@ export const CageStyle = z
       .describe(""),
   })
   .meta({
-    id: "CageStyle",
     description: "",
   });
 
@@ -297,7 +295,6 @@ export const LineStyle = z
     thickness: z.number().describe(""),
   })
   .meta({
-    id: "LineStyle",
     description: "",
   });
 
@@ -307,7 +304,6 @@ export const LineWithEndPointsStyle = z
     endPoints: BasicShapeStyle,
   })
   .meta({
-    id: "LineWithEndPointsStyle",
     description: "",
   });
 
@@ -316,12 +312,10 @@ export const OuterClueStyle = z
     color: z.string().describe(""),
   })
   .meta({
-    id: "OuterClueStyle",
     description: "",
   });
 
 const LineClueSchema = z.array(CellId).meta({
-  id: "LineCells",
   description: "The list of all cells that lines goes through",
 });
 const LineClue: ClueDescriptor<"lines", typeof LineClueSchema> = {
@@ -335,7 +329,6 @@ export const LineElementConfigBase = z
     style: LineStyle,
   })
   .meta({
-    id: "LineElementConfigBase",
     description: "",
   });
 
@@ -344,7 +337,6 @@ export const LineWithEndPointsConfigBase = z
     style: LineWithEndPointsStyle,
   })
   .meta({
-    id: "LineWithEndPointsConfigBase",
     description: "",
   });
 
@@ -1375,7 +1367,6 @@ export const SymbolCommonParams = z
     strokeWidth: z.number().describe(""),
   })
   .meta({
-    id: "SymbolCommonParams",
     description: "",
   });
 
@@ -1865,7 +1856,6 @@ export const ElementConfigSchema = SmartDiscriminatedUnion(
   "type",
   AllElements.map(({ schema }) => schema),
 ).meta({
-  id: "ElementConfig",
   description: "Element configuration",
 });
 

@@ -40,7 +40,6 @@ export const CellsRectangle = z
     height: z.number().describe("Rectangle height"),
   })
   .meta({
-    id: "CellsRectangle",
     description:
       "Coordinates of one rectangle in the grid. The coordinate system starts in the top left corner of the grid and go right and down from there. Each grid cell is 1x1, so the cell size is the unit of the coordinate system.",
   });
@@ -51,13 +50,11 @@ export const IVector2 = z
     y: z.number().describe("Vertical coordinate"),
   })
   .meta({
-    id: "IVector2",
     description:
       "Coordinates of one point in the grid. The coordinate system starts in the top left corner of the grid and go right and down from there. Each grid cell is 1x1, so the cell size is the unit of the coordinate system.",
   });
 
 const CellIdInternal = z.number().meta({
-  id: "CellId",
   description:
     "Unique numeric identification of a grid cell. " +
     "It corresponds to the zero-based cell index in the flat cells array, starting from the top left cell, and going in the reading order (left to right, top to bottom). " +
@@ -96,7 +93,6 @@ export const CellIdPublic = z
   .string()
   .regex(shortCellNotationPattern)
   .meta({
-    id: "CellCoords",
     description:
       'A cell coordinate string in "rXcY" notation, e.g. "r2c3" is row 2, column 3 (both 1-based, counting from the top-left). ' +
       "Row/column may be 0 or negative, or greater than the grid size, for cells outside the grid.",
@@ -152,7 +148,6 @@ export const CellId: z.ZodCodec<typeof CellIdPublic, typeof CellIdInternal> =
   });
 
 const CornerIdInternal = z.number().meta({
-  id: "CornerId",
   description: "",
 });
 export const CornerId: z.ZodCodec<
@@ -176,11 +171,9 @@ export const CornerId: z.ZodCodec<
 );
 
 const EdgeIdInternal = z.number().meta({
-  id: "EdgeId",
   description: "",
 });
 const EdgeIdPublic = z.tuple([CellIdPublic, CellIdPublic]).meta({
-  id: "EdgeCells",
   description:
     "Coordinates of one cell grid edge, defined by coordinates of 2 cells that share the edge. One of the cells might be outside the grid.",
 });
@@ -224,7 +217,6 @@ export const EdgeId: z.ZodCodec<typeof EdgeIdPublic, typeof EdgeIdInternal> =
   });
 
 const OuterCellIdInternal = z.number().meta({
-  id: "OuterCellId",
   description: "",
 });
 export const OuterCellId: z.ZodCodec<
@@ -244,7 +236,6 @@ export enum DiagonalTypeNative {
   NegativeDiagonal = -1,
 }
 export const DiagonalType = z.enum(DiagonalTypeNative).meta({
-  id: "DiagonalType",
   description:
     "Diagonal type. Positive diagonal is between bottom left and top right. Negative diagonal is between top left and bottom right. Note that the names don't align with the actual coordinate system of the grid (which starts at top left) - it was named like that for historical reasons. Users will refer to diagonals the way they are named here.",
 });
@@ -257,7 +248,6 @@ export enum SudokuLayerNative {
   Grid = "grid",
 }
 export const SudokuLayer = z.enum(SudokuLayerNative).meta({
-  id: "SudokuLayer",
   description: "",
 });
 
@@ -267,7 +257,6 @@ export enum PuzzleTypeNative {
   Custom = "custom", // Anything goes
 }
 export const PuzzleType = z.enum(PuzzleTypeNative).meta({
-  id: "PuzzleType",
   description:
     "Puzzle type: sudoku or custom. " +
     'Having a puzzle of type "sudoku" means having implicit SudokuRules ("Rows and columns") constraint that enforces unique digits in every row and column, ' +
@@ -277,12 +266,10 @@ export const PuzzleType = z.enum(PuzzleTypeNative).meta({
 
 export const DigitSetSchema = z.codec(
   z.array(z.number()).meta({
-    id: "DigitsList",
     description:
       "A set of digits (usually cell candidates, but not restricted to that)",
   }),
   z.number().meta({
-    id: "DigitSet",
     description:
       "Integer number that uniquely represents a set of digits (usually used for cell candidates or corner marks). " +
       "It's a bitmap, each bit of it means that the relevant digit is present in the set. " +
@@ -295,7 +282,6 @@ export const DigitSetSchema = z.codec(
   },
 );
 export const ColorsSet = DigitSetSchema.meta({
-  id: "ColorsSet",
   description:
     "A set of cell background colors, represented by color's index in the palette. " +
     "The default palette is: 0 - white, 1 - red, 2 - orange, 3 - yellow, 4 - light green, 5 - green, 6 - light blue, 7 - blue, 8 - purple, 9 - magenta, " +
@@ -409,7 +395,6 @@ export const Spec = z
       .describe(""),
   })
   .meta({
-    id: "Spec",
     description:
       "Puzzle specification - essential information about puzzle type and dimensions",
   });

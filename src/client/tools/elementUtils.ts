@@ -47,7 +47,6 @@ export const getElementWithClueById = (elementId: number) => {
 };
 
 export const ClueCellsGroupFilter = z.array(CellIdPublic).meta({
-  id: "ClueCellsGroupFilter",
   description:
     // language=markdown
     `

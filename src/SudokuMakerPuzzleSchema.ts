@@ -80,6 +80,5 @@ export const PuzzleSchema = z
     }),
   )
   .meta({
-    id: "Puzzle",
     description: "Full puzzle object",
   });
