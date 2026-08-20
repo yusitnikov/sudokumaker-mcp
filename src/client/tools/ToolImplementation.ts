@@ -90,11 +90,12 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
   }
 
   /**
-   * Projects this tool's real input schema into a shallow zod object `registerTool` can advertise
-   * directly - real top-level parameter names instead of one opaque `params` blob. Each field
-   * advertises its real type unless overridden via `withAdvertisedSchema`. Works on the zod schema
-   * graph rather than its `z.toJSONSchema` rendering, which collapses distinct constructs into `$ref`
-   * chains that are hard to classify from the outside.
+   * Projects this tool's real input schema into a shallow zod object `registerTool` can advertise -
+   * real top-level parameter names instead of one opaque `params` blob. Each field advertises its
+   * real type unless overridden via `withAdvertisedSchema`, but is registered as `z.any().meta(...)`
+   * carrying that type's JSON Schema: `registerTool` validates arguments in Node against whatever
+   * schema it's given, and some fields are (or contain) codecs that read `window.Api`, which doesn't
+   * exist in Node. Validation still only happens page-side, in `tool.run`; `z.any()` just advertises.
    */
   get publicShape(): Record<string, z.ZodType> {
     if (!(this.inputSchema instanceof z.ZodObject)) {
@@ -110,7 +111,20 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
       const override = advertisedSchemaOverrides.get(unwrapped)
         ?.advertisedSchema as z.ZodType | undefined;
 
-      shape[key] = override ?? rawField;
+      const advertisedField = override ?? rawField;
+      const isOptional =
+        advertisedField instanceof z.ZodOptional ||
+        advertisedField instanceof z.ZodDefault;
+
+      // `z.any()` still rejects a missing value in Zod v4, so optionality has to be reapplied here.
+      let publicField: z.ZodType = z.any().meta(
+        z.toJSONSchema(advertisedField, { io: "input" }) as z.core.JSONSchemaMeta,
+      );
+      if (isOptional) {
+        publicField = publicField.optional();
+      }
+
+      shape[key] = publicField;
     }
 
     return shape;
