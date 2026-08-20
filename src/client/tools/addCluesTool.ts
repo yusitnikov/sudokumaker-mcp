@@ -46,15 +46,14 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
 `.trim(),
     ),
   }),
-  ({ elementId, operationDescription, clues: rawClues }) => {
+  ({ elementId, operationDescription, clues }) => {
     const { index, targetElement, clueType } =
       getElementWithClueById(elementId);
 
-    // Manually parse the type-specific data after knowing the type schema.
+    // Manually parse the type-specific data after knowing the type schema,
+    // only to validate the input and report the errors.
     // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    const { clues } = z
-      .object({ clues: z.array(clueType.schema) })
-      .parse({ clues: rawClues });
+    z.object({ clues: z.array(clueType.schema) }).parse({ clues });
 
     const cluesKey = clueType.key;
 

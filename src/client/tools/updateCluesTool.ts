@@ -66,21 +66,20 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
 `.trim(),
       ),
   }),
-  ({ elementId, updateGroups: rawUpdateGroups, operationDescription }) => {
+  ({ elementId, updateGroups, operationDescription }) => {
     const { clueType } = getElementWithClueById(elementId);
 
-    // Manually parse the type-specific data after knowing the type schema.
+    // Manually parse the type-specific data after knowing the type schema,
+    // only to validate the input and report the errors.
     // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    const { updateGroups } = z
-      .object({
-        updateGroups: z.array(
-          z.object({
-            clueCells: ClueCellsGroupFilter,
-            updates: ZodDeepPartial(clueType.schema),
-          }),
-        ),
-      })
-      .parse({ updateGroups: rawUpdateGroups });
+    z.object({
+      updateGroups: z.array(
+        z.object({
+          clueCells: ClueCellsGroupFilter,
+          updates: ZodDeepPartial(clueType.schema),
+        }),
+      ),
+    }).parse({ updateGroups });
 
     const { allMatchingIndexes, updatedElement, updatedClues, messages } =
       updateCluesByCellGroups(

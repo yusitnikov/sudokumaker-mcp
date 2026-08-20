@@ -74,8 +74,8 @@ topic \`${elementTopicPattern}\`'s \`## Clues\` section shows the exact clue JSO
   }),
   ({
     elementId,
-    elementUpdates: rawElementUpdates,
-    clueBatchUpdates: rawClueBatchUpdates,
+    elementUpdates,
+    clueBatchUpdates,
     name,
     enabled,
     solverIgnored,
@@ -84,42 +84,41 @@ topic \`${elementTopicPattern}\`'s \`## Clues\` section shows the exact clue JSO
     const { index, targetElement } = getElementById(elementId);
     const elementType = getElementByTypeName(targetElement.config.type);
 
-    if (rawElementUpdates !== undefined && !elementType.globalSchema) {
+    if (elementUpdates !== undefined && !elementType.globalSchema) {
       throw new Error(
         `Element type "${targetElement.config.type}" has no config to update - "elementUpdates" is not accepted for it.`,
       );
     }
-    if (rawClueBatchUpdates !== undefined && !elementType.clue) {
+    if (clueBatchUpdates !== undefined && !elementType.clue) {
       throw new Error(
         `Element type "${targetElement.config.type}" has no clues - "clueBatchUpdates" is not accepted for it.`,
       );
     }
 
-    // Manually parse the type-specific data after knowing the type schema.
+    // Manually parse the type-specific data after knowing the type schema,
+    // only to validate the input and report the errors.
     // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    const { elementUpdates, clueBatchUpdates } = z
-      .object({
-        ...(elementType.globalSchema
-          ? {
-              elementUpdates: ZodDeepPartial(
-                elementType.globalSchema instanceof z.ZodCodec
-                  ? elementType.globalSchema.def.in
-                  : elementType.globalSchema,
-              ).optional(),
-            }
-          : {}),
-        ...(elementType.clue
-          ? {
-              clueBatchUpdates: ZodDeepPartial(
-                elementType.clue.schema,
-              ).optional(),
-            }
-          : {}),
-      })
-      .parse({
-        elementUpdates: rawElementUpdates,
-        clueBatchUpdates: rawClueBatchUpdates,
-      });
+    z.object({
+      ...(elementType.globalSchema
+        ? {
+            elementUpdates: ZodDeepPartial(
+              elementType.globalSchema instanceof z.ZodCodec
+                ? elementType.globalSchema.def.in
+                : elementType.globalSchema,
+            ).optional(),
+          }
+        : {}),
+      ...(elementType.clue
+        ? {
+            clueBatchUpdates: ZodDeepPartial(
+              elementType.clue.schema,
+            ).optional(),
+          }
+        : {}),
+    }).parse({
+      elementUpdates,
+      clueBatchUpdates,
+    });
 
     const cluesKey = elementType.clue?.key;
 
