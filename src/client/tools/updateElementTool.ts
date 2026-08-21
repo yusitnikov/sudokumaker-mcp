@@ -157,7 +157,7 @@ ${partialUpdateNote}
       (from, to) => {
         to.allConstraints[index] = from.allConstraints[index];
       },
-      operationDescription || `Update ${getElementFinalName(targetElement)}`,
+      operationDescription,
     );
 
     const updatedElement = getPuzzle().allElements[index];

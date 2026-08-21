@@ -99,9 +99,7 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
             }
           }
         },
-        (targetElement) =>
-          operationDescription ||
-          `Update "${getElementFinalName(targetElement)}" clues`,
+        operationDescription,
       );
 
     const affectedClues = updatedClues.filter((_, index) =>

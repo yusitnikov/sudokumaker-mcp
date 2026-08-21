@@ -115,7 +115,7 @@ How to combine the given values with each cell's existing marks:
         }
       },
       (from, to) => copyCells(from.cells, to.cells),
-      operationDescription || "Update marks for " + cells.join(", "),
+      operationDescription,
     );
 
     const newCells = getPuzzle().cells;

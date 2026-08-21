@@ -10,7 +10,6 @@ export const operationDescriptionNote =
 
 export const operationDescriptionParam = z
   .string()
-  .optional()
   .describe(operationDescriptionNote);
 
 /**

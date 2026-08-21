@@ -52,9 +52,7 @@ Each group in this array independently selects clues to remove.
         clueCellGroups,
         (clues, _, allMatchingIndexes) =>
           clues.filter((_value, index) => !allMatchingIndexes.has(index)),
-        (targetElement, affectedCluesCount) =>
-          operationDescription ||
-          `Remove ${affectedCluesCount} clues of "${getElementFinalName(targetElement)}"`,
+        operationDescription,
       );
 
     return {

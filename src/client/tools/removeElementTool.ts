@@ -27,7 +27,7 @@ export const removeElementTool = new ToolImplementation(
       // language=markdown
       `ID of the element to remove, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
     ),
-    elementName: z.string().optional().describe(
+    elementName: z.string().describe(
       // language=markdown
       `The element's display name - set it so the user sees which element they're deleting when reviewing this call, not just a bare ID.`,
     ),

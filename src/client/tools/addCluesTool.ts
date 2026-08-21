@@ -66,8 +66,7 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
           from.allConstraints[index].config as any
         )[cluesKey];
       },
-      operationDescription ||
-        `Add ${clues.length} clues of "${getElementFinalName(targetElement)}"`,
+      operationDescription,
     );
 
     const updatedElement = getPuzzle().allElements[index];

@@ -65,10 +65,7 @@ export const updateCluesByCellGroups = (
     matchingIndexGroups: number[][],
     allMatchingIndexes: Set<number>,
   ) => any[] | void,
-  operationDescription: (
-    targetElement: z.input<typeof ElementSchema>,
-    affectedCluesCount: number,
-  ) => string,
+  operationDescription: string,
 ) => {
   const { index, targetElement, elementType, clueType } =
     getElementWithClueById(elementId);
@@ -115,7 +112,7 @@ export const updateCluesByCellGroups = (
         from.allConstraints[index].config as any
       )[cluesKey];
     },
-    operationDescription(targetElement, allMatchingIndexes.size),
+    operationDescription,
   );
 
   const updatedElement = getPuzzle().allElements[index];
