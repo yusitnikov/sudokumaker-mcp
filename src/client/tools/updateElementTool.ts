@@ -21,9 +21,8 @@ export const updateElementTool = new ToolImplementation(
       description:
         // language=markdown
         `
-Update global properties of an existing element
-(its name, enabled/solverIgnored flags, or type-specific config like style)
-and/or batch-apply the same partial update to every one of its clues at once.
+Update an existing element's own fields, and/or batch-apply the same partial update to every one
+of its clues at once.
 
 To update individual clues differently from each other, use \`${updateCluesToolName}\` instead -
 the \`clueBatchUpdates\` field here applies identically to ALL clues.
