@@ -13,6 +13,7 @@ import {
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { getElementById, getElementSummary } from "./elementUtils";
+import { partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
 import { elementsTopicName, elementTopicPattern } from "./docs/topicNames";
 
@@ -70,7 +71,12 @@ into the element list at a chosen position.
           ),
           overrides: z.record(z.string(), jsonValue).optional().describe(
             // language=markdown
-            `Only for types with a \`## Config\` section: a deep-partial object of initial config values to set instead of the type's defaults (e.g. \`{"style": {"color": "#ff0000"}}\`) - docs topic \`${elementTopicPattern}\`'s \`## Config\` section shows the full config JSON schema; \`overrides\` may set any subset of it.`,
+            `
+Only for types with a \`## Config\` section: initial config values to set instead of the type's defaults (e.g. \`{"style": {"color": "#ff0000"}}\`) -
+docs topic \`${elementTopicPattern}\`'s \`## Config\` section shows the full config JSON schema.
+
+${partialUpdateNote}
+            `.trim(),
           ),
         })
         .describe(

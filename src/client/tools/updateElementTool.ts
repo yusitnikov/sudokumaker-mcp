@@ -3,7 +3,10 @@ import { z } from "zod";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getElementById, getElementFinalName } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
-import { operationDescriptionParam } from "./descriptionSnippets";
+import {
+  operationDescriptionParam,
+  partialUpdateNote,
+} from "./descriptionSnippets";
 import { getElementByTypeName } from "../../SudokuMakerElement";
 import {
   addElementToolName,
@@ -41,10 +44,11 @@ the \`clueBatchUpdates\` field here applies identically to ALL clues.
       .describe(
         // language=markdown
         `
-A deep-partial object of the element's config fields to change (e.g. \`{"style": {"bulbRadius": 0.6}}\`
-for a thermometer) - only accepted for element types that have config beyond their clues; unset fields
-keep their current value, arrays are replaced wholesale if included; docs topic
+Object of the element's config fields to change (e.g. \`{"style": {"bulbRadius": 0.6}}\` for a
+thermometer) - only accepted for element types that have config beyond their clues; docs topic
 \`${elementTopicPattern}\`'s \`## Config\` section shows the full config JSON schema.
+
+${partialUpdateNote}
 `.trim(),
       ),
     clueBatchUpdates: z
@@ -53,9 +57,11 @@ keep their current value, arrays are replaced wholesale if included; docs topic
       .describe(
         // language=markdown
         `
-A deep-partial object applied identically to every clue this element currently has (e.g.
-\`{"value": 0}\` would zero every cage's total) - only accepted for multi-clue element types; docs
-topic \`${elementTopicPattern}\`'s \`## Clues\` section shows the exact clue JSON schema.
+Object applied identically to every clue this element currently has (e.g. \`{"value": 0}\` would
+zero every cage's total) - only accepted for multi-clue element types; docs topic
+\`${elementTopicPattern}\`'s \`## Clues\` section shows the exact clue JSON schema.
+
+${partialUpdateNote}
 `.trim(),
       ),
     name: z.string().optional().describe(

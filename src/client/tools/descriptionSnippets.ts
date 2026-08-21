@@ -12,3 +12,10 @@ export const operationDescriptionParam = z
   .string()
   .optional()
   .describe(operationDescriptionNote);
+
+/**
+ * Shared description fragment for partial-update fields: the merge is recursive, so this applies at
+ * every nesting level, not just the top one.
+ */
+export const partialUpdateNote =
+  "Send only the fields you want to change, at any nesting level - any field you omit (at any level) keeps its current value. If you include an array-valued field, it replaces the whole array rather than merging item-by-item.";

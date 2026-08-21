@@ -7,7 +7,10 @@ import {
   updateCluesByCellGroups,
 } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
-import { operationDescriptionParam } from "./descriptionSnippets";
+import {
+  operationDescriptionParam,
+  partialUpdateNote,
+} from "./descriptionSnippets";
 import { KillerCagesElement } from "../../SudokuMakerElement";
 import {
   addElementToolName,
@@ -47,12 +50,13 @@ wasn't the clue you intended.
           updates: jsonValue.describe(
             // language=markdown
             `
-A deep-partial update for the clue: usually an object holding only the fields to change (unset
-fields keep their current value, array-valued fields like a cage's cell list are replaced wholesale
-if included), but a clue whose whole shape is a single string or array (e.g. a thermometer's cell
-list) takes that value directly instead. Docs topic \`${elementTopicPattern}\` (substitute the target
-element's exact type name, e.g. \`${elementTopicPrefix}${KillerCagesElement.typeName}\`)'s \`## Clues\`
-section shows the exact clue JSON schema.
+An update for the clue: usually an object holding only the fields to change, but a clue whose whole
+shape is a single string or array (e.g. a thermometer's cell list) takes that value directly instead
+of an object. Docs topic \`${elementTopicPattern}\` (substitute the target element's exact type name,
+e.g. \`${elementTopicPrefix}${KillerCagesElement.typeName}\`)'s \`## Clues\` section shows the exact
+clue JSON schema.
+
+${partialUpdateNote}
 `.trim(),
           ),
         }),
