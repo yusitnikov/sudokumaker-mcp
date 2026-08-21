@@ -1,4 +1,5 @@
 import { getPuzzleTool } from "./getPuzzleTool";
+import { getLogsTool } from "./getLogsTool";
 import { updatePuzzleTool } from "./updatePuzzleTool";
 import { updateGivenDigitsTool } from "./updateGivenDigitsTool";
 import { updateCellValuesTool } from "./updateCellValuesTool";
@@ -7,6 +8,7 @@ import { redoTool, undoTool } from "./undoRedoTools";
 import { clearGridTool } from "./clearGridTool";
 import {
   bruteForceSolveTool,
+  checkValidityTool,
   doAllLogicalStepsTool,
   doLogicalStepTool,
   stopSolverTool,
@@ -22,6 +24,7 @@ import { docsTool } from "./docsTool";
 
 export const tools = [
   getPuzzleTool,
+  getLogsTool,
   updatePuzzleTool,
   updateGivenDigitsTool,
   updateCellValuesTool,
@@ -39,6 +42,7 @@ export const tools = [
   doLogicalStepTool,
   doAllLogicalStepsTool,
   bruteForceSolveTool,
+  checkValidityTool,
   waitForSolverTool,
   stopSolverTool,
 ];

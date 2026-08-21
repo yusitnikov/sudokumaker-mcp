@@ -1,6 +1,7 @@
 import type { DocsTopic } from "./topics";
 import {
   bruteForceSolveToolName,
+  checkValidityToolName,
   clearGridToolName,
   doAllLogicalStepsToolName,
   doLogicalStepToolName,
@@ -12,12 +13,6 @@ import {
 } from "../toolNames";
 import { solvingTopicName } from "./topicNames";
 
-/**
- * TODO (phase 12): add `check_validity` — a dedicated existence-plus-uniqueness check that writes
- * nothing to the grid. Until it exists, `brute_force_solve` is the only verdict authority, which is
- * why "The checks" presents it as such and why "State effects" has to carry the undo-after-a-
- * diagnostic-run rule. Both sections need rewording once the side-effect-free tool lands.
- */
 export const solvingTopic: DocsTopic = {
   name: solvingTopicName,
   description:
@@ -29,9 +24,13 @@ export const solvingTopic: DocsTopic = {
 
 ## The checks
 
+- \`${checkValidityToolName}\` is the dedicated existence-plus-uniqueness check: whether the puzzle has a solution
+  at all, and if so, whether it's unique. It writes nothing to the grid, so it's the check to reach for whenever
+  only the verdict is needed — no state to restore afterward.
 - \`${bruteForceSolveToolName}\` finds and counts all solutions and computes exact candidates for every cell. On a
-  unique solution it fills the solved values into the grid; counting has a cap the app itself reports if hit.
-  This is the reliable source for "broken" (no solutions) vs. "unique" vs. "non-unique" (several solutions).
+  unique solution it fills the solved values into the grid; counting has a cap the app itself reports if hit. Use
+  this instead of \`${checkValidityToolName}\` when the actual solution or exact candidates are also wanted, not
+  just the verdict.
 - \`${doLogicalStepToolName}\` / \`${doAllLogicalStepsToolName}\` deduce the way a human solver would, one step or
   all reachable steps. They may miss eliminations that are logically valid but too hard to deduce this way — a step
   finding nothing doesn't mean the puzzle is broken, only that this method didn't find anything (yet).
@@ -61,7 +60,8 @@ Every writing solver run can be undone/redone like any other action, via \`${und
 Any solving/checking run that writes values or candidates **overwrites** whatever was already in those cells,
 including the user's own test-solve marks. A diagnostic run (one done only to get a verdict, not because the user
 asked for the deduced values) should be undone with \`${undoToolName}\` once its verdict has been read, unless the
-user wants the result kept on the grid.
+user wants the result kept on the grid. \`${checkValidityToolName}\` writes nothing, so this doesn't apply to it —
+prefer it over \`${bruteForceSolveToolName}\` when only the verdict is wanted, to avoid the restore step entirely.
 
 Mutating the givens or any logical element invalidates candidates computed before that change — re-run rather than
 trusting stale candidates after an edit.

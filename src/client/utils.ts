@@ -64,11 +64,7 @@ export const waitForSolver = async (timeout: number) => {
     await new Promise((resolve) => setTimeout(resolve, step));
   }
 
-  const isBusy = window.Api.busy;
-  return {
-    isBusy,
-    message: isBusy
-      ? `The solver is still running after ${timeout / 1000} seconds...`
-      : "The solver finished running.",
-  };
+  return window.Api.busy
+    ? `The solver is still running after ${timeout / 1000} seconds...`
+    : "The solver finished running.";
 };

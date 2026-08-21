@@ -4,15 +4,40 @@ import { z } from "zod";
 import { getPuzzle, waitForSolver } from "../utils";
 import { diffCells } from "./diff";
 import {
+  readNewSudokuMakerLogs,
+  readSudokuMakerLogs,
+} from "../../SudokuMakerLogs";
+import {
   bruteForceSolveToolName,
+  checkValidityToolName,
   doAllLogicalStepsToolName,
   doLogicalStepToolName,
+  getLogsToolName,
   stopSolverToolName,
   waitForSolverToolName,
 } from "./toolNames";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
+
+/** The text block for an append-style tool's response: the log entries this call itself appended, oldest first. */
+const appendedLogResultText = (
+  before: ReturnType<typeof readSudokuMakerLogs>,
+) => {
+  const newEntries = readNewSudokuMakerLogs(before);
+
+  return newEntries.length
+    ? "New solver logs:\n" +
+        newEntries.map((entry) => `- ${entry.formatted}`).join("\n")
+    : `No new solver log entries - this run didn't add or change anything (e.g. a no-op on an already-solved grid). Use \`${getLogsToolName}\` to see the full log if needed.`;
+};
+
+/** The text block for a replace-style tool's response: the full current log, which this call itself just replaced. */
+const replacedLogResultText = () =>
+  "Solver logs:\n" +
+  readSudokuMakerLogs()
+    .map((entry) => `- ${entry.formatted}`)
+    .join("\n");
 
 export const doLogicalStepTool = new ToolImplementation(
   {
@@ -34,10 +59,11 @@ ${reversibleActionNote}
   },
   z.object({}),
   async () => {
-    const before = getPuzzle();
+    const beforePuzzle = getPuzzle();
+    const beforeLog = readSudokuMakerLogs();
     window.Api.triggerAction("doSingleLogicalStep");
-    const { message } = await waitForSolver(singleStepTimeout);
-    const after = getPuzzle();
+    const message = await waitForSolver(singleStepTimeout);
+    const afterPuzzle = getPuzzle();
 
     return {
       content: [
@@ -47,7 +73,11 @@ ${reversibleActionNote}
         },
         {
           type: "text",
-          text: diffCells(before, after, true),
+          text: appendedLogResultText(beforeLog),
+        },
+        {
+          type: "text",
+          text: diffCells(beforePuzzle, afterPuzzle, true),
         },
       ],
     };
@@ -75,10 +105,11 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
   },
   z.object({}),
   async () => {
-    const before = getPuzzle();
+    const beforePuzzle = getPuzzle();
+    const beforeLog = readSudokuMakerLogs();
     window.Api.triggerAction("doAllLogicalSteps");
-    const { message } = await waitForSolver(solverMaxTimeout);
-    const after = getPuzzle();
+    const message = await waitForSolver(solverMaxTimeout);
+    const afterPuzzle = getPuzzle();
 
     return {
       content: [
@@ -88,7 +119,11 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
         },
         {
           type: "text",
-          text: diffCells(before, after, true),
+          text: appendedLogResultText(beforeLog),
+        },
+        {
+          type: "text",
+          text: diffCells(beforePuzzle, afterPuzzle, true),
         },
       ],
     };
@@ -121,10 +156,10 @@ ${reversibleActionNote}
   },
   z.object({}),
   async () => {
-    const before = getPuzzle();
+    const beforePuzzle = getPuzzle();
     window.Api.triggerAction("findSolutions");
-    const { message } = await waitForSolver(solverMaxTimeout);
-    const after = getPuzzle();
+    const message = await waitForSolver(solverMaxTimeout);
+    const afterPuzzle = getPuzzle();
 
     return {
       content: [
@@ -134,7 +169,51 @@ ${reversibleActionNote}
         },
         {
           type: "text",
-          text: diffCells(before, after, true),
+          text: replacedLogResultText(),
+        },
+        {
+          type: "text",
+          text: diffCells(beforePuzzle, afterPuzzle, true),
+        },
+      ],
+    };
+  },
+);
+
+export const checkValidityTool = new ToolImplementation(
+  {
+    definition: {
+      name: checkValidityToolName,
+      title: "Check whether the puzzle is broken or non-unique",
+      description:
+        // language=markdown
+        `
+Run the app's own existence-and-uniqueness check and report its verdict: whether the puzzle has a
+solution at all, and if so, whether it's unique. Writes nothing to the grid - unlike
+\`${bruteForceSolveToolName}\`, this is safe to run at any time without disturbing existing values or marks.
+
+Already-entered cell values and center marks are treated as constraints, so a verdict is conditional
+on them when present.
+
+Blind to free-text rules and cosmetic-only elements.
+        `.trim(),
+    },
+    timeout: solverMaxTimeout + 1000,
+  },
+  z.object({}),
+  async () => {
+    window.Api.triggerAction("checkValidity");
+    const message = await waitForSolver(solverMaxTimeout);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: message,
+        },
+        {
+          type: "text",
+          text: replacedLogResultText(),
         },
       ],
     };
@@ -150,7 +229,7 @@ export const waitForSolverTool = new ToolImplementation(
         // language=markdown
         `
 Block until the currently running solver operation (\`${doLogicalStepToolName}\`, \`${doAllLogicalStepsToolName}\`,
-or \`${bruteForceSolveToolName}\`) finishes, then return its result message.
+\`${bruteForceSolveToolName}\`, or \`${checkValidityToolName}\`) finishes, then return its result.
 
 Use this if a previous solver call's response indicated the solve was still in progress.
 `.trim(),
@@ -159,7 +238,9 @@ Use this if a previous solver call's response indicated the solve was still in p
   },
   z.object({}),
   async () => {
-    const { message } = await waitForSolver(solverMaxTimeout);
+    const message = window.Api.busy
+      ? await waitForSolver(solverMaxTimeout)
+      : "The solver is not running - there's nothing to wait for.";
 
     return {
       content: [
@@ -167,7 +248,10 @@ Use this if a previous solver call's response indicated the solve was still in p
           type: "text",
           text: message,
         },
-        // TODO: describe the changes
+        {
+          type: "text",
+          text: replacedLogResultText(),
+        },
       ],
     };
   },
@@ -183,14 +267,25 @@ export const stopSolverTool = new ToolImplementation(
     },
   },
   z.object({}),
-  () => {
-    window.Api.triggerAction("stopSolver");
+  async () => {
+    const wasBusy = window.Api.busy;
+    if (wasBusy) {
+      window.Api.triggerAction("stopSolver");
+      // Wait for SudokuMaker to actually stop the solver and update the logs
+      await waitForSolver(3000);
+    }
 
     return {
       content: [
         {
           type: "text",
-          text: "The solver has been stopped.",
+          text: wasBusy
+            ? "The solver has been stopped."
+            : "The solver is not running - there's nothing to stop.",
+        },
+        {
+          type: "text",
+          text: replacedLogResultText(),
         },
       ],
     };
