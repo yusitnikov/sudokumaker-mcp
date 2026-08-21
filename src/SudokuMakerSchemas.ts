@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { CellCoordsTransformHelper } from "./SudokuMakerApi";
+import { introTopicName } from "./client/tools/docs/topicNames";
 
 /*
   AI comment about critical documentation investment areas:
@@ -91,7 +92,9 @@ export const formatCellNotation = ({ row, column }: CellCoords): CellNotation =>
 
 export const CellIdPublic = z
   .string()
-  .regex(shortCellNotationPattern)
+  .regex(shortCellNotationPattern, {
+    error: `Cell IDs must be specified in the Snider notation - see the \`${introTopicName}\` documentation topic`,
+  })
   .meta({
     description:
       'A cell coordinate string in "rXcY" notation, e.g. "r2c3" is row 2, column 3 (both 1-based, counting from the top-left). ' +
