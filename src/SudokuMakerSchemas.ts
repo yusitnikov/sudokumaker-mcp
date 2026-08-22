@@ -355,6 +355,7 @@ export const CellSchema = z
       .readonly(),
   )
   .describe("Contents of a grid cell");
+export type CellPublic = z.input<typeof CellSchema>;
 
 /**
  * Array of cells:

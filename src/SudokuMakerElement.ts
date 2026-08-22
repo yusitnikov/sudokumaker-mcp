@@ -1918,11 +1918,15 @@ export const ElementSchema = z
   )
   .describe("");
 
+export type ElementPublic = z.input<typeof ElementSchema>;
+
 export type ElementConfigByType<TypeT extends ElementType> = z.input<
   (typeof AllElementsMap)[TypeT]["schema"]
 >;
 
 export type ElementByType<TypeT extends ElementType> = Omit<
-  z.input<typeof ElementSchema>,
+  ElementPublic,
   "config"
-> & { config: ElementConfigByType<TypeT> };
+> & {
+  config: ElementConfigByType<TypeT>;
+};

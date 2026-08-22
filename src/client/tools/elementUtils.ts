@@ -1,5 +1,8 @@
 import { getPuzzle, updatePuzzle } from "../utils";
-import { ElementSchema, getElementByTypeName } from "../../SudokuMakerElement";
+import {
+  type ElementPublic,
+  getElementByTypeName,
+} from "../../SudokuMakerElement";
 import { type CellNotation, CellIdPublic } from "../../SudokuMakerSchemas";
 import { z } from "zod";
 
@@ -7,10 +10,9 @@ export const getElementFinalName = ({
   name,
   config: { type },
   elementMetadata,
-}: z.input<typeof ElementSchema>) =>
-  name || elementMetadata?.defaultName || type;
+}: ElementPublic) => name || elementMetadata?.defaultName || type;
 
-export const getElementSummary = (element: z.input<typeof ElementSchema>) =>
+export const getElementSummary = (element: ElementPublic) =>
   `"${getElementFinalName(element)}" (type ${element.config.type}, ID ${element.id}, ${!element.enabled ? "disabled" : element.solverIgnored ? "solver-ignored" : "enabled"})`;
 
 export const getElementById = (elementId: number) => {

@@ -1,6 +1,6 @@
 import { CellSchema } from "../SudokuMakerSchemas";
 import { z } from "zod";
-import { PuzzleSchema } from "../SudokuMakerPuzzleSchema";
+import { type PuzzlePublic, PuzzleSchema } from "../SudokuMakerPuzzleSchema";
 import {
   type ElementByType,
   ElementType,
@@ -30,9 +30,7 @@ export const getPuzzle = () => {
 };
 
 export const updatePuzzle = (
-  updateCallback: (
-    puzzle: z.input<typeof PuzzleSchema>,
-  ) => z.input<typeof PuzzleSchema> | void,
+  updateCallback: (puzzle: PuzzlePublic) => PuzzlePublic | void,
   copyCallback: (
     from: z.output<typeof PuzzleSchema>,
     to: z.output<typeof PuzzleSchema>,

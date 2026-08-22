@@ -82,3 +82,4 @@ export const PuzzleSchema = z
   .meta({
     description: "Full puzzle object",
   });
+export type PuzzlePublic = z.input<typeof PuzzleSchema>;
