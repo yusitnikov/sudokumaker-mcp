@@ -121,41 +121,39 @@ How to combine the given values with each cell's existing marks:
     const newCells = getPuzzle().cells;
     const updatedCellsDescription =
       updatedCells.length && operation !== "replace"
-        ? [
-            {
-              type: "text" as const,
-              text:
-                "Here are the cells marks after the update:\n" +
-                updatedCells
-                  .map((coords) => {
-                    const { row, column } = parseCellNotation(coords);
-                    const cell = newCells[row - 1][column - 1];
+        ? "Here are the cells marks after the update:\n" +
+          updatedCells
+            .map((coords) => {
+              const { row, column } = parseCellNotation(coords);
+              const cell = newCells[row - 1][column - 1];
 
-                    return (
-                      `- ${coords}: ` +
-                      // describe only mark types that were requested to change
-                      [
-                        candidates &&
-                          `candidates - ${JSON.stringify(cell.candidates)}`,
-                        cornerPencilMarks &&
-                          `corner marks - ${JSON.stringify(cell.cornerPencilMarks)}`,
-                        colors && `colors - ${JSON.stringify(cell.colors)}`,
-                      ]
-                        .filter(Boolean)
-                        .join(", ") +
-                      "."
-                    );
-                  })
-                  .join("\n"),
-            },
-          ]
-        : [];
+              return (
+                `- ${coords}: ` +
+                // describe only mark types that were requested to change
+                [
+                  candidates &&
+                    `candidates - ${JSON.stringify(cell.candidates)}`,
+                  cornerPencilMarks &&
+                    `corner marks - ${JSON.stringify(cell.cornerPencilMarks)}`,
+                  colors && `colors - ${JSON.stringify(cell.colors)}`,
+                ]
+                  .filter(Boolean)
+                  .join(", ") +
+                "."
+              );
+            })
+            .join("\n")
+        : undefined;
 
     if (skippedCells.length === 0) {
       return {
         content: [
-          { type: "text", text: "Updated successfully." },
-          ...updatedCellsDescription,
+          {
+            type: "text",
+            text: ["Updated successfully.", updatedCellsDescription]
+              .filter(Boolean)
+              .join("\n\n"),
+          },
         ],
       };
     }
@@ -176,13 +174,14 @@ How to combine the given values with each cell's existing marks:
       content: [
         {
           type: "text",
-          text: `Updated cells ${updatedCells.join(", ")} successfully.`,
+          text: [
+            `Updated cells ${updatedCells.join(", ")} successfully.`,
+            `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,
+            updatedCellsDescription,
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
         },
-        {
-          type: "text",
-          text: `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,
-        },
-        ...updatedCellsDescription,
       ],
     };
   },

@@ -83,11 +83,10 @@ Setting a value also clears any candidates/corner marks already in that cell.
       content: [
         {
           type: "text",
-          text: `Updated cells ${updatedCells.join(", ")} successfully.`,
-        },
-        {
-          type: "text",
-          text: `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,
+          text: [
+            `Updated cells ${updatedCells.join(", ")} successfully.`,
+            `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,
+          ].join("\n\n"),
         },
       ],
     };

@@ -3,7 +3,6 @@ import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { clearGridToolName } from "./toolNames";
 import { getPuzzle } from "../utils";
-import { renderDiff } from "../format/renderDiff";
 import { resolveHandle } from "../format/resolveHandle";
 import { puzzleNode } from "../format/puzzle/puzzle";
 
@@ -34,8 +33,7 @@ ${reversibleActionNote}
       content: [
         {
           type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(before), "cells"),
+          text: resolveHandle(puzzleNode(before), "cells").diff(
             resolveHandle(puzzleNode(after), "cells"),
           ),
         },

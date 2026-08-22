@@ -12,9 +12,6 @@ export const getElementFinalName = ({
   elementMetadata,
 }: ElementPublic) => name || elementMetadata?.defaultName || type;
 
-export const getElementSummary = (element: ElementPublic) =>
-  `"${getElementFinalName(element)}" (type ${element.config.type}, ID ${element.id}, ${!element.enabled ? "disabled" : element.solverIgnored ? "solver-ignored" : "enabled"})`;
-
 export const getElementById = (elementId: number) => {
   const { allElements: currentElements } = getPuzzle();
 
@@ -131,14 +128,12 @@ export const updateCluesByCellGroups = (
     updatedElement,
     updatedClues,
     messages: [
-      ...matchingClues.map((matches, groupIndex) => ({
-        type: "text" as const,
-        text: `Cells group #${groupIndex + 1} - targeted ${matches.length} clues: ${JSON.stringify(matches.map(({ clue }) => clue))}`,
-      })),
-      {
-        type: "text" as const,
-        text: "If some of the targeted clues above don't match your expectations, please undo the operation immediately!",
-      },
+      ...matchingClues.map(
+        (matches, groupIndex) =>
+          // TODO: format properly or remove
+          `Cells group #${groupIndex + 1} - targeted ${matches.length} clues: ${JSON.stringify(matches.map(({ clue }) => clue))}`,
+      ),
+      "If some of the targeted clues above don't match your expectations, please undo the operation immediately!",
     ],
   };
 };

@@ -1,7 +1,6 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzle } from "../utils";
-import { renderDiff } from "../format/renderDiff";
 import { redoToolName, undoToolName } from "./toolNames";
 import { puzzleNode } from "../format/puzzle/puzzle";
 
@@ -26,11 +25,10 @@ export const undoTool = new ToolImplementation(
       content: [
         {
           type: "text",
-          text: "Done.",
-        },
-        {
-          type: "text",
-          text: renderDiff(puzzleNode(before), puzzleNode(after)),
+          text: [
+            "Done.",
+            puzzleNode(before).diff(puzzleNode(after)),
+          ].join("\n\n"),
         },
       ],
     };
@@ -57,11 +55,10 @@ export const redoTool = new ToolImplementation(
       content: [
         {
           type: "text",
-          text: "Done.",
-        },
-        {
-          type: "text",
-          text: renderDiff(puzzleNode(before), puzzleNode(after)),
+          text: [
+            "Done.",
+            puzzleNode(before).diff(puzzleNode(after)),
+          ].join("\n\n"),
         },
       ],
     };

@@ -4,7 +4,6 @@ import { jsonValue } from "../../jsonValue";
 import { getElementFinalName, getElementWithClueById } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
-import { renderDiff } from "../format/renderDiff";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
 import {
   addCluesToolName,
@@ -81,14 +80,12 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
       content: [
         {
           type: "text",
-          text: `Added ${clues.length} clues of "${getElementFinalName(targetElement)}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
-        },
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(before), "allElements"),
-            resolveHandle(puzzleNode(after), "allElements"),
-          ),
+          text: [
+            `Added ${clues.length} clues of "${getElementFinalName(targetElement)}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
+            resolveHandle(puzzleNode(before), "allElements").diff(
+              resolveHandle(puzzleNode(after), "allElements"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };

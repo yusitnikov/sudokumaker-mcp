@@ -118,7 +118,9 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
 
       // `z.any()` still rejects a missing value in Zod v4, so optionality has to be reapplied here.
       let publicField: z.ZodType = z.any().meta(
-        z.toJSONSchema(advertisedField, { io: "input" }) as z.core.JSONSchemaMeta,
+        z.toJSONSchema(advertisedField, {
+          io: "input",
+        }) as z.core.JSONSchemaMeta,
       );
       if (isOptional) {
         publicField = publicField.optional();

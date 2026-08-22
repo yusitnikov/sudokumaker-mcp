@@ -33,6 +33,7 @@ type Puzzle = z.infer<typeof PuzzleSchema> & {
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare class DigitSet implements Iterable<number> {
   constructor(set?: DigitSet | number);
   get size(): number;

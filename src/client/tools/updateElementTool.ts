@@ -15,7 +15,6 @@ import {
   updateElementToolName,
 } from "./toolNames";
 import { elementTopicPattern } from "./docs/topicNames";
-import { renderDiff } from "../format/renderDiff";
 import { resolveHandle } from "../format/resolveHandle";
 import { puzzleNode } from "../format/puzzle/puzzle";
 
@@ -173,14 +172,12 @@ ${partialUpdateNote}
       content: [
         {
           type: "text",
-          text: `Element "${getElementFinalName(updatedElement)}" updated successfully.`,
-        },
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(before), "allElements"),
-            resolveHandle(puzzleNode(after), "allElements"),
-          ),
+          text: [
+            `Element "${getElementFinalName(updatedElement)}" updated successfully.`,
+            resolveHandle(puzzleNode(before), "allElements").diff(
+              resolveHandle(puzzleNode(after), "allElements"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };

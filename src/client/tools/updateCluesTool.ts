@@ -8,7 +8,6 @@ import {
 } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getPuzzle } from "../utils";
-import { renderDiff } from "../format/renderDiff";
 import {
   operationDescriptionParam,
   partialUpdateNote,
@@ -114,15 +113,13 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
       content: [
         {
           type: "text",
-          text: `Updated ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}".`,
-        },
-        ...messages,
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(before), "allElements"),
-            resolveHandle(puzzleNode(after), "allElements"),
-          ),
+          text: [
+            `Updated ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}".`,
+            ...messages,
+            resolveHandle(puzzleNode(before), "allElements").diff(
+              resolveHandle(puzzleNode(after), "allElements"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };

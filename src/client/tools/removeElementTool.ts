@@ -7,7 +7,6 @@ import {
   getPuzzleToolName,
   removeElementToolName,
 } from "./toolNames";
-import { renderDiff } from "../format/renderDiff";
 import { resolveHandle } from "../format/resolveHandle";
 import { puzzleNode } from "../format/puzzle/puzzle";
 
@@ -52,14 +51,12 @@ export const removeElementTool = new ToolImplementation(
       content: [
         {
           type: "text",
-          text: `Element "${getElementFinalName(targetElement)}" of type "${targetElement.config.type}" removed from position ${index + 1}.`,
-        },
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(before), "allElements"),
-            resolveHandle(puzzleNode(after), "allElements"),
-          ),
+          text: [
+            `Element "${getElementFinalName(targetElement)}" of type "${targetElement.config.type}" removed from position ${index + 1}.`,
+            resolveHandle(puzzleNode(before), "allElements").diff(
+              resolveHandle(puzzleNode(after), "allElements"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };

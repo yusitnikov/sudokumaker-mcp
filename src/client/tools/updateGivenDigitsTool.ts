@@ -3,7 +3,6 @@ import { z } from "zod";
 import { CellId, parseCellNotation } from "../../SudokuMakerSchemas";
 import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { updateGivenDigitsToolName } from "./toolNames";
-import { renderDiff } from "../format/renderDiff";
 import { resolveHandle } from "../format/resolveHandle";
 import { puzzleNode } from "../format/puzzle/puzzle";
 
@@ -56,8 +55,7 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
       content: [
         {
           type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(before), "cells"),
+          text: resolveHandle(puzzleNode(before), "cells").diff(
             resolveHandle(puzzleNode(after), "cells"),
           ),
         },

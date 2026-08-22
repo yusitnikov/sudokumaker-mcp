@@ -5,6 +5,7 @@ import {
 import { createHash } from "crypto";
 import { z } from "zod";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+// eslint-disable-next-line import-x/no-unresolved
 import runtimeCode from "injected:./client/runtime";
 import { runtimeGlobal } from "./client/runtimeGlobal";
 import { tools } from "./client/tools";

@@ -2,7 +2,6 @@ import { ToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { getPuzzle, waitForSolver } from "../utils";
-import { renderDiff } from "../format/renderDiff";
 import { resolveHandle } from "../format/resolveHandle";
 import {
   readNewSudokuMakerLogs,
@@ -71,18 +70,13 @@ ${reversibleActionNote}
       content: [
         {
           type: "text",
-          text: message,
-        },
-        {
-          type: "text",
-          text: appendedLogResultText(beforeLog),
-        },
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(beforePuzzle), "cells"),
-            resolveHandle(puzzleNode(afterPuzzle), "cells"),
-          ),
+          text: [
+            message,
+            appendedLogResultText(beforeLog),
+            resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
+              resolveHandle(puzzleNode(afterPuzzle), "cells"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };
@@ -120,18 +114,13 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
       content: [
         {
           type: "text",
-          text: message,
-        },
-        {
-          type: "text",
-          text: appendedLogResultText(beforeLog),
-        },
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(beforePuzzle), "cells"),
-            resolveHandle(puzzleNode(afterPuzzle), "cells"),
-          ),
+          text: [
+            message,
+            appendedLogResultText(beforeLog),
+            resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
+              resolveHandle(puzzleNode(afterPuzzle), "cells"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };
@@ -173,18 +162,13 @@ ${reversibleActionNote}
       content: [
         {
           type: "text",
-          text: message,
-        },
-        {
-          type: "text",
-          text: replacedLogResultText(),
-        },
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(beforePuzzle), "cells"),
-            resolveHandle(puzzleNode(afterPuzzle), "cells"),
-          ),
+          text: [
+            message,
+            replacedLogResultText(),
+            resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
+              resolveHandle(puzzleNode(afterPuzzle), "cells"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };
@@ -220,11 +204,7 @@ Blind to free-text rules and cosmetic-only elements.
       content: [
         {
           type: "text",
-          text: message,
-        },
-        {
-          type: "text",
-          text: replacedLogResultText(),
+          text: [message, replacedLogResultText()].join("\n\n"),
         },
       ],
     };
@@ -260,18 +240,13 @@ Use this if a previous solver call's response indicated the solve was still in p
       content: [
         {
           type: "text",
-          text: message,
-        },
-        {
-          type: "text",
-          text: replacedLogResultText(),
-        },
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(beforePuzzle), "cells"),
-            resolveHandle(puzzleNode(afterPuzzle), "cells"),
-          ),
+          text: [
+            message,
+            replacedLogResultText(),
+            resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
+              resolveHandle(puzzleNode(afterPuzzle), "cells"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };
@@ -300,15 +275,14 @@ export const stopSolverTool = new ToolImplementation(
       content: [
         {
           type: "text",
-          text: wasBusy
-            ? "The solver has been stopped."
-            : "The solver is not running - there's nothing to stop.",
+          text: [
+            wasBusy
+              ? "The solver has been stopped."
+              : "The solver is not running - there's nothing to stop.",
+            replacedLogResultText(),
+            // TODO: show updated grid?
+          ].join("\n\n"),
         },
-        {
-          type: "text",
-          text: replacedLogResultText(),
-        },
-        // TODO: show updated grid?
       ],
     };
   },

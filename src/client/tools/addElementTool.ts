@@ -16,7 +16,6 @@ import { getElementById } from "./elementUtils";
 import { partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
 import { elementsTopicName, elementTopicPattern } from "./docs/topicNames";
-import { renderDiff } from "../format/renderDiff";
 import { resolveHandle } from "../format/resolveHandle";
 import { puzzleNode } from "../format/puzzle/puzzle";
 
@@ -206,14 +205,12 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
       content: [
         {
           type: "text",
-          text: `New element added at position ${index + 1}, with ID ${id}.`,
-        },
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(before), "allElements"),
-            resolveHandle(puzzleNode(after), "allElements"),
-          ),
+          text: [
+            `New element added at position ${index + 1}, with ID ${id}.`,
+            resolveHandle(puzzleNode(before), "allElements").diff(
+              resolveHandle(puzzleNode(after), "allElements"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };

@@ -9,7 +9,6 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
 import { getPuzzle } from "../utils";
-import { renderDiff } from "../format/renderDiff";
 import {
   addElementToolName,
   getPuzzleToolName,
@@ -67,15 +66,13 @@ Each group in this array independently selects clues to remove.
       content: [
         {
           type: "text",
-          text: `Removed ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}", there are ${updatedClues.length} clues in total now.`,
-        },
-        ...messages,
-        {
-          type: "text",
-          text: renderDiff(
-            resolveHandle(puzzleNode(before), "allElements"),
-            resolveHandle(puzzleNode(after), "allElements"),
-          ),
+          text: [
+            `Removed ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}", there are ${updatedClues.length} clues in total now.`,
+            ...messages,
+            resolveHandle(puzzleNode(before), "allElements").diff(
+              resolveHandle(puzzleNode(after), "allElements"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };
