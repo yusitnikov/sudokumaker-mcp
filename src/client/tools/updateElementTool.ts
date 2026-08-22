@@ -15,6 +15,9 @@ import {
   updateElementToolName,
 } from "./toolNames";
 import { elementTopicPattern } from "./docs/topicNames";
+import { renderDiff } from "../format/renderDiff";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const updateElementTool = new ToolImplementation(
   {
@@ -127,6 +130,8 @@ ${partialUpdateNote}
 
     const cluesKey = elementType.clue?.key;
 
+    const before = getPuzzle();
+
     updatePuzzle(
       (puzzle) => {
         const element = puzzle.allElements[index];
@@ -160,13 +165,9 @@ ${partialUpdateNote}
       operationDescription,
     );
 
-    const updatedElement = getPuzzle().allElements[index];
+    const after = getPuzzle();
 
-    const updatedConfig = { ...updatedElement.config } as any;
-    const excludeClues = cluesKey && !clueBatchUpdates;
-    if (excludeClues) {
-      delete updatedConfig[cluesKey];
-    }
+    const updatedElement = after.allElements[index];
 
     return {
       content: [
@@ -176,7 +177,10 @@ ${partialUpdateNote}
         },
         {
           type: "text",
-          text: `Here's the updated config spec${excludeClues ? " (excluding the clues list)" : ""}: ${JSON.stringify(updatedConfig, null, 2)}`,
+          text: renderDiff(
+            resolveHandle(puzzleNode(before), "allElements"),
+            resolveHandle(puzzleNode(after), "allElements"),
+          ),
         },
       ],
     };

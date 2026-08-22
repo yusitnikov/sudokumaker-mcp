@@ -1,16 +1,15 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import {
-  getElementById,
-  getElementFinalName,
-  getElementSummary,
-} from "./elementUtils";
+import { getElementById, getElementFinalName } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import {
   addElementToolName,
   getPuzzleToolName,
   removeElementToolName,
 } from "./toolNames";
+import { renderDiff } from "../format/renderDiff";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const removeElementTool = new ToolImplementation(
   {
@@ -35,6 +34,8 @@ export const removeElementTool = new ToolImplementation(
   ({ elementId }) => {
     const { index, targetElement } = getElementById(elementId);
 
+    const before = getPuzzle();
+
     updatePuzzle(
       (puzzle) => {
         puzzle.allElements.splice(index, 1);
@@ -45,7 +46,7 @@ export const removeElementTool = new ToolImplementation(
       `Remove ${getElementFinalName(targetElement)}`,
     );
 
-    const remainingElements = getPuzzle().allElements;
+    const after = getPuzzle();
 
     return {
       content: [
@@ -55,11 +56,10 @@ export const removeElementTool = new ToolImplementation(
         },
         {
           type: "text",
-          text: `The remaining elements: ${remainingElements.map(getElementSummary).join(", ") || "none"}.`,
-        },
-        {
-          type: "text",
-          text: `The full spec of the removed element (verify that it's the element that you wanted to delete!): ${JSON.stringify(targetElement, null, 2)}`,
+          text: renderDiff(
+            resolveHandle(puzzleNode(before), "allElements"),
+            resolveHandle(puzzleNode(after), "allElements"),
+          ),
         },
       ],
     };

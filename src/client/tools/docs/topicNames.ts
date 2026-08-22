@@ -5,6 +5,7 @@ export const customConstraintsTopicName = "custom-constraints";
 export const customComponentsTopicName = "custom-constraints:custom-components";
 export const digitSetTopicName = "custom-constraints:digit-set";
 export const cosmeticsTopicName = "cosmetics";
+export const gridNotationTopicName = "grid-notation";
 
 /** Prefix of every generated per-type topic name. */
 export const elementTopicPrefix = "element:";

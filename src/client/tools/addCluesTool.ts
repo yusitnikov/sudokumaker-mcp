@@ -4,6 +4,7 @@ import { jsonValue } from "../../jsonValue";
 import { getElementFinalName, getElementWithClueById } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
+import { renderDiff } from "../format/renderDiff";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
 import {
   addCluesToolName,
@@ -13,6 +14,8 @@ import {
   updateCluesToolName,
 } from "./toolNames";
 import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const addCluesTool = new ToolImplementation(
   {
@@ -57,6 +60,8 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
 
     const cluesKey = clueType.key;
 
+    const before = getPuzzle();
+
     updatePuzzle(
       (puzzle) => {
         (puzzle.allElements[index].config as any)[cluesKey].push(...clues);
@@ -69,13 +74,21 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
       operationDescription,
     );
 
-    const updatedElement = getPuzzle().allElements[index];
+    const after = getPuzzle();
+    const updatedElement = after.allElements[index];
 
     return {
       content: [
         {
           type: "text",
           text: `Added ${clues.length} clues of "${getElementFinalName(targetElement)}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
+        },
+        {
+          type: "text",
+          text: renderDiff(
+            resolveHandle(puzzleNode(before), "allElements"),
+            resolveHandle(puzzleNode(after), "allElements"),
+          ),
         },
       ],
     };

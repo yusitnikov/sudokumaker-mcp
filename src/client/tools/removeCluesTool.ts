@@ -8,11 +8,15 @@ import {
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
+import { getPuzzle } from "../utils";
+import { renderDiff } from "../format/renderDiff";
 import {
   addElementToolName,
   getPuzzleToolName,
   removeCluesToolName,
 } from "./toolNames";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const removeCluesTool = new ToolImplementation(
   {
@@ -46,6 +50,8 @@ Each group in this array independently selects clues to remove.
     ),
   }),
   ({ elementId, clueCellGroups, operationDescription }): CallToolResult => {
+    const before = getPuzzle();
+
     const { allMatchingIndexes, updatedElement, updatedClues, messages } =
       updateCluesByCellGroups(
         elementId,
@@ -55,6 +61,8 @@ Each group in this array independently selects clues to remove.
         operationDescription,
       );
 
+    const after = getPuzzle();
+
     return {
       content: [
         {
@@ -62,6 +70,13 @@ Each group in this array independently selects clues to remove.
           text: `Removed ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}", there are ${updatedClues.length} clues in total now.`,
         },
         ...messages,
+        {
+          type: "text",
+          text: renderDiff(
+            resolveHandle(puzzleNode(before), "allElements"),
+            resolveHandle(puzzleNode(after), "allElements"),
+          ),
+        },
       ],
     };
   },

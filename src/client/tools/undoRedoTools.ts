@@ -1,8 +1,9 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzle } from "../utils";
-import { diffCells } from "./diff";
+import { renderDiff } from "../format/renderDiff";
 import { redoToolName, undoToolName } from "./toolNames";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 // TODO: tell which action was undone, API to get the undo/redo history, tell what have changed afterwards
 export const undoTool = new ToolImplementation(
@@ -29,7 +30,7 @@ export const undoTool = new ToolImplementation(
         },
         {
           type: "text",
-          text: diffCells(before, after, true),
+          text: renderDiff(puzzleNode(before), puzzleNode(after)),
         },
       ],
     };
@@ -60,7 +61,7 @@ export const redoTool = new ToolImplementation(
         },
         {
           type: "text",
-          text: diffCells(before, after, true),
+          text: renderDiff(puzzleNode(before), puzzleNode(after)),
         },
       ],
     };

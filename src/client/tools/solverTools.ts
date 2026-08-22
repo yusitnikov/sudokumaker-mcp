@@ -2,7 +2,8 @@ import { ToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { getPuzzle, waitForSolver } from "../utils";
-import { diffCells } from "./diff";
+import { renderDiff } from "../format/renderDiff";
+import { resolveHandle } from "../format/resolveHandle";
 import {
   readNewSudokuMakerLogs,
   readSudokuMakerLogs,
@@ -16,6 +17,7 @@ import {
   stopSolverToolName,
   waitForSolverToolName,
 } from "./toolNames";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
@@ -77,7 +79,10 @@ ${reversibleActionNote}
         },
         {
           type: "text",
-          text: diffCells(beforePuzzle, afterPuzzle, true),
+          text: renderDiff(
+            resolveHandle(puzzleNode(beforePuzzle), "cells"),
+            resolveHandle(puzzleNode(afterPuzzle), "cells"),
+          ),
         },
       ],
     };
@@ -123,7 +128,10 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
         },
         {
           type: "text",
-          text: diffCells(beforePuzzle, afterPuzzle, true),
+          text: renderDiff(
+            resolveHandle(puzzleNode(beforePuzzle), "cells"),
+            resolveHandle(puzzleNode(afterPuzzle), "cells"),
+          ),
         },
       ],
     };
@@ -173,7 +181,10 @@ ${reversibleActionNote}
         },
         {
           type: "text",
-          text: diffCells(beforePuzzle, afterPuzzle, true),
+          text: renderDiff(
+            resolveHandle(puzzleNode(beforePuzzle), "cells"),
+            resolveHandle(puzzleNode(afterPuzzle), "cells"),
+          ),
         },
       ],
     };
@@ -238,9 +249,12 @@ Use this if a previous solver call's response indicated the solve was still in p
   },
   z.object({}),
   async () => {
+    // TODO: "beforePuzzle" is stale since the previous tool errored
+    const beforePuzzle = getPuzzle();
     const message = window.Api.busy
       ? await waitForSolver(solverMaxTimeout)
       : "The solver is not running - there's nothing to wait for.";
+    const afterPuzzle = getPuzzle();
 
     return {
       content: [
@@ -251,6 +265,13 @@ Use this if a previous solver call's response indicated the solve was still in p
         {
           type: "text",
           text: replacedLogResultText(),
+        },
+        {
+          type: "text",
+          text: renderDiff(
+            resolveHandle(puzzleNode(beforePuzzle), "cells"),
+            resolveHandle(puzzleNode(afterPuzzle), "cells"),
+          ),
         },
       ],
     };
@@ -287,6 +308,7 @@ export const stopSolverTool = new ToolImplementation(
           type: "text",
           text: replacedLogResultText(),
         },
+        // TODO: show updated grid?
       ],
     };
   },

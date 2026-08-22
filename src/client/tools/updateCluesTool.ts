@@ -7,6 +7,8 @@ import {
   updateCluesByCellGroups,
 } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
+import { getPuzzle } from "../utils";
+import { renderDiff } from "../format/renderDiff";
 import {
   operationDescriptionParam,
   partialUpdateNote,
@@ -19,6 +21,8 @@ import {
 } from "./toolNames";
 import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { jsonValue } from "../../jsonValue";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const updateCluesTool = new ToolImplementation(
   {
@@ -85,7 +89,9 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
       ),
     }).parse({ updateGroups });
 
-    const { allMatchingIndexes, updatedElement, updatedClues, messages } =
+    const before = getPuzzle();
+
+    const { allMatchingIndexes, updatedElement, messages } =
       updateCluesByCellGroups(
         elementId,
         updateGroups.map(({ clueCells }) => clueCells),
@@ -102,9 +108,7 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
         operationDescription,
       );
 
-    const affectedClues = updatedClues.filter((_, index) =>
-      allMatchingIndexes.has(index),
-    );
+    const after = getPuzzle();
 
     return {
       content: [
@@ -115,7 +119,10 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
         ...messages,
         {
           type: "text",
-          text: `Here are the affected clues after the update: ${JSON.stringify(affectedClues, null, 2)}`,
+          text: renderDiff(
+            resolveHandle(puzzleNode(before), "allElements"),
+            resolveHandle(puzzleNode(after), "allElements"),
+          ),
         },
       ],
     };

@@ -12,10 +12,13 @@ import {
 } from "../../SudokuMakerElement";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getPuzzle, updatePuzzle } from "../utils";
-import { getElementById, getElementSummary } from "./elementUtils";
+import { getElementById } from "./elementUtils";
 import { partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
 import { elementsTopicName, elementTopicPattern } from "./docs/topicNames";
+import { renderDiff } from "../format/renderDiff";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const addElementTool = new ToolImplementation(
   {
@@ -69,15 +72,18 @@ into the element list at a chosen position.
             // language=markdown
             `Only for subtypes that need them: subtype-specific creation parameters, shape given alongside the variant in \`## Variants\` when it takes one.`,
           ),
-          overrides: z.record(z.string(), jsonValue).optional().describe(
-            // language=markdown
-            `
+          overrides: z
+            .record(z.string(), jsonValue)
+            .optional()
+            .describe(
+              // language=markdown
+              `
 Only for types with a \`## Config\` section: initial config values to set instead of the type's defaults (e.g. \`{"style": {"color": "#ff0000"}}\`) -
 docs topic \`${elementTopicPattern}\`'s \`## Config\` section shows the full config JSON schema.
 
 ${partialUpdateNote}
             `.trim(),
-          ),
+            ),
         })
         .describe(
           // language=markdown
@@ -128,7 +134,8 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
       ),
   }),
   ({ name, enabled = true, solverIgnored = false, element, position }) => {
-    const { spec, allElements: currentElements } = getPuzzle();
+    const before = getPuzzle();
+    const { spec, allElements: currentElements } = before;
 
     let index: number;
     if ("elementId" in position) {
@@ -181,8 +188,8 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
       `Add ${elementSubType.title}`,
     );
 
-    const newElements = getPuzzle().allElements;
-    const newElement = newElements[index];
+    const after = getPuzzle();
+    const newElement = after.allElements[index];
     if (newElement?.id !== id) {
       return {
         content: [
@@ -199,15 +206,14 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
       content: [
         {
           type: "text",
-          text: `New element added at position ${index + 1}.`,
+          text: `New element added at position ${index + 1}, with ID ${id}.`,
         },
         {
           type: "text",
-          text: `The new elements list: ${newElements.map(getElementSummary).join(", ")}.`,
-        },
-        {
-          type: "text",
-          text: `New element: ${JSON.stringify(newElement, null, 2)}`,
+          text: renderDiff(
+            resolveHandle(puzzleNode(before), "allElements"),
+            resolveHandle(puzzleNode(after), "allElements"),
+          ),
         },
       ],
     };

@@ -12,6 +12,7 @@ import { customConstraintsTopic } from "./customConstraints";
 import { customComponentsTopic } from "./customComponents";
 import { digitSetTopic } from "./digitSet";
 import { cosmeticsTopic } from "./cosmetics";
+import { gridNotationTopic } from "./gridNotation";
 import { elementsTopicName, elementTopicPattern } from "./topicNames";
 
 export interface DocsTopic {
@@ -32,6 +33,7 @@ export const topics: DocsTopic[] = [
   customComponentsTopic,
   digitSetTopic,
   cosmeticsTopic,
+  gridNotationTopic,
 ];
 
 /**

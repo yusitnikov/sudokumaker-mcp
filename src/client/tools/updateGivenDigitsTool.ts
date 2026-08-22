@@ -1,8 +1,11 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { CellId, parseCellNotation } from "../../SudokuMakerSchemas";
-import { copyCells, updatePuzzle } from "../utils";
+import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { updateGivenDigitsToolName } from "./toolNames";
+import { renderDiff } from "../format/renderDiff";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const updateGivenDigitsTool = new ToolImplementation(
   {
@@ -27,6 +30,8 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
     ),
   }),
   ({ cells, digit }) => {
+    const before = getPuzzle();
+
     updatePuzzle(
       (puzzle) => {
         for (const cellStr of cells) {
@@ -45,8 +50,18 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
         : `Put given ${digit} into `) + cells.join(", "),
     );
 
+    const after = getPuzzle();
+
     return {
-      content: [{ type: "text", text: "Updated successfully." }],
+      content: [
+        {
+          type: "text",
+          text: renderDiff(
+            resolveHandle(puzzleNode(before), "cells"),
+            resolveHandle(puzzleNode(after), "cells"),
+          ),
+        },
+      ],
     };
   },
 );

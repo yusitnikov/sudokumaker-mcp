@@ -2,6 +2,10 @@ import { ToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { clearGridToolName } from "./toolNames";
+import { getPuzzle } from "../utils";
+import { renderDiff } from "../format/renderDiff";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const clearGridTool = new ToolImplementation(
   {
@@ -20,13 +24,20 @@ ${reversibleActionNote}
   },
   z.object({}),
   () => {
+    const before = getPuzzle();
     window.Api.triggerAction("clearGrid");
+    const after = getPuzzle();
+
+    // TODO: shorter representation for fully clearing the grid with no givens left
 
     return {
       content: [
         {
           type: "text",
-          text: "Done.",
+          text: renderDiff(
+            resolveHandle(puzzleNode(before), "cells"),
+            resolveHandle(puzzleNode(after), "cells"),
+          ),
         },
       ],
     };
