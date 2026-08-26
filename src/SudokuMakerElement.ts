@@ -1071,7 +1071,7 @@ export const SandwichSumsElement = new SudokuMakerElement({
   schema: z.object({
     style: OuterClueStyle,
   }),
-  clue: OuterClue(z.number().describe("")),
+  clue: OuterClue(z.number().optional().describe("sandwich sum")),
   main: {
     title: "Sandwich sums",
     description:
