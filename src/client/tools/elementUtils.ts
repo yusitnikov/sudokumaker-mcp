@@ -133,7 +133,7 @@ export const updateCluesByCellGroups = (
           // TODO: format properly or remove
           `Cells group #${groupIndex + 1} - targeted ${matches.length} clues: ${JSON.stringify(matches.map(({ clue }) => clue))}`,
       ),
-      "If some of the targeted clues above don't match your expectations, please undo the operation immediately!",
+      "If some of the targeted clues above don't match your expectations, UNDO THE OPERATION IMMEDIATELY!",
     ],
   };
 };

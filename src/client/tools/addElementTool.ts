@@ -207,10 +207,11 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
           type: "text",
           text: [
             `New element added at position ${index + 1} in puzzle "${after.name || "(untitled)"}", with ID ${id}.`,
+            "This is what changed:",
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };

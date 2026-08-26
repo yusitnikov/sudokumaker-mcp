@@ -82,10 +82,11 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
           type: "text",
           text: [
             `Added ${clues.length} clues to "${getElementFinalName(targetElement)}" in puzzle "${after.name || "(untitled)"}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
+            "This is what changed:",
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };

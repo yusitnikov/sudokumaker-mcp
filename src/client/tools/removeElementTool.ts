@@ -53,10 +53,11 @@ export const removeElementTool = new ToolImplementation(
           type: "text",
           text: [
             `Element "${getElementFinalName(targetElement)}" of type "${targetElement.config.type}" removed from position ${index + 1} in puzzle "${after.name || "(untitled)"}".`,
+            "This is what changed:",
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };

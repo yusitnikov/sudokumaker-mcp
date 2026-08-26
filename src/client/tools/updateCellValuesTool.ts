@@ -77,8 +77,9 @@ Setting a value also clears any candidates/corner marks already in that cell.
             type: "text",
             text: [
               `Updated cell values in puzzle "${after.name || "(untitled)"}".`,
+              "This is what changed in the cells:",
               diffText,
-            ].join("\n\n"),
+            ].join("\n"),
           },
         ],
       };
@@ -102,9 +103,11 @@ Setting a value also clears any candidates/corner marks already in that cell.
           type: "text",
           text: [
             `Updated cells ${updatedCells.join(", ")} in puzzle "${after.name || "(untitled)"}".`,
-            `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,
+            "This is what changed in the cells:",
             diffText,
-          ].join("\n\n"),
+            "",
+            `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,
+          ].join("\n"),
         },
       ],
     };

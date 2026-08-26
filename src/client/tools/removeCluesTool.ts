@@ -68,11 +68,14 @@ Each group in this array independently selects clues to remove.
           type: "text",
           text: [
             `Removed ${allMatchingIndexes.size} clues from "${getElementFinalName(updatedElement)}" in puzzle "${after.name || "(untitled)"}", there are ${updatedClues.length} clues in total now.`,
+            "",
             ...messages,
+            "",
+            `This is what changed:`,
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };

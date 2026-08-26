@@ -40,11 +40,14 @@ export const undoTool = new ToolImplementation(
           type: "text",
           text: [
             `Reverted "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to undo, REDO IT IMMEDIATELY!`,
+            "",
+            "This is what the revert changed:",
             puzzleNode(before).diff(puzzleNode(after)),
+            "",
             nextLabel
               ? `Undoing again would revert "${nextLabel}".`
               : "This was the oldest action - nothing earlier to undo.",
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };
@@ -88,11 +91,14 @@ export const redoTool = new ToolImplementation(
           type: "text",
           text: [
             `Reapplied "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to redo, UNDO IT IMMEDIATELY!`,
+            "",
+            "This is what the redo changed:",
             puzzleNode(before).diff(puzzleNode(after)),
+            "",
             nextLabel
               ? `Redoing again would reapply "${nextLabel}".`
               : "This was the most recent action - nothing newer to redo.",
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };

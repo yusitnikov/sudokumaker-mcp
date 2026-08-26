@@ -72,11 +72,14 @@ ${reversibleActionNote}
           type: "text",
           text: [
             `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
+            "",
             appendedLogResultText(beforeLog),
+            "",
+            "This is what changed in the cells:",
             resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
               resolveHandle(puzzleNode(afterPuzzle), "cells"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };
@@ -116,11 +119,14 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
           type: "text",
           text: [
             `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
+            "",
             appendedLogResultText(beforeLog),
+            "",
+            "This is what changed in the cells:",
             resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
               resolveHandle(puzzleNode(afterPuzzle), "cells"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };
@@ -164,11 +170,14 @@ ${reversibleActionNote}
           type: "text",
           text: [
             `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
+            "",
             replacedLogResultText(),
+            "",
+            "This is what changed in the cells:",
             resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
               resolveHandle(puzzleNode(afterPuzzle), "cells"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };
@@ -204,7 +213,7 @@ Blind to free-text rules and cosmetic-only elements.
       content: [
         {
           type: "text",
-          text: [message, replacedLogResultText()].join("\n\n"),
+          text: [message, "", replacedLogResultText()].join("\n"),
         },
       ],
     };
@@ -242,11 +251,14 @@ Use this if a previous solver call's response indicated the solve was still in p
           type: "text",
           text: [
             `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
+            "",
             replacedLogResultText(),
+            "",
+            "This is what changed in the cells:",
             resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
               resolveHandle(puzzleNode(afterPuzzle), "cells"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };
@@ -279,9 +291,10 @@ export const stopSolverTool = new ToolImplementation(
             wasBusy
               ? "The solver has been stopped."
               : "The solver is not running - there's nothing to stop.",
+            "",
             replacedLogResultText(),
             // TODO: show updated grid?
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };

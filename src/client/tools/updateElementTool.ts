@@ -174,10 +174,11 @@ ${partialUpdateNote}
           type: "text",
           text: [
             `Element "${getElementFinalName(updatedElement)}" updated successfully in puzzle "${after.name || "(untitled)"}".`,
+            "This is what changed:",
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),
             ),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };

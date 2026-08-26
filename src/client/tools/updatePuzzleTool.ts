@@ -176,8 +176,9 @@ the puzzle state after earlier ones already applied.
           type: "text",
           text: [
             `Updated puzzle "${after.name || "(untitled)"}".`,
+            "This is what changed:",
             puzzleNode(before).diff(puzzleNode(after)),
-          ].join("\n\n"),
+          ].join("\n"),
         },
       ],
     };

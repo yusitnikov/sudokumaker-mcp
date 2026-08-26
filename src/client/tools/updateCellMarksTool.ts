@@ -134,8 +134,9 @@ How to combine the given values with each cell's existing marks:
             type: "text",
             text: [
               `Updated cell marks in puzzle "${after.name || "(untitled)"}".`,
+              "This is what changed in the cells:",
               diffText,
-            ].join("\n\n"),
+            ].join("\n"),
           },
         ],
       };
@@ -159,9 +160,11 @@ How to combine the given values with each cell's existing marks:
           type: "text",
           text: [
             `Updated cells ${updatedCells.join(", ")} in puzzle "${after.name || "(untitled)"}".`,
-            `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,
+            "This is what changed in the cells:",
             diffText,
-          ].join("\n\n"),
+            "",
+            `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,
+          ].join("\n"),
         },
       ],
     };
