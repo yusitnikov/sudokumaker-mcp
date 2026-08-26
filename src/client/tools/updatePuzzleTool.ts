@@ -1,7 +1,8 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
-import { copyCells, updatePuzzle } from "../utils";
+import { copyCells, getPuzzle, updatePuzzle } from "../utils";
+import { puzzleNode } from "../format/puzzle/puzzle";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import {
   addCluesToolName,
@@ -101,6 +102,8 @@ the puzzle state after earlier ones already applied.
       ),
   }),
   ({ updates, operationDescription }) => {
+    const before = getPuzzle();
+
     updatePuzzle(
       (puzzle) => {
         for (const { path, update } of updates) {
@@ -165,11 +168,16 @@ the puzzle state after earlier ones already applied.
       operationDescription,
     );
 
+    const after = getPuzzle();
+
     return {
       content: [
         {
           type: "text",
-          text: "Operation completed",
+          text: [
+            `Updated puzzle "${after.name || "(untitled)"}".`,
+            puzzleNode(before).diff(puzzleNode(after)),
+          ].join("\n\n"),
         },
       ],
     };

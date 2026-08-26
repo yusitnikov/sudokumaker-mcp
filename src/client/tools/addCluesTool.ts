@@ -81,7 +81,7 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
         {
           type: "text",
           text: [
-            `Added ${clues.length} clues of "${getElementFinalName(targetElement)}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
+            `Added ${clues.length} clues to "${getElementFinalName(targetElement)}" in puzzle "${after.name || "(untitled)"}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),
             ),

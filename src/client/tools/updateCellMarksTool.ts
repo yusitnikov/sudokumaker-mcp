@@ -9,6 +9,8 @@ import {
 import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updateCellMarksToolName } from "./toolNames";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const updateCellMarksTool = new ToolImplementation(
   {
@@ -76,6 +78,8 @@ How to combine the given values with each cell's existing marks:
     const updatedCells: CellNotation[] = [];
     const skippedCells: CellNotation[] = [];
 
+    const before = getPuzzle();
+
     updatePuzzle(
       (puzzle) => {
         for (const coords of cells) {
@@ -118,41 +122,20 @@ How to combine the given values with each cell's existing marks:
       operationDescription,
     );
 
-    const newCells = getPuzzle().cells;
-    const updatedCellsDescription =
-      updatedCells.length && operation !== "replace"
-        ? "Here are the cells marks after the update:\n" +
-          updatedCells
-            .map((coords) => {
-              const { row, column } = parseCellNotation(coords);
-              const cell = newCells[row - 1][column - 1];
-
-              return (
-                `- ${coords}: ` +
-                // describe only mark types that were requested to change
-                [
-                  candidates &&
-                    `candidates - ${JSON.stringify(cell.candidates)}`,
-                  cornerPencilMarks &&
-                    `corner marks - ${JSON.stringify(cell.cornerPencilMarks)}`,
-                  colors && `colors - ${JSON.stringify(cell.colors)}`,
-                ]
-                  .filter(Boolean)
-                  .join(", ") +
-                "."
-              );
-            })
-            .join("\n")
-        : undefined;
+    const after = getPuzzle();
+    const diffText = resolveHandle(puzzleNode(before), "cells").diff(
+      resolveHandle(puzzleNode(after), "cells"),
+    );
 
     if (skippedCells.length === 0) {
       return {
         content: [
           {
             type: "text",
-            text: ["Updated successfully.", updatedCellsDescription]
-              .filter(Boolean)
-              .join("\n\n"),
+            text: [
+              `Updated cell marks in puzzle "${after.name || "(untitled)"}".`,
+              diffText,
+            ].join("\n\n"),
           },
         ],
       };
@@ -175,12 +158,10 @@ How to combine the given values with each cell's existing marks:
         {
           type: "text",
           text: [
-            `Updated cells ${updatedCells.join(", ")} successfully.`,
+            `Updated cells ${updatedCells.join(", ")} in puzzle "${after.name || "(untitled)"}".`,
             `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,
-            updatedCellsDescription,
-          ]
-            .filter(Boolean)
-            .join("\n\n"),
+            diffText,
+          ].join("\n\n"),
         },
       ],
     };

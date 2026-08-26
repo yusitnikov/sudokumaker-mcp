@@ -114,7 +114,7 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
         {
           type: "text",
           text: [
-            `Updated ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}".`,
+            `Updated ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}" in puzzle "${after.name || "(untitled)"}".`,
             ...messages,
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),

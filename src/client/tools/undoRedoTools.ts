@@ -39,7 +39,7 @@ export const undoTool = new ToolImplementation(
         {
           type: "text",
           text: [
-            `Reverted "${label}". If it's not the action that you expected to undo, REDO IT IMMEDIATELY!`,
+            `Reverted "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to undo, REDO IT IMMEDIATELY!`,
             puzzleNode(before).diff(puzzleNode(after)),
             nextLabel
               ? `Undoing again would revert "${nextLabel}".`
@@ -87,7 +87,7 @@ export const redoTool = new ToolImplementation(
         {
           type: "text",
           text: [
-            `Reapplied "${label}". If it's not the action that you expected to redo, UNDO IT IMMEDIATELY!`,
+            `Reapplied "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to redo, UNDO IT IMMEDIATELY!`,
             puzzleNode(before).diff(puzzleNode(after)),
             nextLabel
               ? `Redoing again would reapply "${nextLabel}".`

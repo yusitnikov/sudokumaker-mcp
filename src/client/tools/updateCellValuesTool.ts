@@ -5,11 +5,13 @@ import {
   CellId,
   parseCellNotation,
 } from "../../SudokuMakerSchemas";
-import { copyCells, updatePuzzle } from "../utils";
+import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import {
   updateCellValuesToolName,
   updateGivenDigitsToolName,
 } from "./toolNames";
+import { resolveHandle } from "../format/resolveHandle";
+import { puzzleNode } from "../format/puzzle/puzzle";
 
 export const updateCellValuesTool = new ToolImplementation(
   {
@@ -39,6 +41,8 @@ Setting a value also clears any candidates/corner marks already in that cell.
     const updatedCells: CellNotation[] = [];
     const skippedCells: CellNotation[] = [];
 
+    const before = getPuzzle();
+
     updatePuzzle(
       (puzzle) => {
         for (const coords of cells) {
@@ -61,9 +65,22 @@ Setting a value also clears any candidates/corner marks already in that cell.
         cells.join(", "),
     );
 
+    const after = getPuzzle();
+    const diffText = resolveHandle(puzzleNode(before), "cells").diff(
+      resolveHandle(puzzleNode(after), "cells"),
+    );
+
     if (skippedCells.length === 0) {
       return {
-        content: [{ type: "text", text: "Updated successfully." }],
+        content: [
+          {
+            type: "text",
+            text: [
+              `Updated cell values in puzzle "${after.name || "(untitled)"}".`,
+              diffText,
+            ].join("\n\n"),
+          },
+        ],
       };
     }
 
@@ -84,8 +101,9 @@ Setting a value also clears any candidates/corner marks already in that cell.
         {
           type: "text",
           text: [
-            `Updated cells ${updatedCells.join(", ")} successfully.`,
+            `Updated cells ${updatedCells.join(", ")} in puzzle "${after.name || "(untitled)"}".`,
             `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,
+            diffText,
           ].join("\n\n"),
         },
       ],

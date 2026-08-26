@@ -71,7 +71,7 @@ ${reversibleActionNote}
         {
           type: "text",
           text: [
-            message,
+            `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
             appendedLogResultText(beforeLog),
             resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
               resolveHandle(puzzleNode(afterPuzzle), "cells"),
@@ -115,7 +115,7 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
         {
           type: "text",
           text: [
-            message,
+            `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
             appendedLogResultText(beforeLog),
             resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
               resolveHandle(puzzleNode(afterPuzzle), "cells"),
@@ -163,7 +163,7 @@ ${reversibleActionNote}
         {
           type: "text",
           text: [
-            message,
+            `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
             replacedLogResultText(),
             resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
               resolveHandle(puzzleNode(afterPuzzle), "cells"),
@@ -241,7 +241,7 @@ Use this if a previous solver call's response indicated the solve was still in p
         {
           type: "text",
           text: [
-            message,
+            `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
             replacedLogResultText(),
             resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
               resolveHandle(puzzleNode(afterPuzzle), "cells"),

@@ -173,7 +173,7 @@ ${partialUpdateNote}
         {
           type: "text",
           text: [
-            `Element "${getElementFinalName(updatedElement)}" updated successfully.`,
+            `Element "${getElementFinalName(updatedElement)}" updated successfully in puzzle "${after.name || "(untitled)"}".`,
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),
             ),

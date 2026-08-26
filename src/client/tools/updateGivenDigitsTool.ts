@@ -55,9 +55,12 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
       content: [
         {
           type: "text",
-          text: resolveHandle(puzzleNode(before), "cells").diff(
-            resolveHandle(puzzleNode(after), "cells"),
-          ),
+          text: [
+            `Updated the given digits in puzzle "${after.name || "(untitled)"}".`,
+            resolveHandle(puzzleNode(before), "cells").diff(
+              resolveHandle(puzzleNode(after), "cells"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };

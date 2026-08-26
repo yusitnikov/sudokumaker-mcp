@@ -33,9 +33,12 @@ ${reversibleActionNote}
       content: [
         {
           type: "text",
-          text: resolveHandle(puzzleNode(before), "cells").diff(
-            resolveHandle(puzzleNode(after), "cells"),
-          ),
+          text: [
+            `Cleared the grid in puzzle "${after.name || "(untitled)"}".`,
+            resolveHandle(puzzleNode(before), "cells").diff(
+              resolveHandle(puzzleNode(after), "cells"),
+            ),
+          ].join("\n\n"),
         },
       ],
     };

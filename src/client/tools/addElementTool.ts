@@ -206,7 +206,7 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
         {
           type: "text",
           text: [
-            `New element added at position ${index + 1}, with ID ${id}.`,
+            `New element added at position ${index + 1} in puzzle "${after.name || "(untitled)"}", with ID ${id}.`,
             resolveHandle(puzzleNode(before), "allElements").diff(
               resolveHandle(puzzleNode(after), "allElements"),
             ),
