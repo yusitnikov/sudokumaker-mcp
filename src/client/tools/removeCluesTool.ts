@@ -14,8 +14,7 @@ import {
   getPuzzleToolName,
   removeCluesToolName,
 } from "./toolNames";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const removeCluesTool = new ToolImplementation(
   {
@@ -71,10 +70,7 @@ Each group in this array independently selects clues to remove.
             "",
             ...messages,
             "",
-            `This is what changed:`,
-            resolveHandle(puzzleNode(before), "allElements").diff(
-              resolveHandle(puzzleNode(after), "allElements"),
-            ),
+            elementsDiffSummary(before, after),
           ].join("\n"),
         },
       ],

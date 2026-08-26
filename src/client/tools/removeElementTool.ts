@@ -7,8 +7,7 @@ import {
   getPuzzleToolName,
   removeElementToolName,
 } from "./toolNames";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const removeElementTool = new ToolImplementation(
   {
@@ -53,10 +52,7 @@ export const removeElementTool = new ToolImplementation(
           type: "text",
           text: [
             `Element "${getElementFinalName(targetElement)}" of type "${targetElement.config.type}" removed from position ${index + 1} in puzzle "${after.name || "(untitled)"}".`,
-            "This is what changed:",
-            resolveHandle(puzzleNode(before), "allElements").diff(
-              resolveHandle(puzzleNode(after), "allElements"),
-            ),
+            elementsDiffSummary(before, after),
           ].join("\n"),
         },
       ],

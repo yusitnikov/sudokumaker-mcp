@@ -243,10 +243,6 @@ const diffGridRows = (
     );
   });
 
-  if (!changedLines.length) {
-    return "no changes";
-  }
-
   const lines: string[] = [""];
 
   lines.push(...changedLines);

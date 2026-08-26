@@ -10,8 +10,7 @@ import {
   updateCellValuesToolName,
   updateGivenDigitsToolName,
 } from "./toolNames";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const updateCellValuesTool = new ToolImplementation(
   {
@@ -66,9 +65,7 @@ Setting a value also clears any candidates/corner marks already in that cell.
     );
 
     const after = getPuzzle();
-    const diffText = resolveHandle(puzzleNode(before), "cells").diff(
-      resolveHandle(puzzleNode(after), "cells"),
-    );
+    const diffText = cellsDiffSummary(before, after);
 
     if (skippedCells.length === 0) {
       return {
@@ -77,7 +74,6 @@ Setting a value also clears any candidates/corner marks already in that cell.
             type: "text",
             text: [
               `Updated cell values in puzzle "${after.name || "(untitled)"}".`,
-              "This is what changed in the cells:",
               diffText,
             ].join("\n"),
           },
@@ -103,7 +99,6 @@ Setting a value also clears any candidates/corner marks already in that cell.
           type: "text",
           text: [
             `Updated cells ${updatedCells.join(", ")} in puzzle "${after.name || "(untitled)"}".`,
-            "This is what changed in the cells:",
             diffText,
             "",
             `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,

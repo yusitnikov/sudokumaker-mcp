@@ -16,8 +16,7 @@ import { getElementById } from "./elementUtils";
 import { partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
 import { elementsTopicName, elementTopicPattern } from "./docs/topicNames";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const addElementTool = new ToolImplementation(
   {
@@ -207,10 +206,7 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
           type: "text",
           text: [
             `New element added at position ${index + 1} in puzzle "${after.name || "(untitled)"}", with ID ${id}.`,
-            "This is what changed:",
-            resolveHandle(puzzleNode(before), "allElements").diff(
-              resolveHandle(puzzleNode(after), "allElements"),
-            ),
+            elementsDiffSummary(before, after),
           ].join("\n"),
         },
       ],

@@ -2,7 +2,7 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
 import { copyCells, getPuzzle, updatePuzzle } from "../utils";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import {
   addCluesToolName,
@@ -176,8 +176,7 @@ the puzzle state after earlier ones already applied.
           type: "text",
           text: [
             `Updated puzzle "${after.name || "(untitled)"}".`,
-            "This is what changed:",
-            puzzleNode(before).diff(puzzleNode(after)),
+            puzzleDiffSummary(before, after),
           ].join("\n"),
         },
       ],

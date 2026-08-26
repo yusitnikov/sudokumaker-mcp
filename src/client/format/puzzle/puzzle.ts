@@ -1,6 +1,5 @@
 import { ObjectNode } from "../ObjectNode";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
-import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { cellsDescriptor } from "./cells";
 import { stringDescriptor } from "../generic/stringDescriptor";
 import {
@@ -16,7 +15,11 @@ export const puzzleNode = (
 ): ObjectNode<PuzzlePublic, PuzzlePublic> =>
   new ObjectNode(value, "", value, puzzleDescriptor);
 
-const baseDescriptor = getPlainObjectDescriptor<PuzzlePublic, PuzzlePublic>({
+/** Puzzle - the header lines, then cells and each element, in printing order. */
+export const puzzleDescriptor = getPlainObjectDescriptor<
+  PuzzlePublic,
+  PuzzlePublic
+>({
   childMap: {
     name: stringDescriptor,
     author: stringDescriptor,
@@ -34,16 +37,3 @@ const baseDescriptor = getPlainObjectDescriptor<PuzzlePublic, PuzzlePublic>({
   },
   allowOtherKeys: false,
 });
-
-/** Puzzle - the header lines, then cells and each element, in printing order. */
-export const puzzleDescriptor: ObjectDescriptor<PuzzlePublic, PuzzlePublic> = {
-  ...baseDescriptor,
-  diff(from, to) {
-    // Special case for the puzzle node - the callers don't check if there's any diff
-    if (JSON.stringify(from.value) === JSON.stringify(to.value)) {
-      return "no changes";
-    }
-
-    return baseDescriptor.diff(from, to);
-  },
-};

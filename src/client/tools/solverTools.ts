@@ -2,7 +2,6 @@ import { ToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { getPuzzle, waitForSolver } from "../utils";
-import { resolveHandle } from "../format/resolveHandle";
 import {
   readNewSudokuMakerLogs,
   readSudokuMakerLogs,
@@ -16,7 +15,7 @@ import {
   stopSolverToolName,
   waitForSolverToolName,
 } from "./toolNames";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
@@ -75,10 +74,7 @@ ${reversibleActionNote}
             "",
             appendedLogResultText(beforeLog),
             "",
-            "This is what changed in the cells:",
-            resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
-              resolveHandle(puzzleNode(afterPuzzle), "cells"),
-            ),
+            cellsDiffSummary(beforePuzzle, afterPuzzle),
           ].join("\n"),
         },
       ],
@@ -122,10 +118,7 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
             "",
             appendedLogResultText(beforeLog),
             "",
-            "This is what changed in the cells:",
-            resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
-              resolveHandle(puzzleNode(afterPuzzle), "cells"),
-            ),
+            cellsDiffSummary(beforePuzzle, afterPuzzle),
           ].join("\n"),
         },
       ],
@@ -173,10 +166,7 @@ ${reversibleActionNote}
             "",
             replacedLogResultText(),
             "",
-            "This is what changed in the cells:",
-            resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
-              resolveHandle(puzzleNode(afterPuzzle), "cells"),
-            ),
+            cellsDiffSummary(beforePuzzle, afterPuzzle),
           ].join("\n"),
         },
       ],
@@ -254,10 +244,7 @@ Use this if a previous solver call's response indicated the solve was still in p
             "",
             replacedLogResultText(),
             "",
-            "This is what changed in the cells:",
-            resolveHandle(puzzleNode(beforePuzzle), "cells").diff(
-              resolveHandle(puzzleNode(afterPuzzle), "cells"),
-            ),
+            cellsDiffSummary(beforePuzzle, afterPuzzle),
           ].join("\n"),
         },
       ],

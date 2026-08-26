@@ -2,7 +2,7 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzle } from "../utils";
 import { redoToolName, undoToolName } from "./toolNames";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { readPendingActionLabel } from "../../SudokuMakerUndoRedo";
 
 export const undoTool = new ToolImplementation(
@@ -41,8 +41,7 @@ export const undoTool = new ToolImplementation(
           text: [
             `Reverted "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to undo, REDO IT IMMEDIATELY!`,
             "",
-            "This is what the revert changed:",
-            puzzleNode(before).diff(puzzleNode(after)),
+            puzzleDiffSummary(before, after, "This is what the revert changed:"),
             "",
             nextLabel
               ? `Undoing again would revert "${nextLabel}".`
@@ -92,8 +91,7 @@ export const redoTool = new ToolImplementation(
           text: [
             `Reapplied "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to redo, UNDO IT IMMEDIATELY!`,
             "",
-            "This is what the redo changed:",
-            puzzleNode(before).diff(puzzleNode(after)),
+            puzzleDiffSummary(before, after, "This is what the redo changed:"),
             "",
             nextLabel
               ? `Redoing again would reapply "${nextLabel}".`

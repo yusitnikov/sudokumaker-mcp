@@ -9,8 +9,7 @@ import {
 import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updateCellMarksToolName } from "./toolNames";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const updateCellMarksTool = new ToolImplementation(
   {
@@ -123,9 +122,7 @@ How to combine the given values with each cell's existing marks:
     );
 
     const after = getPuzzle();
-    const diffText = resolveHandle(puzzleNode(before), "cells").diff(
-      resolveHandle(puzzleNode(after), "cells"),
-    );
+    const diffText = cellsDiffSummary(before, after);
 
     if (skippedCells.length === 0) {
       return {
@@ -134,7 +131,6 @@ How to combine the given values with each cell's existing marks:
             type: "text",
             text: [
               `Updated cell marks in puzzle "${after.name || "(untitled)"}".`,
-              "This is what changed in the cells:",
               diffText,
             ].join("\n"),
           },
@@ -160,7 +156,6 @@ How to combine the given values with each cell's existing marks:
           type: "text",
           text: [
             `Updated cells ${updatedCells.join(", ")} in puzzle "${after.name || "(untitled)"}".`,
-            "This is what changed in the cells:",
             diffText,
             "",
             `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,

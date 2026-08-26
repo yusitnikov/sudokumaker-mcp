@@ -3,8 +3,7 @@ import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { clearGridToolName } from "./toolNames";
 import { getPuzzle } from "../utils";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const clearGridTool = new ToolImplementation(
   {
@@ -35,10 +34,7 @@ ${reversibleActionNote}
           type: "text",
           text: [
             `Cleared the grid in puzzle "${after.name || "(untitled)"}".`,
-            "This is what changed in the cells:",
-            resolveHandle(puzzleNode(before), "cells").diff(
-              resolveHandle(puzzleNode(after), "cells"),
-            ),
+            cellsDiffSummary(before, after),
           ].join("\n"),
         },
       ],

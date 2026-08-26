@@ -3,8 +3,7 @@ import { z } from "zod";
 import { CellId, parseCellNotation } from "../../SudokuMakerSchemas";
 import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { updateGivenDigitsToolName } from "./toolNames";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const updateGivenDigitsTool = new ToolImplementation(
   {
@@ -57,10 +56,7 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
           type: "text",
           text: [
             `Updated the given digits in puzzle "${after.name || "(untitled)"}".`,
-            "This is what changed in the cells:",
-            resolveHandle(puzzleNode(before), "cells").diff(
-              resolveHandle(puzzleNode(after), "cells"),
-            ),
+            cellsDiffSummary(before, after),
           ].join("\n"),
         },
       ],

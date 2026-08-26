@@ -20,8 +20,7 @@ import {
 } from "./toolNames";
 import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { jsonValue } from "../../jsonValue";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const updateCluesTool = new ToolImplementation(
   {
@@ -118,10 +117,7 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
             "",
             ...messages,
             "",
-            `This is what changed:`,
-            resolveHandle(puzzleNode(before), "allElements").diff(
-              resolveHandle(puzzleNode(after), "allElements"),
-            ),
+            elementsDiffSummary(before, after),
           ].join("\n"),
         },
       ],

@@ -15,8 +15,7 @@ import {
   updateElementToolName,
 } from "./toolNames";
 import { elementTopicPattern } from "./docs/topicNames";
-import { resolveHandle } from "../format/resolveHandle";
-import { puzzleNode } from "../format/puzzle/puzzle";
+import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const updateElementTool = new ToolImplementation(
   {
@@ -174,10 +173,7 @@ ${partialUpdateNote}
           type: "text",
           text: [
             `Element "${getElementFinalName(updatedElement)}" updated successfully in puzzle "${after.name || "(untitled)"}".`,
-            "This is what changed:",
-            resolveHandle(puzzleNode(before), "allElements").diff(
-              resolveHandle(puzzleNode(after), "allElements"),
-            ),
+            elementsDiffSummary(before, after),
           ].join("\n"),
         },
       ],
