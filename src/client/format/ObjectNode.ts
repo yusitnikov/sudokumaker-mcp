@@ -7,6 +7,8 @@ export class ObjectNode<T, RootT> {
   constructor(
     /** The encoded value at this node, typed as the descriptor's own value type. */
     public readonly value: T,
+    /** Writes a new value into the place this node came from. */
+    public readonly setValue: (value: T) => void,
     /** Dot-path from the root that reached it: "allElements.3.config.style". */
     public readonly handle: string,
     /**
@@ -30,6 +32,9 @@ export class ObjectNode<T, RootT> {
   ) {
     return new ObjectNode(
       this.value[key],
+      (value) => {
+        this.value[key] = value;
+      },
       childHandle(this.handle, String(key)),
       this.root,
       descriptor,

@@ -272,8 +272,13 @@ const cellChild = (
         "cell notation, e.g. r2c3 or r2",
       );
     }
+    // Wrapped in a one-row grid, which is what `formatGridRows` and `cellRowDescriptor` take;
+    // the setter unwraps it again so the write lands on the grid rather than on the wrapper.
     return new ObjectNode(
       [row],
+      ([newRow]) => {
+        cellsGrid[rowIndex] = newRow;
+      },
       childHandle(node.handle, segment),
       node.root,
       cellRowDescriptor,
@@ -286,11 +291,19 @@ const cellChild = (
   } catch {
     throw new NoSuchHandleError(node.handle, "cell notation, e.g. r2c3 or r2");
   }
-  const cell = cellsGrid[coords.row - 1]?.[coords.column - 1];
+  const row = cellsGrid[coords.row - 1];
+  const cell = row?.[coords.column - 1];
   if (!cell) {
     throw new NoSuchHandleError(node.handle, "cell notation, e.g. r2c3 or r2");
   }
-  return leafNode(cell, childHandle(node.handle, segment), node.root);
+  return leafNode(
+    cell,
+    (value) => {
+      row[coords.column - 1] = value;
+    },
+    childHandle(node.handle, segment),
+    node.root,
+  );
 };
 
 /** Cells - one grid, one token per cell, separators from root.allElements. */
@@ -313,11 +326,20 @@ const cellRowDescriptor: ObjectDescriptor<CellPublic[][], PuzzlePublic> = {
     if (!columnOnly) {
       throw new NoSuchHandleError(node.handle, "column notation, e.g. c3");
     }
-    const cell = node.value[0]?.[Number(columnOnly[1]) - 1];
+    const row = node.value[0];
+    const columnIndex = Number(columnOnly[1]) - 1;
+    const cell = row?.[columnIndex];
     if (!cell) {
       throw new NoSuchHandleError(node.handle, "column notation, e.g. c3");
     }
-    return leafNode(cell, childHandle(node.handle, segment), node.root);
+    return leafNode(
+      cell,
+      (value) => {
+        row[columnIndex] = value;
+      },
+      childHandle(node.handle, segment),
+      node.root,
+    );
   },
   format(node, opts) {
     return formatGridRows(node.value, opts, node.root);

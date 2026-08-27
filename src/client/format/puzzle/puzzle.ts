@@ -10,7 +10,15 @@ import { elementDescriptor } from "./element";
 export const puzzleNode = (
   value: PuzzlePublic,
 ): ObjectNode<PuzzlePublic, PuzzlePublic> =>
-  new ObjectNode(value, "", value, puzzleDescriptor);
+  new ObjectNode(
+    value,
+    () => {
+      throw new Error("This puzzle snapshot is read-only");
+    },
+    "",
+    value,
+    puzzleDescriptor,
+  );
 
 /** Puzzle - the header lines, then cells and each element, in printing order. */
 export const puzzleDescriptor = getPlainObjectDescriptor<

@@ -14,11 +14,19 @@ export const regionsDescriptor: ObjectDescriptor<number[][], PuzzlePublic> = {
     } catch {
       throw new NoSuchHandleError(node.handle, "cell notation, e.g. r2c3");
     }
-    const value = node.value[coords.row - 1]?.[coords.column - 1];
-    if (value === undefined) {
+    const row = node.value[coords.row - 1];
+    const columnIndex = coords.column - 1;
+    if (row?.[columnIndex] === undefined) {
       throw new NoSuchHandleError(node.handle, "cell notation, e.g. r2c3");
     }
-    return leafNode(value, childHandle(node.handle, segment), node.root);
+    return leafNode(
+      row[columnIndex],
+      (value) => {
+        row[columnIndex] = value;
+      },
+      childHandle(node.handle, segment),
+      node.root,
+    );
   },
 
   format(node, opts) {

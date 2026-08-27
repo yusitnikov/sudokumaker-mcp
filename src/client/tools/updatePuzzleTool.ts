@@ -3,10 +3,13 @@ import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
 import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
+import { puzzleNode } from "../format/puzzle/puzzle";
+import { resolveHandle } from "../format/resolveHandle";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import {
   addCluesToolName,
   addElementToolName,
+  getPuzzleToolName,
   removeCluesToolName,
   removeElementToolName,
   updateCellMarksToolName,
@@ -42,17 +45,10 @@ the puzzle state after earlier ones already applied.
     updates: z
       .array(
         z.object({
-          path: z
-            .array(
-              z.union([
-                z.string().describe("Object property name"),
-                z.number().describe("Zero-based array index"),
-              ]),
-            )
-            .describe(
-              // language=markdown
-              `The affected path of the puzzle object, e.g. \`["allElements", 0, "config"]\` to modify \`puzzle.allElements[0].config\`.`,
-            ),
+          path: z.string().describe(
+            // language=markdown
+            `The handle of the affected node, exactly as \`${getPuzzleToolName}\` prints it - dot-joined segments, e.g. \`allElements.0.config\`.`,
+          ),
           update: z
             .union([
               z.object({
@@ -107,55 +103,38 @@ the puzzle state after earlier ones already applied.
     updatePuzzle(
       (puzzle) => {
         for (const { path, update } of updates) {
-          let ref = {
-            value: puzzle as any,
-            set: (value: any) => {
-              puzzle = value;
-            },
-          };
-
-          for (const key of path) {
-            const prev = ref.value;
-            ref = {
-              value: prev[key],
-              set: (value: any) => {
-                prev[key] = value;
-              },
-            };
-          }
+          const node = resolveHandle(puzzleNode(puzzle), path);
 
           switch (update.type) {
             case "set":
-              ref.set(update.value);
+              node.setValue(update.value);
               break;
 
-            case "modifyItems":
-              if (typeof ref.value === "string") {
-                const lines = ref.value.split("\n");
-                const textRef = ref;
-                ref = {
-                  value: lines,
-                  set: (value: any[]) => textRef.set(value.join("\n")),
-                };
-              }
+            case "modifyItems": {
+              // Text is modified by lines, so a string node is spliced as its lines and rejoined.
+              const isText = typeof node.value === "string";
+              const items = isText ? node.value.split("\n") : node.value;
 
-              if (!Array.isArray(ref.value)) {
+              if (!Array.isArray(items)) {
                 throw new Error(
-                  `${["puzzle", ...path].join(".")} is not an array, it's ${typeof ref.value}`,
+                  `${path || "the puzzle"} is not an array or a text, it's ${typeof node.value}`,
                 );
               }
 
-              ref.value.splice(
-                update.index === "end" ? ref.value.length : update.index - 1,
+              items.splice(
+                update.index === "end" ? items.length : update.index - 1,
                 update.deleteItemsCount ?? 0,
                 ...(update.insertItems ?? []),
               );
               /*
-               * ref.value is modified in place,
+               * Array items are modified in place,
                * but we still need to call the setter for the case of updating text lines
                */
-              ref.set(ref.value);
+              if (isText) {
+                node.setValue(items.join("\n"));
+              }
               break;
+            }
           }
         }
 
