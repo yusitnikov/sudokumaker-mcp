@@ -43,10 +43,11 @@ export const elementsDiffSummary = (
 export const cellsDiffSummary = (
   before: PuzzlePublic,
   after: PuzzlePublic,
+  leadInText = "This is what changed in the cells:",
 ): string =>
   summarize(
     resolveHandle(puzzleNode(before), "cells"),
     resolveHandle(puzzleNode(after), "cells"),
-    "This is what changed in the cells:",
+    leadInText,
     "Nothing changed in the cells.",
   );

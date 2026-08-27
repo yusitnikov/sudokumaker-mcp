@@ -141,6 +141,10 @@ Both DOM readers are keyed only on literal source strings (`.LogsView`, `.UndoIc
 `Tooltip` component's `text` prop) - never on `data-v-xxxxxxxx` scope-id hashes, which change every
 rebuild.
 
+Solver and check responses close with a blind-spot warning naming the elements the solver couldn't
+see, an overwrite reminder on the runs that write, and a pointer to the `solving` topic - each
+carried only by the tools it applies to, and only once the run has actually finished.
+
 ## Documentation (`src/client/tools/docs/`)
 
 The server's guidance surface is three channels and nothing else: the advertised tool list, the

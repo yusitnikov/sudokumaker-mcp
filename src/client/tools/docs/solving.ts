@@ -53,6 +53,13 @@ A puzzle whose real rule lives partly in prose or a cosmetic-only element can lo
 solver while actually being fine by the intended rules — say so rather than relaying the raw verdict as fact when
 such elements exist.
 
+When elements were skipped, the response names them, so there is no need to work it out from the puzzle.
+Rules that live in the puzzle's prose are never named — nothing can detect those —
+so check the rules text yourself before trusting a verdict.
+
+Either way, tell the user the verdict together with what it didn't cover, e.g. "the solver says the solution is unique,
+but it didn't take the parity rule into account — that one is only written in the rules text".
+
 ## State effects
 
 Every writing solver run can be undone/redone like any other action, via \`${undoToolName}\`/\`${redoToolName}\`.

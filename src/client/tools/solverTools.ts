@@ -1,7 +1,7 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
-import { getPuzzle, waitForSolver } from "../utils";
+import { getPuzzle } from "../utils";
 import {
   readNewSudokuMakerLogs,
   readSudokuMakerLogs,
@@ -10,12 +10,22 @@ import {
   bruteForceSolveToolName,
   checkValidityToolName,
   doAllLogicalStepsToolName,
+  docsToolName,
   doLogicalStepToolName,
   getLogsToolName,
   stopSolverToolName,
+  undoToolName,
   waitForSolverToolName,
 } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
+import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
+import {
+  type ElementPublic,
+  ElementType,
+  getElementByTypeName,
+} from "../../SudokuMakerElement";
+import { getElementFinalName } from "./elementUtils";
+import { solvingTopicName } from "./docs/topicNames";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
@@ -31,6 +41,49 @@ const appendedLogResultText = (
         newEntries.map((entry) => `- ${entry.formatted}`).join("\n")
     : `No new solver log entries - this run didn't add or change anything (e.g. a no-op on an already-solved grid). Use \`${getLogsToolName}\` to see the full log if needed.`;
 };
+
+/**
+ * A solver/check response: status line, log,
+ * the grid diff when the tool writes (`puzzleBefore` given),
+ * and the closing notes once the run has finished.
+ *
+ * An unfinished run keeps the diff, labelled as progress - the cells really do hold those values.
+ * It drops the closing notes: they all speak about an outcome that doesn't exist yet.
+ */
+const solverResultText = (
+  { finished, message }: SolverWaitResult,
+  logText: string,
+  puzzleBefore: PuzzlePublic | undefined,
+  puzzleAfter: PuzzlePublic,
+) =>
+  [
+    `Puzzle "${puzzleAfter.name || "(untitled)"}" - ${message}`,
+    "",
+    logText,
+    "",
+    ...(puzzleBefore
+      ? [
+          cellsDiffSummary(
+            puzzleBefore,
+            puzzleAfter,
+            finished
+              ? undefined
+              : "This is what the solver has written into the cells so far - it's still running, so this isn't the final state:",
+          ),
+          "",
+        ]
+      : []),
+    ...(finished
+      ? [
+          solverBlindSpotWarning(puzzleAfter),
+          puzzleBefore &&
+            `This run replaced the center marks in the affected cells, including any the user had entered by hand. If the run was diagnostic (done only to get a verdict, not because the user asked for the deduced marks), call \`${undoToolName}\` to put the previous marks back.`,
+          solvingTopicNote,
+        ]
+      : []),
+  ]
+    .filter((line) => typeof line === "string")
+    .join("\n");
 
 /** The text block for a replace-style tool's response: the full current log, which this call itself just replaced. */
 const replacedLogResultText = () =>
@@ -62,20 +115,19 @@ ${reversibleActionNote}
     const beforePuzzle = getPuzzle();
     const beforeLog = readSudokuMakerLogs();
     window.Api.triggerAction("doSingleLogicalStep");
-    const message = await waitForSolver(singleStepTimeout);
+    const result = await waitForSolver(singleStepTimeout);
     const afterPuzzle = getPuzzle();
 
     return {
       content: [
         {
           type: "text",
-          text: [
-            `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
-            "",
+          text: solverResultText(
+            result,
             appendedLogResultText(beforeLog),
-            "",
-            cellsDiffSummary(beforePuzzle, afterPuzzle),
-          ].join("\n"),
+            beforePuzzle,
+            afterPuzzle,
+          ),
         },
       ],
     };
@@ -106,20 +158,19 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
     const beforePuzzle = getPuzzle();
     const beforeLog = readSudokuMakerLogs();
     window.Api.triggerAction("doAllLogicalSteps");
-    const message = await waitForSolver(solverMaxTimeout);
+    const result = await waitForSolver(solverMaxTimeout);
     const afterPuzzle = getPuzzle();
 
     return {
       content: [
         {
           type: "text",
-          text: [
-            `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
-            "",
+          text: solverResultText(
+            result,
             appendedLogResultText(beforeLog),
-            "",
-            cellsDiffSummary(beforePuzzle, afterPuzzle),
-          ].join("\n"),
+            beforePuzzle,
+            afterPuzzle,
+          ),
         },
       ],
     };
@@ -154,20 +205,19 @@ ${reversibleActionNote}
   async () => {
     const beforePuzzle = getPuzzle();
     window.Api.triggerAction("findSolutions");
-    const message = await waitForSolver(solverMaxTimeout);
+    const result = await waitForSolver(solverMaxTimeout);
     const afterPuzzle = getPuzzle();
 
     return {
       content: [
         {
           type: "text",
-          text: [
-            `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
-            "",
+          text: solverResultText(
+            result,
             replacedLogResultText(),
-            "",
-            cellsDiffSummary(beforePuzzle, afterPuzzle),
-          ].join("\n"),
+            beforePuzzle,
+            afterPuzzle,
+          ),
         },
       ],
     };
@@ -197,13 +247,18 @@ Blind to free-text rules and cosmetic-only elements.
   z.object({}),
   async () => {
     window.Api.triggerAction("checkValidity");
-    const message = await waitForSolver(solverMaxTimeout);
+    const result = await waitForSolver(solverMaxTimeout);
 
     return {
       content: [
         {
           type: "text",
-          text: [message, "", replacedLogResultText()].join("\n"),
+          text: solverResultText(
+            result,
+            replacedLogResultText(),
+            undefined,
+            getPuzzle(),
+          ),
         },
       ],
     };
@@ -230,22 +285,28 @@ Use this if a previous solver call's response indicated the solve was still in p
   async () => {
     // TODO: "beforePuzzle" is stale since the previous tool errored
     const beforePuzzle = getPuzzle();
-    const message = window.Api.busy
+    const result = window.Api.busy
       ? await waitForSolver(solverMaxTimeout)
-      : "The solver is not running - there's nothing to wait for.";
+      : {
+          finished: true,
+          message: "The solver is not running - there's nothing to wait for.",
+        };
     const afterPuzzle = getPuzzle();
 
     return {
       content: [
         {
           type: "text",
-          text: [
-            `Puzzle "${afterPuzzle.name || "(untitled)"}" - ${message}`,
-            "",
+          text: solverResultText(
+            result,
             replacedLogResultText(),
-            "",
-            cellsDiffSummary(beforePuzzle, afterPuzzle),
-          ].join("\n"),
+            /*
+             * Whether the run being waited on writes to the grid isn't knowable here.
+             * Assume it does, since the three writing tools are the common case.
+             */
+            beforePuzzle,
+            afterPuzzle,
+          ),
         },
       ],
     };
@@ -281,9 +342,87 @@ export const stopSolverTool = new ToolImplementation(
             "",
             replacedLogResultText(),
             // TODO: show updated grid?
+            "",
+            /*
+             * How far the run got before stopping isn't knowable, hence "may have"
+             * rather than the finished-run note's flat assertion.
+             * No blind-spot warning: an aborted run has no verdict to qualify.
+             */
+            ...(wasBusy
+              ? [
+                  `The stopped run may have already replaced center marks in some cells - \`${undoToolName}\` reverts it if so.`,
+                ]
+              : []),
+            solvingTopicNote,
           ].join("\n"),
         },
       ],
     };
   },
 );
+
+interface SolverWaitResult {
+  /** False when the wait ran out while the solver was still running. */
+  finished: boolean;
+  /** The solver's state, worded for the response to print verbatim. */
+  message: string;
+}
+
+/** Waits for the solver to go idle, up to `timeout` milliseconds. */
+const waitForSolver = async (timeout: number): Promise<SolverWaitResult> => {
+  const step = 200;
+  for (let time = 0; time < timeout && window.Api.busy; time += step) {
+    await new Promise((resolve) => setTimeout(resolve, step));
+  }
+
+  return window.Api.busy
+    ? {
+        finished: false,
+        message: `The solver is still running after ${timeout / 1000} seconds. Call \`${waitForSolverToolName}\` to wait for the outcome (repeat it while it keeps saying the solver is still running), or \`${stopSolverToolName}\` to abort the run.`,
+      }
+    : {
+        finished: true,
+        message: "The solver finished running.",
+      };
+};
+
+/** The reason the solver can't see a given element, or `undefined` when it can. */
+const solverBlindSpotReason = (element: ElementPublic): string | undefined => {
+  if (
+    [
+      ElementType.CosmeticLine,
+      ElementType.CosmeticCage,
+      ElementType.CosmeticSymbol,
+    ].includes(getElementByTypeName(element.config.type).typeId)
+  ) {
+    return "cosmetic";
+  }
+  if (!element.enabled) {
+    return "disabled";
+  }
+  if (element.solverIgnored) {
+    return "solver-ignored";
+  }
+  return undefined;
+};
+
+/**
+ * A warning naming the elements the solver couldn't take into account,
+ * or `undefined` when it saw all of them.
+ * The verdict itself never mentions them - the app reports only on what it did see.
+ */
+const solverBlindSpotWarning = (puzzle: PuzzlePublic): string | undefined => {
+  const ignored = puzzle.allElements.flatMap((element) => {
+    const reason = solverBlindSpotReason(element);
+    return reason ? [`"${getElementFinalName(element)}" (${reason})`] : [];
+  });
+
+  if (ignored.length === 0) {
+    return undefined;
+  }
+
+  return `The solver skipped ${ignored.length} ${ignored.length === 1 ? "element" : "elements"}: ${ignored.join(", ")} - whatever they contribute to the puzzle is not covered by this result.`;
+};
+
+/** Constant pointer closing every solver and check response, so the topic that explains them is always one fetch away. */
+const solvingTopicNote = `How to read and act on this result: \`${solvingTopicName}\` topic of the \`${docsToolName}\` tool.`;

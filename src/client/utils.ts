@@ -55,14 +55,3 @@ export const copyCells = (
     Object.assign(to[index], cell);
   }
 };
-
-export const waitForSolver = async (timeout: number) => {
-  const step = 200;
-  for (let time = 0; time < timeout && window.Api.busy; time += step) {
-    await new Promise((resolve) => setTimeout(resolve, step));
-  }
-
-  return window.Api.busy
-    ? `The solver is still running after ${timeout / 1000} seconds...`
-    : "The solver finished running.";
-};
