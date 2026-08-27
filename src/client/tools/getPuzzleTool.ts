@@ -31,19 +31,8 @@ Omit to read the entire puzzle. Narrow with \`path\` whenever you already know w
 it returns only that sub-value instead of the whole puzzle, which is cheaper for a large puzzle.
         `.trim(),
       ),
-    expand: z
-      .array(z.string())
-      .optional()
-      .describe(
-        // language=markdown
-        `
-Handles of collapsed nodes to print in full instead of collapsing, e.g. \`["allElements.2.config.cages"]\`.
-Relative to \`path\` when \`path\` is set (an absolute handle still copied from the default view also
-resolves, with the \`path\` prefix stripped).
-        `.trim(),
-      ),
   }),
-  ({ path = "", expand = [] }) => {
+  ({ path = "" }) => {
     const puzzle = getPuzzle();
     const rootNode = puzzleNode(puzzle);
 
@@ -60,17 +49,6 @@ resolves, with the \`path\` prefix stripped).
       throw error;
     }
 
-    const expanded = new Set(
-      expand.map((handle) => relativizeExpandHandle(handle, path)),
-    );
-    // path exists to narrow onto exactly one node - that node must never collapse itself away, or
-    // a caller who already asked for it by path has no handle left that shows them anything path
-    // didn't already. The default (no path) read is unaffected: node.handle is then the root's own
-    // handle, which nothing collapses on regardless.
-    if (path) {
-      expanded.add(path);
-    }
-
     return {
       content: [
         {
@@ -78,11 +56,11 @@ resolves, with the \`path\` prefix stripped).
           text: [
             path &&
               `"${puzzle.name}" — ${path}${describeEnclosingElement(puzzle, path)}`,
-            node.format({ collapse: false, expanded }),
+            node.format({ collapse: false }, true),
             // language=markdown
             `
 Handles are dot-joined paths (e.g. \`allElements.3.config.style\`); grid nodes take cell notation
-(\`cells.r2c3\`, \`cells.r2\`). \`expand\` opens a collapsed node in place; \`path\` returns only that node.
+(\`cells.r2c3\`, \`cells.r2\`). Pass one as \`path\` to read a collapsed node in full.
             `.trim(),
           ]
             .filter(Boolean)
@@ -92,18 +70,6 @@ Handles are dot-joined paths (e.g. \`allElements.3.config.style\`); grid nodes t
     };
   },
 );
-
-/** Strips a `path` prefix from an `expand` handle, if present, so an absolute handle copied off the default view still resolves under a re-rooted read. */
-const relativizeExpandHandle = (handle: string, path: string): string => {
-  if (!path) {
-    return handle;
-  }
-  if (handle === path) {
-    return "";
-  }
-  const prefix = `${path}.`;
-  return handle.startsWith(prefix) ? handle.slice(prefix.length) : handle;
-};
 
 /** For a re-rooted `path` inside `allElements.N`, a one-line gloss naming which element this is: ` of "Slow thermometers" (type Thermometer, ID 5)`. Empty string when `path` doesn't reach into an element. */
 const describeEnclosingElement = (

@@ -36,7 +36,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
     return node._child(index, itemDescriptor);
   },
 
-  format(node, opts) {
+  format(node, opts, isRoot) {
     const items = node.value.map((_, index) =>
       node._child(index, itemDescriptor).format(opts),
     );
@@ -51,7 +51,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
 
       return truncated === itemsStr
         ? shortFormat
-        : `[ ${truncated} (${node.value.length} ${countLabel}${opts.skipHandle ? "" : `, handle "${node.handle}" for the rest`}) ]`;
+        : `[ ${truncated} (${node.value.length} ${countLabel}${opts.skipHandle ? "" : `, read the rest with path "${node.handle}"`}) ]`;
     }
 
     if (!shortFormat.includes("\n") && shortFormat.length <= 200) {
@@ -66,7 +66,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
       if (remaining) {
         let suffix = `… ${remaining}${count ? " more" : ""} ${countLabel}`;
         if (!opts.skipHandle) {
-          suffix += `, handle "${node.handle}"${count ? " for the rest" : ""}`;
+          suffix += `, read ${count ? "the rest" : "them"} with path "${node.handle}"`;
         }
         truncatedLines.push(suffix);
       }
@@ -74,7 +74,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
     };
     const isTooBig = () => format().length > sizeLimit;
 
-    if (opts.expanded?.has(node.handle)) {
+    if (isRoot) {
       return format();
     }
 
@@ -105,10 +105,8 @@ export const getArrayDescriptor = <ItemT, RootT>({
     }
 
     // Truncate the items in the end of the array
-    if (!opts.expanded?.size) {
-      while (count > 0 && isTooBig()) {
-        count--;
-      }
+    while (count > 0 && isTooBig()) {
+      count--;
     }
 
     return format();

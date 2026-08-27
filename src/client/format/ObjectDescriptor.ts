@@ -9,8 +9,18 @@ export interface ObjectDescriptor<T, RootT> {
    * `any` because a child's value type is that child's own business, not this node's.
    */
   child(node: ObjectNode<T, RootT>, segment: string): ObjectNode<any, RootT>;
-  /** This node's whole text: its header and whatever of its children it prints. */
-  format(node: ObjectNode<T, RootT>, opts: FormatOpts): string;
+  /**
+   * This node's whole text: its header and whatever of its children it prints.
+   * `isRoot` marks the node the caller asked for by `path`: it prints whole, ignoring the size
+   * cuts, because a marker pointing back at that same path would tell the caller nothing. It is a
+   * parameter of its own rather than a `FormatOpts` field so that formatting a child - which is
+   * not what the caller asked for - can't inherit it by passing `opts` along.
+   */
+  format(
+    node: ObjectNode<T, RootT>,
+    opts: FormatOpts,
+    isRoot?: boolean,
+  ): string;
   /**
    * This node against an older version of itself: prints its current state with the
    * changes marked in place, omitting children nothing touched. A node that holds a

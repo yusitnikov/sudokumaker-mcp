@@ -53,7 +53,7 @@ export const getClueDescriptor = (
   return {
     ...baseDescriptor,
 
-    format(node, opts) {
+    format(node, opts, isRoot) {
       if (opts.collapse) {
         const label = clueLabel(node.value, elementType);
         if (label) {
@@ -61,7 +61,7 @@ export const getClueDescriptor = (
         }
       }
 
-      return baseDescriptor.format(node, opts);
+      return baseDescriptor.format(node, opts, isRoot);
     },
   };
 };

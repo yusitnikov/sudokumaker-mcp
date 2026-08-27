@@ -41,12 +41,13 @@ export class ObjectNode<T, RootT> {
     );
   }
 
-  /** This node's whole text: its header and whatever of its children it prints. */
-  format(opts: FormatOpts): string {
-    return this.descriptor.format(this, {
-      ...opts,
-      collapse: opts.collapse && !opts.expanded?.has(this.handle),
-    });
+  /**
+   * This node's whole text: its header and whatever of its children it prints.
+   * Pass `isRoot` when this is the node the caller asked for by `path` - it then prints whole
+   * rather than collapsing itself behind a handle the caller already used.
+   */
+  format(opts: FormatOpts, isRoot?: boolean): string {
+    return this.descriptor.format(this, opts, isRoot);
   }
 
   /**

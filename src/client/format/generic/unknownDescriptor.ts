@@ -29,8 +29,8 @@ export const getUnknownDescriptor = <T, RootT>(): ObjectDescriptor<
   child(node, segment) {
     return descriptorFor(node.value).child(node, segment);
   },
-  format(node, opts) {
-    return descriptorFor(node.value).format(node, opts);
+  format(node, ...args) {
+    return descriptorFor(node.value).format(node, ...args);
   },
   diff(from, to) {
     const fromDescriptor = descriptorFor(from.value);

@@ -13,7 +13,7 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
     );
   },
 
-  format({ value, handle }, opts) {
+  format({ value, handle }, opts, isRoot) {
     if (opts.collapse) {
       // Short form: quoted, truncated to one short line - truncate the raw value first so
       // JSON.stringify handles escaping and always closes the quote cleanly.
@@ -26,18 +26,19 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
 
     const lineCount = value.split("\n").length;
 
-    if (value.length > SIZE_FLOOR && !opts.expanded?.has(handle)) {
+    // A text asked for by `path` prints in full - the caller already used the handle a cut would name.
+    if (value.length > SIZE_FLOOR && !isRoot) {
       let result = `${lineCount} line`;
       if (lineCount > 1) {
         result += "s";
       }
       if (!opts.skipHandle) {
-        result += `   <expand "${handle}">`;
+        result += `   <read it with path "${handle}">`;
       }
       return result;
     }
 
-    // A multi-line string printed in full (opts.expanded) prints as a heredoc, not
+    // A multi-line string printed in full prints as a heredoc, not
     // JSON.stringify'd - escaped \n's turn a whole script into one illegible line.
     return lineCount > 1 ? `<<EOF\n${value}\nEOF` : JSON.stringify(value);
   },
