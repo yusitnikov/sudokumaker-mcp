@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc && vite build",
     "lint": "eslint . && tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "run-broker": "npx @sitnikov/connection-broker@latest"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.1",
