@@ -1,7 +1,11 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
-import { getElementFinalName, getElementWithClueById } from "./elementUtils";
+import {
+  getElementFinalName,
+  getElementWithClueById,
+  parseElementSpecificData,
+} from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
@@ -48,13 +52,17 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
     ),
   }),
   ({ elementId, operationDescription, clues }) => {
-    const { index, targetElement, clueType } =
+    const { index, targetElement, elementType, clueType } =
       getElementWithClueById(elementId);
 
     // Manually parse the type-specific data after knowing the type schema,
     // only to validate the input and report the errors.
     // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    z.object({ clues: z.array(clueType.schema) }).parse({ clues });
+    parseElementSpecificData(
+      elementType.typeName,
+      { clues: z.array(clueType.schema) },
+      { clues },
+    );
 
     const cluesKey = clueType.key;
 

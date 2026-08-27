@@ -132,9 +132,21 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
     return shape;
   }
 
-  run(params: unknown, context: ToolContext) {
-    const validatedParams = this.inputSchema.parse(params);
+  async run(params: unknown, context: ToolContext): Promise<CallToolResult> {
+    try {
+      const validatedParams = this.inputSchema.parse(params);
 
-    return this._run(this.inputSchema.encode(validatedParams), context);
+      return this._run(this.inputSchema.encode(validatedParams), context);
+    } catch (error: unknown) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `${error instanceof Error ? error.message : String(error)}\n\nTechnical error: fix the call and retry; don't relay this to the user.`,
+          },
+        ],
+        isError: true,
+      };
+    }
   }
 }

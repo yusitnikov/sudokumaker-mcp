@@ -1,7 +1,11 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
-import { getElementById, getElementFinalName } from "./elementUtils";
+import {
+  getElementById,
+  getElementFinalName,
+  parseElementSpecificData,
+} from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import {
   operationDescriptionParam,
@@ -104,27 +108,31 @@ ${partialUpdateNote}
     // Manually parse the type-specific data after knowing the type schema,
     // only to validate the input and report the errors.
     // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    z.object({
-      ...(elementType.globalSchema
-        ? {
-            elementUpdates: ZodDeepPartial(
-              elementType.globalSchema instanceof z.ZodCodec
-                ? elementType.globalSchema.def.in
-                : elementType.globalSchema,
-            ).optional(),
-          }
-        : {}),
-      ...(elementType.clue
-        ? {
-            clueBatchUpdates: ZodDeepPartial(
-              elementType.clue.schema,
-            ).optional(),
-          }
-        : {}),
-    }).parse({
-      elementUpdates,
-      clueBatchUpdates,
-    });
+    parseElementSpecificData(
+      elementType.typeName,
+      {
+        ...(elementType.globalSchema
+          ? {
+              elementUpdates: ZodDeepPartial(
+                elementType.globalSchema instanceof z.ZodCodec
+                  ? elementType.globalSchema.def.in
+                  : elementType.globalSchema,
+              ).optional(),
+            }
+          : {}),
+        ...(elementType.clue
+          ? {
+              clueBatchUpdates: ZodDeepPartial(
+                elementType.clue.schema,
+              ).optional(),
+            }
+          : {}),
+      },
+      {
+        elementUpdates,
+        clueBatchUpdates,
+      },
+    );
 
     const cluesKey = elementType.clue?.key;
 

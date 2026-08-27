@@ -5,6 +5,8 @@ import {
 } from "../../SudokuMakerElement";
 import { type CellNotation, CellIdPublic } from "../../SudokuMakerSchemas";
 import { z } from "zod";
+import { elementTopicPrefix } from "./docs/topicNames";
+import { docsToolName } from "./toolNames";
 
 export const getElementFinalName = ({
   name,
@@ -12,12 +14,44 @@ export const getElementFinalName = ({
   elementMetadata,
 }: ElementPublic) => name || elementMetadata?.defaultName || type;
 
+/**
+ * Validates data whose shape depends on the element type, pointing at that type's docs topic on failure.
+ * `shape` mirrors the tool's own schema, so error paths name the fields the caller passed.
+ */
+export const parseElementSpecificData = <T extends z.ZodRawShape>(
+  typeName: string,
+  shape: T,
+  data: unknown,
+) => {
+  try {
+    z.object(shape).parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(
+        `${error.message}\n\nThe exact schema for this element type is in the \`${elementTopicPrefix}${typeName}\` topic of the \`${docsToolName}\` tool - read it and retry.`,
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+};
+
 export const getElementById = (elementId: number) => {
   const { allElements: currentElements } = getPuzzle();
 
   const targetElement = currentElements.find(({ id }) => id === elementId);
   if (!targetElement) {
-    throw new Error(`Element with ID ${elementId} not found in the puzzle`);
+    // The puzzle's actual elements travel with the error, so retrying costs no extra read.
+    const available = currentElements
+      .map(
+        (element) =>
+          `${element.id} ("${getElementFinalName(element)}", type ${element.config.type})`,
+      )
+      .join(", ");
+
+    throw new Error(
+      `Element with ID ${elementId} not found in the puzzle. The puzzle has ${currentElements.length === 0 ? "no elements at all" : `these elements: ${available}`}.`,
+    );
   }
 
   const index = currentElements.indexOf(targetElement);

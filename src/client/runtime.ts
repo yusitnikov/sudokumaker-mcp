@@ -42,9 +42,7 @@ window.__smMcp = {
       throw new Error(`Unknown tool: ${name}`);
     }
 
-    // Thrown errors travel back as `success: false` in the execute_js envelope; the server turns
-    // those into an error result. Tools that want to report an expected failure return
-    // `isError: true` themselves instead.
+    // `tool.run` catches what the tool throws and returns it as an `isError: true` result.
     return await tool.run(params, context);
   },
 };

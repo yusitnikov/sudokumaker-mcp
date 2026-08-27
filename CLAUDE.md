@@ -145,6 +145,10 @@ Solver and check responses close with a blind-spot warning naming the elements t
 see, an overwrite reminder on the runs that write, and a pointer to the `solving` topic - each
 carried only by the tools it applies to, and only once the run has actually finished.
 
+`ToolImplementation.run` catches whatever a tool throws and returns it as an `isError: true` result,
+so a failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace
+through the minified bundle.
+
 ## Documentation (`src/client/tools/docs/`)
 
 The server's guidance surface is three channels and nothing else: the advertised tool list, the

@@ -4,6 +4,7 @@ import {
   ClueCellsGroupFilter,
   getElementFinalName,
   getElementWithClueById,
+  parseElementSpecificData,
   updateCluesByCellGroups,
 } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
@@ -73,19 +74,23 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
       ),
   }),
   ({ elementId, updateGroups, operationDescription }) => {
-    const { clueType } = getElementWithClueById(elementId);
+    const { elementType, clueType } = getElementWithClueById(elementId);
 
     // Manually parse the type-specific data after knowing the type schema,
     // only to validate the input and report the errors.
     // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    z.object({
-      updateGroups: z.array(
-        z.object({
-          clueCells: ClueCellsGroupFilter,
-          updates: ZodDeepPartial(clueType.schema),
-        }),
-      ),
-    }).parse({ updateGroups });
+    parseElementSpecificData(
+      elementType.typeName,
+      {
+        updateGroups: z.array(
+          z.object({
+            clueCells: ClueCellsGroupFilter,
+            updates: ZodDeepPartial(clueType.schema),
+          }),
+        ),
+      },
+      { updateGroups },
+    );
 
     const before = getPuzzle();
 
