@@ -1,7 +1,7 @@
 import type { ObjectDescriptor } from "./ObjectDescriptor";
 import type { FormatOpts } from "./FormatOpts";
 import { childHandle } from "./childHandle";
-import { unknownDescriptor } from "./generic/unknownDescriptor";
+import { getUnknownDescriptor } from "./generic/unknownDescriptor";
 
 export class ObjectNode<T, RootT> {
   constructor(
@@ -26,7 +26,7 @@ export class ObjectNode<T, RootT> {
   /** Builds the child node for a known key of `value`, defaulting to the generic `object` descriptor. */
   _child<KeyT extends keyof T>(
     key: KeyT,
-    descriptor: ObjectDescriptor<T[KeyT], RootT> = unknownDescriptor,
+    descriptor: ObjectDescriptor<T[KeyT], RootT> = getUnknownDescriptor(),
   ) {
     return new ObjectNode(
       this.value[key],

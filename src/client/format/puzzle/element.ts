@@ -13,7 +13,7 @@ import {
   type ObjectDescriptorsMap,
 } from "../generic/plainObjectDescriptor";
 import { stringDescriptor } from "../generic/stringDescriptor";
-import { scalarDescriptor } from "../generic/scalarDescriptor";
+import { getScalarDescriptor } from "../generic/scalarDescriptor";
 import { getElementFinalName } from "../../tools/elementUtils";
 
 const elementBaseDescriptor = getPlainObjectDescriptor<
@@ -21,10 +21,10 @@ const elementBaseDescriptor = getPlainObjectDescriptor<
   PuzzlePublic
 >({
   childMap: {
-    id: scalarDescriptor,
+    id: getScalarDescriptor(),
     name: stringDescriptor,
-    enabled: scalarDescriptor,
-    solverIgnored: scalarDescriptor,
+    enabled: getScalarDescriptor(),
+    solverIgnored: getScalarDescriptor(),
     config: (node) => {
       const elementType = getElementByTypeName(node.value.config.type);
 
@@ -35,7 +35,7 @@ const elementBaseDescriptor = getPlainObjectDescriptor<
         PuzzlePublic
       > = {
         // TODO: fix this mess
-        regions: regionsDescriptor,
+        regions: regionsDescriptor as any,
       };
       if (cluesKey) {
         (childMap as any)[cluesKey] = getArrayDescriptor({

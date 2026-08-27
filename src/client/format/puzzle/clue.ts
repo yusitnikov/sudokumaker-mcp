@@ -1,7 +1,7 @@
 import { getElementByTypeName } from "../../../SudokuMakerElement";
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
-import { unknownDescriptor } from "../generic/unknownDescriptor";
+import { getUnknownDescriptor } from "../generic/unknownDescriptor";
 import { isPlainObject } from "../generic/isPlainObject";
 import { formatCellNotation } from "../../../SudokuMakerSchemas";
 
@@ -48,8 +48,10 @@ const clueLabel = (
 export const getClueDescriptor = (
   elementType: ReturnType<typeof getElementByTypeName>,
 ): ObjectDescriptor<unknown, PuzzlePublic> => {
+  const baseDescriptor = getUnknownDescriptor<unknown, PuzzlePublic>();
+
   return {
-    ...unknownDescriptor,
+    ...baseDescriptor,
 
     format(node, opts) {
       if (opts.collapse) {
@@ -59,7 +61,7 @@ export const getClueDescriptor = (
         }
       }
 
-      return unknownDescriptor.format(node, opts);
+      return baseDescriptor.format(node, opts);
     },
   };
 };

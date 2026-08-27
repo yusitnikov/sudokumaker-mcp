@@ -102,7 +102,7 @@ the whole puzzle as `root` (so `cells` can read `allElements` for its region sep
 Descriptors are composed by hand along the known structure, never inferred from values or schemas:
 `puzzleDescriptor` → `cellsDescriptor` and an array descriptor of `elementDescriptor` → per-type clue
 descriptors looked up in the element registry. Anything unrecognized falls through to
-`unknownDescriptor`, which dispatches on runtime shape.
+`getUnknownDescriptor()`, which dispatches on runtime shape.
 
 **Handles** are the only vocabulary for reaching collapsed data: dot-joined segments, except grid
 nodes, which take cell notation (`cells.r2c3`, and `cells.r2` for a whole row) and never row/column

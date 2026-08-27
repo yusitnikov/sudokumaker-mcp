@@ -1,9 +1,9 @@
 import { ObjectNode } from "../ObjectNode";
-import { unknownDescriptor } from "./unknownDescriptor";
+import { getUnknownDescriptor } from "./unknownDescriptor";
 
-export const leafNode = <RootT>(
-  value: unknown,
+export const leafNode = <T, RootT>(
+  value: T,
   handle: string,
   root: RootT,
-): ObjectNode<unknown, RootT> =>
-  new ObjectNode(value, handle, root, unknownDescriptor);
+): ObjectNode<T, RootT> =>
+  new ObjectNode(value, handle, root, getUnknownDescriptor());

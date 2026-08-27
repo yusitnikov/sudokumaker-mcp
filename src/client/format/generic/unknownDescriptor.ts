@@ -1,8 +1,8 @@
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { stringDescriptor } from "./stringDescriptor";
-import { scalarDescriptor } from "./scalarDescriptor";
+import { getScalarDescriptor } from "./scalarDescriptor";
 import { getArrayDescriptor } from "./arrayDescriptor";
-import { plainObjectDescriptor } from "./plainObjectDescriptor";
+import { getPlainObjectDescriptor } from "./plainObjectDescriptor";
 
 /** Picks the right generic descriptor for a value's runtime shape. */
 const descriptorFor = (value: unknown): ObjectDescriptor<any, any> => {
@@ -22,7 +22,10 @@ const descriptorFor = (value: unknown): ObjectDescriptor<any, any> => {
  * Generic fallback descriptor for a value of unknown shape: dispatches to `string`/`scalar`/
  * `array`/`plainObject` by runtime type.
  */
-export const unknownDescriptor: ObjectDescriptor<unknown, any> = {
+export const getUnknownDescriptor = <T, RootT>(): ObjectDescriptor<
+  T,
+  RootT
+> => ({
   child(node, segment) {
     return descriptorFor(node.value).child(node, segment);
   },
@@ -40,8 +43,14 @@ export const unknownDescriptor: ObjectDescriptor<unknown, any> = {
     }
     return toDescriptor.diff(from, to);
   },
-};
-
-const arrayDescriptor = getArrayDescriptor({
-  itemDescriptor: unknownDescriptor,
 });
+
+/*
+ * Instantiate specific descriptor objects within the file to avoid circular imports.
+ * `getUnknownDescriptor()::diff()` needs them to be constant reference.
+ */
+const arrayDescriptor = getArrayDescriptor({
+  itemDescriptor: getUnknownDescriptor(),
+});
+const plainObjectDescriptor = getPlainObjectDescriptor();
+const scalarDescriptor = getScalarDescriptor<unknown, any>();

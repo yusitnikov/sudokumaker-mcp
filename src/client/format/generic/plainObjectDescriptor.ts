@@ -7,8 +7,10 @@ import { markLinesBlock } from "./markBlock";
 
 export type ObjectDescriptorsMap<T, RootT> = {
   [K in keyof T]?:
-    | ObjectDescriptor<T[K], RootT>
-    | ((node: ObjectNode<T, RootT>) => ObjectDescriptor<T[K], RootT>);
+    | ObjectDescriptor<Exclude<T[K], undefined>, RootT>
+    | ((
+        node: ObjectNode<T, RootT>,
+      ) => ObjectDescriptor<Exclude<T[K], undefined>, RootT>);
 };
 
 /** A plain object, printed and diffed key by key. */
@@ -47,7 +49,9 @@ export const getPlainObjectDescriptor = <
       const descriptor = childMap?.[segment];
       return node._child(
         segment,
-        typeof descriptor === "function" ? descriptor(node) : descriptor,
+        (typeof descriptor === "function" ? descriptor(node) : descriptor) as
+          | ObjectDescriptor<T[typeof segment], RootT>
+          | undefined,
       );
     },
 
@@ -77,11 +81,6 @@ export const getPlainObjectDescriptor = <
     },
   };
 };
-
-export const plainObjectDescriptor: ObjectDescriptor<
-  Record<string, unknown>,
-  any
-> = getPlainObjectDescriptor();
 
 /** Diffs one child of a composite node. */
 const diffChild = <T, RootT>(

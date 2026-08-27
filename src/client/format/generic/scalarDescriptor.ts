@@ -3,7 +3,10 @@ import { NoSuchHandleError } from "../NoSuchHandleError";
 import { stringifyValue } from "./stringifyValue";
 
 /** A non-string leaf - number, boolean, null, undefined. No children, no collapse. */
-export const scalarDescriptor: ObjectDescriptor<unknown, any> = {
+export const getScalarDescriptor = <T, RootT>(): ObjectDescriptor<
+  T,
+  RootT
+> => ({
   child(node) {
     throw new NoSuchHandleError(
       node.handle,
@@ -16,4 +19,4 @@ export const scalarDescriptor: ObjectDescriptor<unknown, any> = {
   diff(from, to) {
     return `${stringifyValue(from.value)} → ${stringifyValue(to.value)}`;
   },
-};
+});

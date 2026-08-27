@@ -2,10 +2,7 @@ import { ObjectNode } from "../ObjectNode";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { cellsDescriptor } from "./cells";
 import { stringDescriptor } from "../generic/stringDescriptor";
-import {
-  getPlainObjectDescriptor,
-  plainObjectDescriptor,
-} from "../generic/plainObjectDescriptor";
+import { getPlainObjectDescriptor } from "../generic/plainObjectDescriptor";
 import { getArrayDescriptor } from "../generic/arrayDescriptor";
 import { elementDescriptor } from "./element";
 
@@ -24,8 +21,8 @@ export const puzzleDescriptor = getPlainObjectDescriptor<
     name: stringDescriptor,
     author: stringDescriptor,
     comment: stringDescriptor,
-    messages: plainObjectDescriptor,
-    spec: plainObjectDescriptor,
+    messages: getPlainObjectDescriptor(),
+    spec: getPlainObjectDescriptor(),
     cells: cellsDescriptor,
     allElements: getArrayDescriptor({
       itemDescriptor: elementDescriptor,
