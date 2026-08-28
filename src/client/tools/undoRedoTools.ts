@@ -41,7 +41,11 @@ export const undoTool = new ToolImplementation(
           text: [
             `Reverted "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to undo, REDO IT IMMEDIATELY!`,
             "",
-            puzzleDiffSummary(before, after, "This is what the revert changed:"),
+            puzzleDiffSummary(
+              before,
+              after,
+              "This is what the revert changed:",
+            ),
             "",
             nextLabel
               ? `Undoing again would revert "${nextLabel}".`
