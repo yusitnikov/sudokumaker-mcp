@@ -21,8 +21,8 @@ const toPublicItem = <T>({
 type DiffOperationByItemT<ItemT> =
   | {
       type: "unchanged";
-      /** The item as it is now. */
-      item: ItemT;
+      /** A consecutive run of items as they are now - grouped so a long untouched stretch is one op. */
+      items: ItemT[];
     }
   | {
       type: "added";
@@ -68,7 +68,7 @@ const toPublicDiffOperation = <T>(
         movedTo: op.movedTo && toPublicItem(op.movedTo),
       };
     case "unchanged":
-      return { type: op.type, item: toPublicItem(op.item) };
+      return { type: op.type, items: op.items.map(toPublicItem) };
   }
 };
 
@@ -145,11 +145,17 @@ export const getArrayDiff = <T>(
     if (from[i].id === to[j].id) {
       // The same item in both arrays - but a key identifies it without its content,
       // so that content may still have changed.
-      ops.push(
-        from[i].contentsStr === to[j].contentsStr
-          ? { type: "unchanged", item: to[j] }
-          : { type: "edited", from: from[i], to: to[j] },
-      );
+      if (from[i].contentsStr !== to[j].contentsStr) {
+        ops.push({ type: "edited", from: from[i], to: to[j] });
+      } else {
+        // Multiple "unchanged" items are grouped together
+        let lastOp = ops[ops.length - 1];
+        if (lastOp?.type !== "unchanged") {
+          lastOp = { type: "unchanged", items: [] };
+          ops.push(lastOp);
+        }
+        lastOp.items.push(to[j]);
+      }
       i++;
       j++;
     } else if (

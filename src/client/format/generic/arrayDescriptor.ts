@@ -167,7 +167,9 @@ const position = ({ index }: ArrayItem<unknown>) => index + 1;
 
 /**
  * Windows the diff's ops down to the changed items plus their immediate unchanged neighbors,
- * folding every other unchanged run into one `... (N items, didn't change)` line - the array rule's windowing.
+ * folding the rest of each unchanged run into one `... (N items, didn't change)` line - the array
+ * rule's windowing. `getArrayDiff` already groups a run into one "unchanged" op, so at most its
+ * first and last items ever serve as context, one on each side of the run.
  */
 const renderArrayDiff = <T>(
   ops: DiffOperation<T>[],
@@ -175,67 +177,78 @@ const renderArrayDiff = <T>(
   toCount: number,
   itemOps: ArrayDiffItemOps<T>,
 ): string => {
-  const changedIndexes = ops
-    .map((op, i) => (op.type === "unchanged" ? -1 : i))
-    .filter((i) => i >= 0);
-
-  const keepContext = new Set<number>();
-  for (const i of changedIndexes) {
-    if (i - 1 >= 0) keepContext.add(i - 1);
-    if (i + 1 < ops.length) keepContext.add(i + 1);
-  }
-
   const lines: string[] = [];
-  let unchangedRun = 0;
-  const flushRun = () => {
-    if (unchangedRun > 0) {
-      lines.push(
-        `  ... (${unchangedRun} ${itemOps.countLabel}, didn't change)`,
-      );
-      unchangedRun = 0;
-    }
-  };
 
   ops.forEach((op, index) => {
-    if (op.type === "unchanged") {
-      if (keepContext.has(index)) {
-        flushRun();
-        lines.push(markTextBlock("  ", itemOps.formatUnchanged(op.item), true));
-      } else {
-        unchangedRun++;
+    switch (op.type) {
+      case "unchanged": {
+        // The run's first item is context for a preceding change, its last item for a following
+        // one - a Set so a one-item run bordered by change on both sides still shows once.
+        const n = op.items.length;
+        const lastIndex = n - 1;
+        const shown = new Set<number>();
+        if (index > 0) {
+          shown.add(0);
+        }
+        if (index < ops.length - 1) {
+          shown.add(lastIndex);
+        }
+
+        if (shown.has(0)) {
+          lines.push(
+            markTextBlock("  ", itemOps.formatUnchanged(op.items[0]), true),
+          );
+        }
+        const foldedCount = n - shown.size;
+        if (foldedCount > 0) {
+          lines.push(
+            `  ... (${foldedCount} ${itemOps.countLabel}, didn't change)`,
+          );
+        }
+        if (lastIndex !== 0 && shown.has(lastIndex)) {
+          lines.push(
+            markTextBlock(
+              "  ",
+              itemOps.formatUnchanged(op.items[lastIndex]),
+              true,
+            ),
+          );
+        }
+        break;
       }
-      return;
-    }
-    flushRun();
-    if (op.type === "added") {
-      // A moved item was already in the list, so its content isn't news - what's new is where it
-      // sits now, and whatever changed on the way. The removal half names this position back.
-      const from = op.movedFrom;
-      const edited =
-        from && stringifyValue(from.value) !== stringifyValue(op.item.value);
-      lines.push(
-        markTextBlock(
-          "+ ",
-          from
-            ? `(moved from position ${position(from)}${edited ? " + edited" : " with no changes"}) ${edited ? itemOps.diffItem(from, op.item) : itemOps.formatUnchanged(op.item)}`
-            : itemOps.formatAdded(op.item),
-          true,
-        ),
-      );
-    } else if (op.type === "removed") {
-      lines.push(
-        markTextBlock(
-          "- ",
-          (op.movedTo ? `(moved to position ${position(op.movedTo)}) ` : "") +
-            itemOps.formatRemoved(op.item, !!op.movedTo),
-          true,
-        ),
-      );
-    } else {
-      lines.push(markTextBlock("~ ", itemOps.diffItem(op.from, op.to)));
+      case "added": {
+        // A moved item was already in the list, so its content isn't news - what's new is where it
+        // sits now, and whatever changed on the way. The removal half names this position back.
+        const from = op.movedFrom;
+        const edited =
+          from && stringifyValue(from.value) !== stringifyValue(op.item.value);
+        lines.push(
+          markTextBlock(
+            "+ ",
+            from
+              ? `(moved from position ${position(from)}${edited ? " + edited" : " with no changes"}) ${edited ? itemOps.diffItem(from, op.item) : itemOps.formatUnchanged(op.item)}`
+              : itemOps.formatAdded(op.item),
+            true,
+          ),
+        );
+        break;
+      }
+      case "removed":
+        lines.push(
+          markTextBlock(
+            "- ",
+            (op.movedTo ? `(moved to position ${position(op.movedTo)}) ` : "") +
+              itemOps.formatRemoved(op.item, !!op.movedTo),
+            true,
+          ),
+        );
+        break;
+      case "edited":
+      default:
+        lines.push(markTextBlock("~ ", itemOps.diffItem(op.from, op.to)));
+        break;
     }
   });
-  flushRun();
 
   return [
     `${toCount} ${itemOps.countLabel}${fromCount === toCount ? "" : ` (was ${fromCount})`} [`,

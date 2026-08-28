@@ -33,8 +33,13 @@ describe("getArrayDiff", () => {
     test("reports an untouched list as unchanged throughout", () => {
       expect(getArrayDiff([item(7), item(9)], [item(7), item(9)], key)).toEqual(
         [
-          { type: "unchanged", item: { value: item(7), index: 0 } },
-          { type: "unchanged", item: { value: item(9), index: 1 } },
+          {
+            type: "unchanged",
+            items: [
+              { value: item(7), index: 0 },
+              { value: item(9), index: 1 },
+            ],
+          },
         ],
       );
     });
@@ -49,13 +54,13 @@ describe("getArrayDiff", () => {
           key,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "removed",
           item: { value: item(11), index: 1 },
           movedTo: { value: item(11), index: 2 },
         },
-        { type: "unchanged", item: { value: item(9), index: 1 } },
+        { type: "unchanged", items: [{ value: item(9), index: 1 }] },
         {
           type: "added",
           item: { value: item(11), index: 2 },
@@ -77,8 +82,13 @@ describe("getArrayDiff", () => {
           item: { value: item(11), index: 0 },
           movedFrom: { value: item(11), index: 2 },
         },
-        { type: "unchanged", item: { value: item(7), index: 1 } },
-        { type: "unchanged", item: { value: item(9), index: 2 } },
+        {
+          type: "unchanged",
+          items: [
+            { value: item(7), index: 1 },
+            { value: item(9), index: 2 },
+          ],
+        },
         {
           type: "removed",
           item: { value: item(11), index: 2 },
@@ -100,9 +110,14 @@ describe("getArrayDiff", () => {
           item: { value: item(12, 6), index: 0 },
           movedFrom: { value: item(12, 5), index: 3 },
         },
-        { type: "unchanged", item: { value: item(7), index: 1 } },
-        { type: "unchanged", item: { value: item(9), index: 2 } },
-        { type: "unchanged", item: { value: item(11), index: 3 } },
+        {
+          type: "unchanged",
+          items: [
+            { value: item(7), index: 1 },
+            { value: item(9), index: 2 },
+            { value: item(11), index: 3 },
+          ],
+        },
         {
           type: "removed",
           item: { value: item(12, 5), index: 3 },
@@ -121,8 +136,13 @@ describe("getArrayDiff", () => {
           key,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
-        { type: "unchanged", item: { value: item(9), index: 1 } },
+        {
+          type: "unchanged",
+          items: [
+            { value: item(7), index: 0 },
+            { value: item(9), index: 1 },
+          ],
+        },
         {
           type: "removed",
           item: { value: item(11), index: 2 },
@@ -145,7 +165,7 @@ describe("getArrayDiff", () => {
       expect(
         getArrayDiff([item(7), item(9, 1)], [item(7), item(9, 2)], key),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "edited",
           from: { value: item(9, 1), index: 1 },
@@ -160,7 +180,7 @@ describe("getArrayDiff", () => {
       expect(
         getArrayDiff([item(7), item(9)], [item(7), item(20)], key),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         { type: "removed", item: { value: item(9), index: 1 } },
         { type: "added", item: { value: item(20), index: 1 } },
       ]);
@@ -174,8 +194,13 @@ describe("getArrayDiff", () => {
           key,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(4), index: 0 } },
-        { type: "unchanged", item: { value: item(5), index: 1 } },
+        {
+          type: "unchanged",
+          items: [
+            { value: item(4), index: 0 },
+            { value: item(5), index: 1 },
+          ],
+        },
         { type: "removed", item: { value: item(10), index: 2 } },
         { type: "added", item: { value: item(11), index: 2 } },
       ]);
@@ -189,13 +214,13 @@ describe("getArrayDiff", () => {
           key,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "removed",
           item: { value: item(11), index: 1 },
           movedTo: { value: item(11), index: 2 },
         },
-        { type: "unchanged", item: { value: item(9), index: 1 } },
+        { type: "unchanged", items: [{ value: item(9), index: 1 }] },
         {
           type: "added",
           item: { value: item(11), index: 2 },
@@ -221,7 +246,7 @@ describe("getArrayDiff", () => {
           item: { value: item(7), index: 0 },
           movedTo: { value: item(7), index: 1 },
         },
-        { type: "unchanged", item: { value: item(11), index: 0 } },
+        { type: "unchanged", items: [{ value: item(11), index: 0 }] },
         {
           type: "removed",
           item: { value: item(9), index: 2 },
@@ -232,7 +257,7 @@ describe("getArrayDiff", () => {
           item: { value: item(7), index: 1 },
           movedFrom: { value: item(7), index: 0 },
         },
-        { type: "unchanged", item: { value: item(12), index: 2 } },
+        { type: "unchanged", items: [{ value: item(12), index: 2 }] },
         {
           type: "added",
           item: { value: item(9), index: 3 },
@@ -249,13 +274,13 @@ describe("getArrayDiff", () => {
           key,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "removed",
           item: { value: item(11), index: 1 },
           movedTo: { value: item(11), index: 2 },
         },
-        { type: "unchanged", item: { value: item(9), index: 1 } },
+        { type: "unchanged", items: [{ value: item(9), index: 1 }] },
         { type: "removed", item: { value: item(8), index: 3 } },
         {
           type: "added",
@@ -273,7 +298,7 @@ describe("getArrayDiff", () => {
           key,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         { type: "removed", item: { value: item(1), index: 1 } },
         { type: "removed", item: { value: item(2), index: 2 } },
         { type: "removed", item: { value: item(3), index: 3 } },
@@ -294,7 +319,7 @@ describe("getArrayDiff", () => {
       ).toEqual([
         { type: "removed", item: { value: item(9, 1), index: 0 } },
         { type: "removed", item: { value: item(9, 2), index: 1 } },
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         { type: "added", item: { value: item(9, 3), index: 1 } },
       ]);
     });
@@ -338,7 +363,7 @@ describe("getArrayDiff", () => {
       expect(
         getArrayDiff([item(7), item(9, 1)], [item(7), item(9, 2)], undefined),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "edited",
           from: { value: item(9, 1), index: 1 },
@@ -355,9 +380,9 @@ describe("getArrayDiff", () => {
           undefined,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(1), index: 0 } },
+        { type: "unchanged", items: [{ value: item(1), index: 0 }] },
         { type: "added", item: { value: item(4), index: 1 } },
-        { type: "unchanged", item: { value: item(2), index: 2 } },
+        { type: "unchanged", items: [{ value: item(2), index: 2 }] },
         { type: "removed", item: { value: item(3), index: 2 } },
       ]);
     });
@@ -370,9 +395,9 @@ describe("getArrayDiff", () => {
           undefined,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(1), index: 0 } },
+        { type: "unchanged", items: [{ value: item(1), index: 0 }] },
         { type: "removed", item: { value: item(2), index: 1 } },
-        { type: "unchanged", item: { value: item(3), index: 1 } },
+        { type: "unchanged", items: [{ value: item(3), index: 1 }] },
         { type: "added", item: { value: item(4), index: 2 } },
       ]);
     });
@@ -386,9 +411,9 @@ describe("getArrayDiff", () => {
           undefined,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(1), index: 0 } },
+        { type: "unchanged", items: [{ value: item(1), index: 0 }] },
         { type: "removed", item: { value: item(2), index: 1 } },
-        { type: "unchanged", item: { value: item(3), index: 1 } },
+        { type: "unchanged", items: [{ value: item(3), index: 1 }] },
         { type: "added", item: { value: item(2), index: 2 } },
         { type: "added", item: { value: item(2), index: 3 } },
       ]);
@@ -402,10 +427,10 @@ describe("getArrayDiff", () => {
           undefined,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(1), index: 0 } },
+        { type: "unchanged", items: [{ value: item(1), index: 0 }] },
         { type: "removed", item: { value: item(2), index: 1 } },
         { type: "removed", item: { value: item(2), index: 2 } },
-        { type: "unchanged", item: { value: item(3), index: 1 } },
+        { type: "unchanged", items: [{ value: item(3), index: 1 }] },
         { type: "added", item: { value: item(2), index: 2 } },
       ]);
     });
@@ -423,7 +448,7 @@ describe("getArrayDiff", () => {
           item: { value: item(1), index: 0 },
           movedTo: { value: item(1), index: 1 },
         },
-        { type: "unchanged", item: { value: item(2), index: 0 } },
+        { type: "unchanged", items: [{ value: item(2), index: 0 }] },
         {
           type: "removed",
           item: { value: item(3), index: 2 },
@@ -434,7 +459,7 @@ describe("getArrayDiff", () => {
           item: { value: item(1), index: 1 },
           movedFrom: { value: item(1), index: 0 },
         },
-        { type: "unchanged", item: { value: item(4), index: 2 } },
+        { type: "unchanged", items: [{ value: item(4), index: 2 }] },
         {
           type: "added",
           item: { value: item(3), index: 3 },
@@ -451,13 +476,13 @@ describe("getArrayDiff", () => {
           undefined,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(1), index: 0 } },
+        { type: "unchanged", items: [{ value: item(1), index: 0 }] },
         {
           type: "removed",
           item: { value: item(2), index: 1 },
           movedTo: { value: item(2), index: 2 },
         },
-        { type: "unchanged", item: { value: item(3), index: 1 } },
+        { type: "unchanged", items: [{ value: item(3), index: 1 }] },
         { type: "removed", item: { value: item(4), index: 3 } },
         {
           type: "added",
@@ -475,13 +500,13 @@ describe("getArrayDiff", () => {
           undefined,
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(1), index: 0 } },
+        { type: "unchanged", items: [{ value: item(1), index: 0 }] },
         {
           type: "removed",
           item: { value: item(2), index: 1 },
           movedTo: { value: item(2), index: 2 },
         },
-        { type: "unchanged", item: { value: item(3), index: 1 } },
+        { type: "unchanged", items: [{ value: item(3), index: 1 }] },
         {
           type: "added",
           item: { value: item(2), index: 2 },
@@ -498,7 +523,7 @@ describe("getArrayDiff", () => {
           [item(7), item(1, 2), item(2, 2), item(9)],
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "edited",
           from: { value: item(1, 1), index: 1 },
@@ -509,7 +534,7 @@ describe("getArrayDiff", () => {
           from: { value: item(2, 1), index: 2 },
           to: { value: item(2, 2), index: 2 },
         },
-        { type: "unchanged", item: { value: item(9), index: 3 } },
+        { type: "unchanged", items: [{ value: item(9), index: 3 }] },
       ]);
     });
 
@@ -520,7 +545,7 @@ describe("getArrayDiff", () => {
           [item(7), item(1, 2)],
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "edited",
           from: { value: item(1, 1), index: 1 },
@@ -538,7 +563,7 @@ describe("getArrayDiff", () => {
           [item(7), item(1, 2), item(2, 1), item(3, 1)],
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "edited",
           from: { value: item(1, 1), index: 1 },
@@ -558,13 +583,13 @@ describe("getArrayDiff", () => {
           [item(7), item(9), item(11)],
         ),
       ).toEqual([
-        { type: "unchanged", item: { value: item(7), index: 0 } },
+        { type: "unchanged", items: [{ value: item(7), index: 0 }] },
         {
           type: "removed",
           item: { value: item(11), index: 1 },
           movedTo: { value: item(11), index: 2 },
         },
-        { type: "unchanged", item: { value: item(9), index: 1 } },
+        { type: "unchanged", items: [{ value: item(9), index: 1 }] },
         {
           type: "added",
           item: { value: item(11), index: 2 },

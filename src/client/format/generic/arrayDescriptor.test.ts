@@ -96,3 +96,100 @@ describe("array diff, items that changed position", () => {
     );
   });
 });
+
+describe("array diff, windowing unchanged runs", () => {
+  test("keeps both ends of a long unchanged run as context and folds the middle", () => {
+    expect(
+      diff(
+        [
+          clue(0, 0),
+          clue(1, 10),
+          clue(2, 20),
+          clue(3, 30),
+          clue(4, 40),
+          clue(5, 50),
+          clue(6, 60),
+          clue(7, 70),
+        ],
+        [
+          clue(20, 0),
+          clue(1, 10),
+          clue(2, 20),
+          clue(3, 30),
+          clue(4, 40),
+          clue(5, 50),
+          clue(6, 60),
+          clue(21, 70),
+        ],
+      ),
+    ).toBe(
+      [
+        "8 clues [",
+        "- { id: 0, value: 0 }",
+        "+ { id: 20, value: 0 }",
+        "  { id: 1, value: 10 }",
+        "  ... (4 clues, didn't change)",
+        "  { id: 6, value: 60 }",
+        "- { id: 7, value: 70 }",
+        "+ { id: 21, value: 70 }",
+        "]",
+      ].join("\n"),
+    );
+  });
+
+  test("windows several runs of different lengths around several changes", () => {
+    expect(
+      diff(
+        [
+          clue(1, 1),
+          clue(2, 2),
+          clue(3, 3),
+          clue(4, 4),
+          clue(5, 5),
+          clue(6, 6),
+          clue(7, 7),
+          clue(8, 8),
+          clue(9, 9),
+          clue(10, 10),
+          clue(11, 11),
+          clue(12, 12),
+          clue(13, 13),
+        ],
+        [
+          clue(1, 1),
+          clue(2, 2),
+          clue(3, 3),
+          clue(40, 40),
+          clue(5, 5),
+          clue(6, 6),
+          clue(7, 7),
+          clue(80, 80),
+          clue(9, 9),
+          clue(100, 100),
+          clue(11, 11),
+          clue(12, 12),
+          clue(13, 13),
+        ],
+      ),
+    ).toBe(
+      [
+        "13 clues [",
+        "  ... (2 clues, didn't change)",
+        "  { id: 3, value: 3 }",
+        "- { id: 4, value: 4 }",
+        "+ { id: 40, value: 40 }",
+        "  { id: 5, value: 5 }",
+        "  ... (1 clues, didn't change)",
+        "  { id: 7, value: 7 }",
+        "- { id: 8, value: 8 }",
+        "+ { id: 80, value: 80 }",
+        "  { id: 9, value: 9 }",
+        "- { id: 10, value: 10 }",
+        "+ { id: 100, value: 100 }",
+        "  { id: 11, value: 11 }",
+        "  ... (2 clues, didn't change)",
+        "]",
+      ].join("\n"),
+    );
+  });
+});
