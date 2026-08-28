@@ -21,9 +21,28 @@ export class ObjectNode<T, RootT> {
     public readonly descriptor: ObjectDescriptor<T, RootT>,
   ) {}
 
-  /** One named child, for `resolveHandle`'s fold. Throws `NoSuchHandleError` naming this node's handle and what it does accept. */
+  /** One named child. Throws `NoSuchHandleError` naming this node's handle and what it does accept. */
   child(segment: string): ObjectNode<any, RootT> {
     return this.descriptor.child(this, segment);
+  }
+
+  /**
+   * Folds `path`'s dot-separated segments through `child`, starting at this node.
+   *
+   * Does nothing about failure: a segment that doesn't resolve throws
+   * `NoSuchHandleError` straight out of the `child` that rejected it -
+   * the node that owns the vocabulary is the one that raises the error.
+   */
+  resolveHandle(path: string): ObjectNode<any, RootT> {
+    if (!path) {
+      return this;
+    }
+
+    let current: ObjectNode<any, RootT> = this;
+    for (const segment of path.split(".")) {
+      current = current.child(segment);
+    }
+    return current;
   }
 
   /** Builds the child node for a known key of `value`, defaulting to the generic `object` descriptor. */

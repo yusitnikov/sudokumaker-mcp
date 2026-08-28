@@ -2,7 +2,6 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzle } from "../utils";
 import { getPuzzleToolName } from "./toolNames";
-import { resolveHandle } from "../format/resolveHandle";
 import { getElementFinalName } from "./elementUtils";
 import { NoSuchHandleError } from "../format/NoSuchHandleError";
 import { puzzleNode } from "../format/puzzle/puzzle";
@@ -38,7 +37,7 @@ it returns only that sub-value instead of the whole puzzle, which is cheaper for
 
     let node;
     try {
-      node = resolveHandle(rootNode, path);
+      node = rootNode.resolveHandle(path);
     } catch (error) {
       if (error instanceof NoSuchHandleError) {
         return {

@@ -4,7 +4,6 @@ import { jsonValue } from "../../jsonValue";
 import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { puzzleNode } from "../format/puzzle/puzzle";
-import { resolveHandle } from "../format/resolveHandle";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import {
   addCluesToolName,
@@ -103,7 +102,7 @@ the puzzle state after earlier ones already applied.
     updatePuzzle(
       (puzzle) => {
         for (const { path, update } of updates) {
-          const node = resolveHandle(puzzleNode(puzzle), path);
+          const node = puzzleNode(puzzle).resolveHandle(path);
 
           switch (update.type) {
             case "set":
