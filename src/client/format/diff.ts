@@ -1,6 +1,6 @@
 import { stringifyValue } from "./generic/stringifyValue";
 
-/** One array item, with everything the alignment knows about it. */
+/** One array item, with everything the diff knows about it. */
 interface ArrayItemInternal<T> {
   value: T;
   /**
@@ -18,7 +18,7 @@ const toPublicItem = <T>({
   index,
 }: ArrayItemInternal<T>): ArrayItem<T> => ({ value, index });
 
-type AlignOpByItemT<ItemT> =
+type DiffOperationByItemT<ItemT> =
   | {
       type: "unchanged";
       /** The item as it is now. */
@@ -38,14 +38,16 @@ type AlignOpByItemT<ItemT> =
     }
   | { type: "edited"; from: ItemT; to: ItemT };
 
-type AlignOpInternal<T> = AlignOpByItemT<ArrayItemInternal<T>>;
-export type AlignOp<T> = AlignOpByItemT<ArrayItem<T>>;
+type DiffOperationInternal<T> = DiffOperationByItemT<ArrayItemInternal<T>>;
+export type DiffOperation<T> = DiffOperationByItemT<ArrayItem<T>>;
 /**
- * Drops the alignment's own bookkeeping, leaving each item as the caller's value and its position.
+ * Drops the diff's own bookkeeping, leaving each item as the caller's value and its position.
  * The fields are copied out rather than passed through, so the identity strings don't ride along
  * as extra properties on a structurally compatible object.
  */
-const toPublicAlignOp = <T>(op: AlignOpInternal<T>): AlignOp<T> => {
+const toPublicDiffOperation = <T>(
+  op: DiffOperationInternal<T>,
+): DiffOperation<T> => {
   switch (op.type) {
     case "edited":
       return {
@@ -71,18 +73,18 @@ const toPublicAlignOp = <T>(op: AlignOpInternal<T>): AlignOp<T> => {
 };
 
 /**
- * Aligns an old and a new array into the changes between them.
+ * Diffs an old array against a new one, item by item.
  *
  * An item is identified by `key` where one is given, and by its own content otherwise -
  * `allElements` keys elements by id, so deleting one doesn't report every later one as changed.
  * Position is not part of an item's identity, so one that only changed position is reported
  * as a move: a removal and an addition naming each other's index.
  */
-export const alignArray = <T>(
+export const getArrayDiff = <T>(
   fromArray: T[],
   toArray: T[],
   key?: (item: T) => string,
-): AlignOp<T>[] => {
+): DiffOperation<T>[] => {
   const [from, to] = [fromArray, toArray].map((array) =>
     array.map((value, index): ArrayItemInternal<T> => {
       const contentsStr = stringifyValue(value);
@@ -136,7 +138,7 @@ export const alignArray = <T>(
   }
 
   // Walk the table along the cheapest script, emitting one op per step.
-  const ops: AlignOpInternal<T>[] = [];
+  const ops: DiffOperationInternal<T>[] = [];
   let i = 0;
   let j = 0;
   while (i < n && j < m) {
@@ -174,7 +176,7 @@ export const alignArray = <T>(
     j++;
   }
 
-  return markMoves(ops, moved).map(toPublicAlignOp);
+  return markMoves(ops, moved).map(toPublicDiffOperation);
 };
 
 /**
@@ -205,9 +207,9 @@ const findMovedIdentities = <T>(
 
 /** Gives each half of a move the other half's index. */
 const markMoves = <T>(
-  ops: AlignOpInternal<T>[],
+  ops: DiffOperationInternal<T>[],
   moved: Set<string>,
-): AlignOpInternal<T>[] => {
+): DiffOperationInternal<T>[] => {
   /** Each half's counterpart in the other array, by the identity they share. */
   const movedFromById = new Map<string, ArrayItemInternal<T>>();
   const movedToById = new Map<string, ArrayItemInternal<T>>();

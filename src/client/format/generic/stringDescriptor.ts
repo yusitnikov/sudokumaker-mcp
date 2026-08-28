@@ -1,6 +1,6 @@
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { NoSuchHandleError } from "../NoSuchHandleError";
-import { alignArray } from "../renderDiff";
+import { getArrayDiff } from "../diff";
 import { truncate } from "./truncate";
 import { SIZE_FLOOR, SUMMARY_BUDGET } from "../sizeLimits";
 import { formatHandleMarker } from "../formatHandleMarker";
@@ -57,7 +57,7 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
 
     const fromLines = from.split("\n");
     const toLines = to.split("\n");
-    const ops = alignArray(fromLines, toLines);
+    const ops = getArrayDiff(fromLines, toLines);
 
     const lines: string[] = [`${fromLines.length} → ${toLines.length} lines:`];
     for (const op of ops) {

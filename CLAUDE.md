@@ -114,9 +114,9 @@ digits candidates, `^` corner marks, `#` colors, leading `X` invalid, `.` empty 
 separators read off the enabled `Regions` element. The `grid-notation` docs topic owns that grammar,
 and every grid rendering ends with a line pointing at it.
 
-**Diffs** omit what didn't change and print what did in place. Arrays are aligned by `renderDiff.ts`,
-which pairs items by an explicit key where one exists (`allElements` by element ID) and reports one
-that only changed position as a move rather than as a deletion plus an insertion.
+**Diffs** omit what didn't change and print what did in place. `diff.ts` matches an array's items
+by an explicit key where one exists (`allElements` by element ID) and reports one that only changed
+position as a move rather than as a deletion plus an insertion.
 
 **No descriptor does its own no-diff check.** The three entry points in
 `src/client/format/puzzle/diffSummary.ts` - `puzzleDiffSummary`, `elementsDiffSummary`,

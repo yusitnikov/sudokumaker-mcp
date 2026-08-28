@@ -6,7 +6,7 @@ import { getPlainObjectDescriptor } from "../generic/plainObjectDescriptor";
 import { getArrayDescriptor } from "../generic/arrayDescriptor";
 import { elementDescriptor } from "./element";
 
-/** The root node for a whole-puzzle read/diff: `render`/`renderDiff` at `RootT = Puzzle`. */
+/** Object node for a puzzle object. */
 export const puzzleNode = (
   value: PuzzlePublic,
 ): ObjectNode<PuzzlePublic, PuzzlePublic> =>

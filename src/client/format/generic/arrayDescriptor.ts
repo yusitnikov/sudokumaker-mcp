@@ -1,6 +1,6 @@
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { NoSuchHandleError } from "../NoSuchHandleError";
-import { alignArray, type AlignOp, type ArrayItem } from "../renderDiff";
+import { getArrayDiff, type DiffOperation, type ArrayItem } from "../diff";
 import { indent } from "./indent";
 import { markTextBlock } from "./markBlock";
 import { SIZE_FLOOR } from "../sizeLimits";
@@ -130,7 +130,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
   },
 
   diff(from, to) {
-    const ops = alignArray(from.value, to.value, key);
+    const ops = getArrayDiff(from.value, to.value, key);
 
     return renderArrayDiff(ops, from.value.length, to.value.length, {
       formatAdded: (toItem) =>
@@ -166,11 +166,11 @@ interface ArrayDiffItemOps<T> {
 const position = ({ index }: ArrayItem<unknown>) => index + 1;
 
 /**
- * Windows an aligned array down to the changed items plus their immediate unchanged neighbors,
+ * Windows the diff's ops down to the changed items plus their immediate unchanged neighbors,
  * folding every other unchanged run into one `... (N items, didn't change)` line - the array rule's windowing.
  */
 const renderArrayDiff = <T>(
-  ops: AlignOp<T>[],
+  ops: DiffOperation<T>[],
   fromCount: number,
   toCount: number,
   itemOps: ArrayDiffItemOps<T>,
