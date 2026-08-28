@@ -1,11 +1,12 @@
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { NoSuchHandleError } from "../NoSuchHandleError";
-import { alignArray, type AlignOp } from "../renderDiff";
+import { alignArray, type AlignOp, type ArrayItem } from "../renderDiff";
 import { indent } from "./indent";
 import { truncate } from "./truncate";
 import { markTextBlock } from "./markBlock";
 import { SIZE_FLOOR } from "../SIZE_FLOOR";
 import { formatHandleMarker } from "../formatHandleMarker";
+import { stringifyValue } from "./stringifyValue";
 
 interface ArrayDescriptorOptions<ItemT, RootT> {
   /** How one item is formatted/diffed. */
@@ -39,7 +40,9 @@ export const getArrayDescriptor = <ItemT, RootT>({
 
   format(node, opts, isRoot) {
     const items = node.value.map((_, index) =>
-      node._child(index, itemDescriptor).format(opts),
+      node
+        ._child(index, itemDescriptor)
+        .format({ ...opts, skipHandle: opts.skipHandle || opts.collapse }),
     );
 
     const itemsStr = items.join(", ");
@@ -115,51 +118,37 @@ export const getArrayDescriptor = <ItemT, RootT>({
     const ops = alignArray(from.value, to.value, key);
 
     return renderArrayDiff(ops, from.value.length, to.value.length, {
-      formatAdded: (_, toIndex) =>
-        to._child(toIndex, itemDescriptor).format({ collapse: false }),
-      formatRemoved: (_, fromIndex) =>
+      formatAdded: (toItem) =>
+        to._child(toItem.index, itemDescriptor).format({ collapse: false }),
+      formatRemoved: (fromItem, collapse = false) =>
         from
-          ._child(fromIndex, itemDescriptor)
-          .format({ collapse: false, skipHandle: true }),
-      formatUnchanged: (_, toIndex) =>
-        to._child(toIndex, itemDescriptor).format({ collapse: true }),
-      diffItem: (_fromItem, fromIndex, _toItem, toIndex) =>
+          ._child(fromItem.index, itemDescriptor)
+          .format({ collapse, skipHandle: true }),
+      formatUnchanged: (toItem) =>
+        to._child(toItem.index, itemDescriptor).format({ collapse: true }),
+      diffItem: (fromItem, toItem) =>
         from
-          ._child(fromIndex, itemDescriptor)
-          .diff(to._child(toIndex, itemDescriptor)),
+          ._child(fromItem.index, itemDescriptor)
+          .diff(to._child(toItem.index, itemDescriptor)),
       countLabel,
     });
   },
 });
 
 interface ArrayDiffItemOps<T> {
-  /**
-   * An added item's text, unindented and unmarked, full up to the size floor - its cutoff handle
-   * is live, so oversized content the caller never saw (an element `undo` resurrects) is one
-   * `path` call away. `toIndex` is the item's real position in the "to" (live) array.
-   */
-  formatAdded: (item: T, toIndex: number) => string;
-  /**
-   * A removed item's text, unindented and unmarked, full up to the size floor - its cutoff names
-   * only a count, since the handle it would print no longer resolves; `undo`/`redo` is the way
-   * back. `fromIndex` is the item's position in the "from" array - it has no "to" position, since
-   * it no longer exists there.
-   */
-  formatRemoved: (item: T, fromIndex: number) => string;
-  /**
-   * An unchanged neighbor's text, unindented and unmarked, short - one line, placing the change
-   * among its neighbors without printing them in full.
-   */
-  formatUnchanged: (item: T, toIndex: number) => string;
-  /** One changed pair's text, unindented and unmarked - recursed into the object-diff rule and labeled. */
-  diffItem: (
-    fromItem: T,
-    fromIndex: number,
-    toItem: T,
-    toIndex: number,
-  ) => string;
+  /** An item of the new array, in full. */
+  formatAdded: (item: ArrayItem<T>) => string;
+  /** An item of the old array, in full, or on one line when `collapse` is set. */
+  formatRemoved: (item: ArrayItem<T>, collapse?: boolean) => string;
+  /** An item of the new array, on one line. */
+  formatUnchanged: (item: ArrayItem<T>) => string;
+  /** One item against its older self, as the object-diff rule renders it. */
+  diffItem: (from: ArrayItem<T>, to: ArrayItem<T>) => string;
   countLabel: string;
 }
+
+/** An item's place in its list, counted from 1 the way the reader counts. */
+const position = ({ index }: ArrayItem<unknown>) => index + 1;
 
 /**
  * Windows an aligned array down to the changed items plus their immediate unchanged neighbors,
@@ -172,7 +161,7 @@ const renderArrayDiff = <T>(
   itemOps: ArrayDiffItemOps<T>,
 ): string => {
   const changedIndexes = ops
-    .map((op, i) => (op.type === "unchanged" || op.type === "moved" ? -1 : i))
+    .map((op, i) => (op.type === "unchanged" ? -1 : i))
     .filter((i) => i >= 0);
 
   const keepContext = new Set<number>();
@@ -193,16 +182,10 @@ const renderArrayDiff = <T>(
   };
 
   ops.forEach((op, index) => {
-    if (op.type === "unchanged" || op.type === "moved") {
+    if (op.type === "unchanged") {
       if (keepContext.has(index)) {
         flushRun();
-        lines.push(
-          markTextBlock(
-            "  ",
-            itemOps.formatUnchanged(op.value, op.toIndex),
-            true,
-          ),
-        );
+        lines.push(markTextBlock("  ", itemOps.formatUnchanged(op.item), true));
       } else {
         unchangedRun++;
       }
@@ -210,24 +193,31 @@ const renderArrayDiff = <T>(
     }
     flushRun();
     if (op.type === "added") {
+      // A moved item was already in the list, so its content isn't news - what's new is where it
+      // sits now, and whatever changed on the way. The removal half names this position back.
+      const from = op.movedFrom;
+      const edited =
+        from && stringifyValue(from.value) !== stringifyValue(op.item.value);
       lines.push(
-        markTextBlock("+ ", itemOps.formatAdded(op.value, op.toIndex), true),
+        markTextBlock(
+          "+ ",
+          from
+            ? `(moved from position ${position(from)}${edited ? " + edited" : " with no changes"}) ${edited ? itemOps.diffItem(from, op.item) : itemOps.formatUnchanged(op.item)}`
+            : itemOps.formatAdded(op.item),
+          true,
+        ),
       );
     } else if (op.type === "removed") {
       lines.push(
         markTextBlock(
           "- ",
-          itemOps.formatRemoved(op.value, op.fromIndex),
+          (op.movedTo ? `(moved to position ${position(op.movedTo)}) ` : "") +
+            itemOps.formatRemoved(op.item, !!op.movedTo),
           true,
         ),
       );
     } else {
-      lines.push(
-        markTextBlock(
-          "~ ",
-          itemOps.diffItem(op.from, op.fromIndex, op.to, op.toIndex),
-        ),
-      );
+      lines.push(markTextBlock("~ ", itemOps.diffItem(op.from, op.to)));
     }
   });
   flushRun();

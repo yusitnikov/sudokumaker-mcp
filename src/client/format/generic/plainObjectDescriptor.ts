@@ -59,7 +59,10 @@ export const getPlainObjectDescriptor = <
     format(node, opts) {
       const parts = getKeys(node.value)
         .filter((key) => node.value[key] !== undefined)
-        .map((key) => `${key}: ${node.child(key).format(opts)}`);
+        .map(
+          (key) =>
+            `${key}: ${node.child(key).format({ ...opts, skipHandle: opts.skipHandle || opts.collapse })}`,
+        );
       const partsStr = parts.join(", ");
 
       if (opts.collapse) {

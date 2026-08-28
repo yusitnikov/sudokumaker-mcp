@@ -53,23 +53,15 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
     const ops = alignArray(fromLines, toLines);
 
     const lines: string[] = [`${fromLines.length} → ${toLines.length} lines:`];
-    let fromLineNum = 0;
-    let toLineNum = 0;
     for (const op of ops) {
-      if (op.type === "unchanged" || op.type === "moved") {
-        fromLineNum++;
-        toLineNum++;
-      } else if (op.type === "removed") {
-        fromLineNum++;
-        lines.push(`- ${fromLineNum}: ${op.value}`);
+      // Line numbers are 1-based, while the items' indexes count from 0.
+      if (op.type === "removed") {
+        lines.push(`- ${op.item.index + 1}: ${op.item.value}`);
       } else if (op.type === "added") {
-        toLineNum++;
-        lines.push(`+ ${toLineNum}: ${op.value}`);
-      } else {
-        fromLineNum++;
-        toLineNum++;
-        lines.push(`- ${fromLineNum}: ${op.from}`);
-        lines.push(`+ ${toLineNum}: ${op.to}`);
+        lines.push(`+ ${op.item.index + 1}: ${op.item.value}`);
+      } else if (op.type === "edited") {
+        lines.push(`- ${op.from.index + 1}: ${op.from.value}`);
+        lines.push(`+ ${op.to.index + 1}: ${op.to.value}`);
       }
     }
     return lines.join("\n");

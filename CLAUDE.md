@@ -112,10 +112,9 @@ digits candidates, `^` corner marks, `#` colors, leading `X` invalid, `.` empty 
 separators read off the enabled `Regions` element. The `grid-notation` docs topic owns that grammar,
 and every grid rendering ends with a line pointing at it.
 
-**Diffs** omit what didn't change and print what did in place. Arrays align by LCS over deep-equal
-items (`renderDiff.ts`), or by an explicit key where one exists - `allElements` pairs by element ID,
-so deleting one element doesn't report every later one as changed. Leftovers inside a changed hunk
-pair positionally and recurse as edits; unchanged runs fold into `... (N items, didn't change)`.
+**Diffs** omit what didn't change and print what did in place. Arrays are aligned by `renderDiff.ts`,
+which pairs items by an explicit key where one exists (`allElements` by element ID) and reports one
+that only changed position as a move rather than as a deletion plus an insertion.
 
 **No descriptor does its own no-diff check.** The three entry points in
 `src/client/format/puzzle/diffSummary.ts` - `puzzleDiffSummary`, `elementsDiffSummary`,
@@ -194,6 +193,9 @@ original schema.
 ## Working on this repo
 
 - `npm run lint` = `eslint . && tsc --noEmit`. `npm run build` = `tsc && vite build`.
+- `npm test` = `vitest run` (`npm test -- --coverage` for coverage). Tests are `src/**/*.test.ts`.
+  `vitest.config.ts` is deliberately separate from `vite.config.ts`, so a test run doesn't load the
+  `injected` plugin and rebuild the page bundle in-process.
 - The server is launched from source via `vite-node`, not from `dist`. After editing server source,
   the live MCP connection is stale until the user reloads it - don't call the live tools to verify a
   change until they confirm.

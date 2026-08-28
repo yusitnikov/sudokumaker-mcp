@@ -1,158 +1,234 @@
-export type AlignOp<T> =
-  | { type: "unchanged"; value: T; fromIndex: number; toIndex: number }
-  | { type: "moved"; value: T; fromIndex: number; toIndex: number }
-  | { type: "added"; value: T; toIndex: number }
-  | { type: "removed"; value: T; fromIndex: number }
-  | { type: "edited"; from: T; to: T; fromIndex: number; toIndex: number };
+import { stringifyValue } from "./generic/stringifyValue";
+
+/** One array item, with everything the alignment knows about it. */
+interface ArrayItemInternal<T> {
+  value: T;
+  /**
+   * What identifies the item: its key where the caller gives one, its contents otherwise.
+   * Two items are the same item when these match.
+   */
+  id: string;
+  contentsStr: string;
+  /** The item's position in its own array. */
+  index: number;
+}
+export type ArrayItem<T> = Pick<ArrayItemInternal<T>, "value" | "index">;
+const toPublicItem = <T>({
+  value,
+  index,
+}: ArrayItemInternal<T>): ArrayItem<T> => ({ value, index });
+
+type AlignOpByItemT<ItemT> =
+  | {
+      type: "unchanged";
+      /** The item as it is now. */
+      item: ItemT;
+    }
+  | {
+      type: "added";
+      item: ItemT;
+      /** Where this item came from, when it didn't appear but moved here. */
+      movedFrom?: ItemT;
+    }
+  | {
+      type: "removed";
+      item: ItemT;
+      /** Where this item went, when it didn't disappear but moved away. */
+      movedTo?: ItemT;
+    }
+  | { type: "edited"; from: ItemT; to: ItemT };
+
+type AlignOpInternal<T> = AlignOpByItemT<ArrayItemInternal<T>>;
+export type AlignOp<T> = AlignOpByItemT<ArrayItem<T>>;
+/**
+ * Drops the alignment's own bookkeeping, leaving each item as the caller's value and its position.
+ * The fields are copied out rather than passed through, so the identity strings don't ride along
+ * as extra properties on a structurally compatible object.
+ */
+const toPublicAlignOp = <T>(op: AlignOpInternal<T>): AlignOp<T> => {
+  switch (op.type) {
+    case "edited":
+      return {
+        type: op.type,
+        from: toPublicItem(op.from),
+        to: toPublicItem(op.to),
+      };
+    case "added":
+      return {
+        type: op.type,
+        item: toPublicItem(op.item),
+        movedFrom: op.movedFrom && toPublicItem(op.movedFrom),
+      };
+    case "removed":
+      return {
+        type: op.type,
+        item: toPublicItem(op.item),
+        movedTo: op.movedTo && toPublicItem(op.movedTo),
+      };
+    case "unchanged":
+      return { type: op.type, item: toPublicItem(op.item) };
+  }
+};
 
 /**
- * Aligns an old and a new array. Without a `key`, alignment is by deep-equality (LCS): identical
- * items pair wherever they sit, and only the leftovers inside a changed hunk fall back to
- * positional pairing (an edit). With a `key`, items pair by that key regardless of position (used
- * by `elementList`, so deleting one element doesn't shift-report every later one) - the leftovers
- * inside a changed hunk still fall back to positional pairing.
+ * Aligns an old and a new array into the changes between them.
+ *
+ * An item is identified by `key` where one is given, and by its own content otherwise -
+ * `allElements` keys elements by id, so deleting one doesn't report every later one as changed.
+ * Position is not part of an item's identity, so one that only changed position is reported
+ * as a move: a removal and an addition naming each other's index.
  */
 export const alignArray = <T>(
-  from: T[],
-  to: T[],
+  fromArray: T[],
+  toArray: T[],
   key?: (item: T) => string,
 ): AlignOp<T>[] => {
-  const identity = (item: T) => key?.(item) ?? JSON.stringify(item);
+  const [from, to] = [fromArray, toArray].map((array) =>
+    array.map((value, index): ArrayItemInternal<T> => {
+      const contentsStr = stringifyValue(value);
+      return { value, id: key?.(value) ?? contentsStr, contentsStr, index };
+    }),
+  );
 
-  const fromKeys = from.map(identity);
-  const toKeys = to.map(identity);
+  const moved = findMovedIdentities(from, to);
 
-  // Standard LCS over the identity keys.
+  /**
+   * Whether one item may be reported as the other having changed,
+   * rather than as a removal and an addition.
+   *
+   * Keyed, that takes a shared key.
+   * Unkeyed, it takes both items being absent from the other side,
+   * since an item present on both has moved instead.
+   */
+  const canEdit = (
+    fromItem: ArrayItemInternal<T>,
+    toItem: ArrayItemInternal<T>,
+  ): boolean =>
+    key
+      ? fromItem.id === toItem.id
+      : !moved.has(fromItem.id) && !moved.has(toItem.id);
+
   const n = from.length;
   const m = to.length;
-  const dp: number[][] = Array.from({ length: n + 1 }, () =>
-    new Array(m + 1).fill(0),
+
+  // Levenshtein over the identities: the cheapest script of removals, additions and edits turning
+  // one array into the other.
+  const cost: number[][] = Array.from({ length: n + 1 }, () =>
+    new Array<number>(m + 1).fill(0),
   );
   for (let i = n - 1; i >= 0; i--) {
+    cost[i][m] = n - i;
+  }
+  for (let j = m - 1; j >= 0; j--) {
+    cost[n][j] = m - j;
+  }
+  for (let i = n - 1; i >= 0; i--) {
     for (let j = m - 1; j >= 0; j--) {
-      dp[i][j] =
-        fromKeys[i] === toKeys[j]
-          ? dp[i + 1][j + 1] + 1
-          : Math.max(dp[i + 1][j], dp[i][j + 1]);
+      if (from[i].id === to[j].id) {
+        cost[i][j] = cost[i + 1][j + 1];
+        continue;
+      }
+      const withoutEdit = 1 + Math.min(cost[i + 1][j], cost[i][j + 1]);
+      cost[i][j] = canEdit(from[i], to[j])
+        ? Math.min(withoutEdit, 1 + cost[i + 1][j + 1])
+        : withoutEdit;
     }
   }
 
-  // Walk the LCS table to emit a sequence of matched/unmatched runs, then turn unmatched runs
-  // that fall on both sides into positional edits (paired remainder inside a changed hunk).
-  type Step =
-    | { type: "match"; fromIndex: number; toIndex: number }
-    | { type: "fromOnly"; fromIndex: number }
-    | { type: "toOnly"; toIndex: number };
-  const steps: Step[] = [];
+  // Walk the table along the cheapest script, emitting one op per step.
+  const ops: AlignOpInternal<T>[] = [];
   let i = 0;
   let j = 0;
   while (i < n && j < m) {
-    if (fromKeys[i] === toKeys[j]) {
-      steps.push({ type: "match", fromIndex: i, toIndex: j });
+    if (from[i].id === to[j].id) {
+      // The same item in both arrays - but a key identifies it without its content,
+      // so that content may still have changed.
+      ops.push(
+        from[i].contentsStr === to[j].contentsStr
+          ? { type: "unchanged", item: to[j] }
+          : { type: "edited", from: from[i], to: to[j] },
+      );
       i++;
       j++;
-    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-      steps.push({ type: "fromOnly", fromIndex: i });
+    } else if (
+      canEdit(from[i], to[j]) &&
+      cost[i][j] === 1 + cost[i + 1][j + 1]
+    ) {
+      ops.push({ type: "edited", from: from[i], to: to[j] });
+      i++;
+      j++;
+    } else if (cost[i][j] === 1 + cost[i + 1][j]) {
+      ops.push({ type: "removed", item: from[i] });
       i++;
     } else {
-      steps.push({ type: "toOnly", toIndex: j });
+      ops.push({ type: "added", item: to[j] });
       j++;
     }
   }
   while (i < n) {
-    steps.push({ type: "fromOnly", fromIndex: i });
+    ops.push({ type: "removed", item: from[i] });
     i++;
   }
   while (j < m) {
-    steps.push({ type: "toOnly", toIndex: j });
+    ops.push({ type: "added", item: to[j] });
     j++;
   }
 
-  // Group consecutive fromOnly/toOnly runs and pair them positionally within the run (edits),
-  // leaving any length difference as pure add/remove.
-  const ops: AlignOp<T>[] = [];
-  let pendingFrom: number[] = [];
-  let pendingTo: number[] = [];
-  const flushPending = () => {
-    const pairCount = Math.min(pendingFrom.length, pendingTo.length);
-    for (let k = 0; k < pairCount; k++) {
-      const fromIndex = pendingFrom[k];
-      const toIndex = pendingTo[k];
-      if (key) {
-        // Keyed alignment (elementList): a "moved" pairing here means this item's key wasn't
-        // adjacent enough for the LCS to match it as unchanged content-wise, but it does still
-        // exist on both sides - treat content-identical keyed items as moved, others as edited.
-        ops.push(
-          JSON.stringify(from[fromIndex]) === JSON.stringify(to[toIndex])
-            ? { type: "moved", value: to[toIndex], fromIndex, toIndex }
-            : {
-                type: "edited",
-                from: from[fromIndex],
-                to: to[toIndex],
-                fromIndex,
-                toIndex,
-              },
-        );
-      } else {
-        ops.push({
-          type: "edited",
-          from: from[fromIndex],
-          to: to[toIndex],
-          fromIndex,
-          toIndex,
-        });
-      }
-    }
-    for (let k = pairCount; k < pendingFrom.length; k++) {
-      ops.push({
-        type: "removed",
-        value: from[pendingFrom[k]],
-        fromIndex: pendingFrom[k],
-      });
-    }
-    for (let k = pairCount; k < pendingTo.length; k++) {
-      ops.push({
-        type: "added",
-        value: to[pendingTo[k]],
-        toIndex: pendingTo[k],
-      });
-    }
-    pendingFrom = [];
-    pendingTo = [];
-  };
+  return markMoves(ops, moved).map(toPublicAlignOp);
+};
 
-  for (const step of steps) {
-    if (step.type === "match") {
-      flushPending();
-      const fromItem = from[step.fromIndex];
-      const toItem = to[step.toIndex];
-      // With a `key`, a "match" only means the two items share a key - unlike the keyless case
-      // (whose identity is the item's own deep-equal JSON, so a "match" already implies unchanged
-      // content), a keyed match can still be the same element with an edited field, which must
-      // still surface as a change rather than being reported as untouched.
-      ops.push(
-        !key || JSON.stringify(fromItem) === JSON.stringify(toItem)
-          ? {
-              type: "unchanged",
-              value: toItem,
-              fromIndex: step.fromIndex,
-              toIndex: step.toIndex,
-            }
-          : {
-              type: "edited",
-              from: fromItem,
-              to: toItem,
-              fromIndex: step.fromIndex,
-              toIndex: step.toIndex,
-            },
-      );
-    } else if (step.type === "fromOnly") {
-      pendingFrom.push(step.fromIndex);
-    } else {
-      pendingTo.push(step.toIndex);
+/**
+ * The identities present exactly once on each side, so the item can only have moved.
+ * An identity occurring twice is left out: either half could pair with either counterpart.
+ */
+const findMovedIdentities = <T>(
+  from: ArrayItemInternal<T>[],
+  to: ArrayItemInternal<T>[],
+): Set<string> => {
+  const [fromCounts, toCounts] = [from, to].map((items) => {
+    const counts = new Map<string, number>();
+    for (const { id } of items) {
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    return counts;
+  });
+
+  const moved = new Set<string>();
+  for (const [id, fromCount] of fromCounts) {
+    if (fromCount === 1 && toCounts.get(id) === 1) {
+      moved.add(id);
     }
   }
-  flushPending();
 
-  return ops;
+  return moved;
+};
+
+/** Gives each half of a move the other half's index. */
+const markMoves = <T>(
+  ops: AlignOpInternal<T>[],
+  moved: Set<string>,
+): AlignOpInternal<T>[] => {
+  /** Each half's counterpart in the other array, by the identity they share. */
+  const movedFromById = new Map<string, ArrayItemInternal<T>>();
+  const movedToById = new Map<string, ArrayItemInternal<T>>();
+
+  for (const op of ops) {
+    if (op.type === "removed" && moved.has(op.item.id)) {
+      movedFromById.set(op.item.id, op.item);
+    } else if (op.type === "added" && moved.has(op.item.id)) {
+      movedToById.set(op.item.id, op.item);
+    }
+  }
+
+  return ops.map((op) => {
+    if (op.type === "removed") {
+      const movedTo = movedToById.get(op.item.id);
+      return movedTo === undefined ? op : { ...op, movedTo };
+    }
+    if (op.type === "added") {
+      const movedFrom = movedFromById.get(op.item.id);
+      return movedFrom === undefined ? op : { ...op, movedFrom };
+    }
+    return op;
+  });
 };
