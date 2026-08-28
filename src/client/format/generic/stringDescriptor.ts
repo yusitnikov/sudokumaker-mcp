@@ -1,6 +1,6 @@
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { NoSuchHandleError } from "../NoSuchHandleError";
-import { getArrayDiff } from "../diff";
+import { getArrayDiff, type ArrayItem } from "../diff";
 import { truncate } from "./truncate";
 import { SIZE_FLOOR, SUMMARY_BUDGET } from "../sizeLimits";
 import { formatHandleMarker } from "../formatHandleMarker";
@@ -57,20 +57,66 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
 
     const fromLines = from.split("\n");
     const toLines = to.split("\n");
+    // Move detection isn't rendered here yet - a moved line's two halves print as a plain
+    // removal and addition, the same as any other line that happens to match one elsewhere.
     const ops = getArrayDiff(fromLines, toLines);
 
-    const lines: string[] = [`${fromLines.length} → ${toLines.length} lines:`];
-    for (const op of ops) {
-      // Line numbers are 1-based, while the items' indexes count from 0.
-      if (op.type === "removed") {
-        lines.push(`- ${op.item.index + 1}: ${op.item.value}`);
+    // Line numbers are 1-based, while the items' indexes count from 0.
+    // Padded to the widest number either side can print, so the colons line up down the block.
+    const numberWidth = Math.max(
+      fromLines.length.toString().length,
+      toLines.length.toString().length,
+    );
+
+    const lines: string[] = ["", `${" ".repeat(numberWidth + 4)}<<EOF`];
+
+    const printLine = (
+      marker: string,
+      item: ArrayItem<string>,
+      printLineNumber = true,
+    ) =>
+      lines.push(
+        `${marker}${(printLineNumber ? `${item.index + 1}:` : "").padStart(numberWidth + 1)} ${item.value}`,
+      );
+
+    ops.forEach((op) => {
+      if (op.type === "unchanged") {
+        const { items } = op;
+        // A blank line is never useful context on its own, so each boundary extends past blanks
+        // to the nearest real content.
+        const firstReal = items.findIndex((item) => item.value !== "");
+
+        if (firstReal === -1) {
+          // Wholly blank: nothing to fold toward, so every line prints.
+          items.forEach((item) => printLine("  ", item));
+        } else {
+          let lastReal = items.length - 1;
+          while (items[lastReal].value === "") {
+            lastReal--;
+          }
+          const leadEnd = firstReal + 1;
+          const tailStart = lastReal;
+
+          if (leadEnd >= tailStart) {
+            items.forEach((item) => printLine("  ", item));
+          } else {
+            items.slice(0, leadEnd).forEach((item) => printLine("  ", item));
+            lines.push("…");
+            items.slice(tailStart).forEach((item) => printLine("  ", item));
+          }
+        }
+      } else if (op.type === "removed") {
+        printLine("- ", op.item, false);
       } else if (op.type === "added") {
-        lines.push(`+ ${op.item.index + 1}: ${op.item.value}`);
-      } else if (op.type === "edited") {
-        lines.push(`- ${op.from.index + 1}: ${op.from.value}`);
-        lines.push(`+ ${op.to.index + 1}: ${op.to.value}`);
+        printLine("+ ", op.item);
+      } else {
+        printLine("- ", op.from, false);
+        printLine("+ ", op.to);
       }
-    }
+    });
+
+    lines.push(`${" ".repeat(numberWidth + 4)}EOF`);
+
     return lines.join("\n");
   },
 };
