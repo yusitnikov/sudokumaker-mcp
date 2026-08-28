@@ -5,6 +5,7 @@ import { indent } from "./indent";
 import { truncate } from "./truncate";
 import { markTextBlock } from "./markBlock";
 import { SIZE_FLOOR } from "../SIZE_FLOOR";
+import { formatHandleMarker } from "../formatHandleMarker";
 
 interface ArrayDescriptorOptions<ItemT, RootT> {
   /** How one item is formatted/diffed. */
@@ -51,7 +52,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
 
       return truncated === itemsStr
         ? shortFormat
-        : `[ ${truncated} (${node.value.length} ${countLabel}${opts.skipHandle ? "" : `, read the rest with path "${node.handle}"`}) ]`;
+        : `[ ${truncated} (${node.value.length} ${countLabel}) ]${formatHandleMarker(node, opts)}`;
     }
 
     if (!shortFormat.includes("\n") && shortFormat.length <= 200) {
@@ -64,11 +65,9 @@ export const getArrayDescriptor = <ItemT, RootT>({
       const truncatedLines = items.slice(0, count);
       const remaining = items.length - count;
       if (remaining) {
-        let suffix = `… ${remaining}${count ? " more" : ""} ${countLabel}`;
-        if (!opts.skipHandle) {
-          suffix += `, read ${count ? "the rest" : "them"} with path "${node.handle}"`;
-        }
-        truncatedLines.push(suffix);
+        truncatedLines.push(
+          `… ${remaining}${count ? " more" : ""} ${countLabel}${formatHandleMarker(node, opts)}`,
+        );
       }
       return `[\n${indent(truncatedLines.join("\n"))}\n]`;
     };

@@ -4,6 +4,7 @@ import { indent } from "./indent";
 import { truncate } from "./truncate";
 import type { ObjectNode } from "../ObjectNode";
 import { markLinesBlock } from "./markBlock";
+import { formatHandleMarker } from "../formatHandleMarker";
 
 export type ObjectDescriptorsMap<T, RootT> = {
   [K in keyof T]?:
@@ -64,7 +65,11 @@ export const getPlainObjectDescriptor = <
       if (opts.collapse) {
         // Short form: the object's own inline text, truncated - not a bare key count, since the
         // leading fields are usually enough to recognize what this is (`{ position: { x: 4.5, ... }`).
-        return `{ ${truncate(partsStr, 80)} }`;
+        const truncated = truncate(partsStr, 80);
+        // Only a truncated object withheld anything; one that fit is whole and needs no pointer.
+        return truncated === partsStr
+          ? `{ ${partsStr} }`
+          : `{ ${truncated} }${formatHandleMarker(node, opts)}`;
       }
 
       return partsStr.includes("\n") || partsStr.length > 200

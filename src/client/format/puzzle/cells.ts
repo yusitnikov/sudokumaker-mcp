@@ -16,6 +16,7 @@ import { childHandle } from "../childHandle";
 import { leafNode } from "../generic/leafNode";
 import { gridNotationTopicName } from "../../tools/docs/topicNames";
 import { indent } from "../generic/indent";
+import { formatHandleMarker } from "../formatHandleMarker";
 
 /** Points the reader at the `grid-notation` docs topic - appended once, after any grid rendering. */
 const gridNotationFooterLine = `Read \`${gridNotationTopicName}\` topic for how to read this, DO NOT GUESS!`;
@@ -182,18 +183,18 @@ const horizontalSeparator = (
 
 /** Renders the whole grid (or a single-row slice): one line if `opts.collapse`, else windowed by the size floor. */
 const formatGridRows = (
-  cellsGrid: CellPublic[][],
+  node: ObjectNode<CellPublic[][], PuzzlePublic>,
   opts: FormatOpts,
-  root: PuzzlePublic,
 ): string => {
+  const cellsGrid = node.value;
+
   if (opts.collapse) {
     const height = cellsGrid.length;
     const width = cellsGrid[0].length;
-    // TODO: something more meaningful?
-    return `${width}×${height} grid`;
+    return `${width}×${height} grid${formatHandleMarker(node, opts)}`;
   }
 
-  const regions = findRegionsGrid(root);
+  const regions = findRegionsGrid(node.root);
   const widths = columnWidths(cellsGrid);
 
   const result: string[] = [""];
@@ -312,7 +313,7 @@ export const cellsDescriptor: ObjectDescriptor<CellPublic[][], PuzzlePublic> = {
     return cellChild(node.value, node, segment);
   },
   format(node, opts) {
-    return formatGridRows(node.value, opts, node.root);
+    return formatGridRows(node, opts);
   },
   diff(from, to) {
     return diffGridRows(from.value, to.value, to.root);
@@ -342,7 +343,7 @@ const cellRowDescriptor: ObjectDescriptor<CellPublic[][], PuzzlePublic> = {
     );
   },
   format(node, opts) {
-    return formatGridRows(node.value, opts, node.root);
+    return formatGridRows(node, opts);
   },
   diff(from, to) {
     return diffGridRows(from.value, to.value, to.root);

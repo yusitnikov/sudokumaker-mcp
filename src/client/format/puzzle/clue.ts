@@ -4,6 +4,7 @@ import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { getUnknownDescriptor } from "../generic/unknownDescriptor";
 import { isPlainObject } from "../generic/isPlainObject";
 import { formatCellNotation } from "../../../SudokuMakerSchemas";
+import { formatHandleMarker } from "../formatHandleMarker";
 
 /** Labels a clue by the cells it touches, falling back to no label. */
 const clueLabel = (
@@ -57,7 +58,7 @@ export const getClueDescriptor = (
       if (opts.collapse) {
         const label = clueLabel(node.value, elementType);
         if (label) {
-          return label;
+          return label + formatHandleMarker(node, opts);
         }
       }
 

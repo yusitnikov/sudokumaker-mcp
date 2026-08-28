@@ -3,6 +3,7 @@ import { NoSuchHandleError } from "../NoSuchHandleError";
 import { alignArray } from "../renderDiff";
 import { truncate } from "./truncate";
 import { SIZE_FLOOR } from "../SIZE_FLOOR";
+import { formatHandleMarker } from "../formatHandleMarker";
 
 /** A string leaf. No children; long text collapses/diffs by line, per the "long text" collapse rule. */
 export const stringDescriptor: ObjectDescriptor<string, any> = {
@@ -13,14 +14,18 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
     );
   },
 
-  format({ value, handle }, opts, isRoot) {
+  format(node, opts, isRoot) {
+    const { value } = node;
+
     if (opts.collapse) {
       // Short form: quoted, truncated to one short line - truncate the raw value first so
       // JSON.stringify handles escaping and always closes the quote cleanly.
       const truncated = truncate(value, 40);
       return (
         JSON.stringify(truncated) +
-        (truncated === value ? "" : ` (${value.length} characters)`)
+        (truncated === value
+          ? ""
+          : ` (${value.length} characters)${formatHandleMarker(node, opts)}`)
       );
     }
 
@@ -28,14 +33,7 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
 
     // A text asked for by `path` prints in full - the caller already used the handle a cut would name.
     if (value.length > SIZE_FLOOR && !isRoot) {
-      let result = `${lineCount} line`;
-      if (lineCount > 1) {
-        result += "s";
-      }
-      if (!opts.skipHandle) {
-        result += `   <read it with path "${handle}">`;
-      }
-      return result;
+      return `${lineCount} ${lineCount > 1 ? "lines" : "line"}${formatHandleMarker(node, opts)}`;
     }
 
     // A multi-line string printed in full prints as a heredoc, not

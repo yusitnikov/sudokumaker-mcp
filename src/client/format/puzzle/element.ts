@@ -15,6 +15,7 @@ import {
 import { stringDescriptor } from "../generic/stringDescriptor";
 import { getScalarDescriptor } from "../generic/scalarDescriptor";
 import { getElementFinalName } from "../../tools/elementUtils";
+import { formatHandleMarker } from "../formatHandleMarker";
 
 const elementBaseDescriptor = getPlainObjectDescriptor<
   ElementPublic,
@@ -60,13 +61,11 @@ export const elementDescriptor: ObjectDescriptor<ElementPublic, PuzzlePublic> =
     ...elementBaseDescriptor,
 
     format(node, opts) {
-      let header = `"${getElementFinalName(node.value)}" (type ${node.value.config.type}, ID ${node.value.id}, ${!node.value.enabled ? "disabled" : node.value.solverIgnored ? "solver-ignored" : "enabled"})`;
-      if (!opts.skipHandle) {
-        header += ` — ${node.handle}`;
-      }
+      const header = `"${getElementFinalName(node.value)}" (type ${node.value.config.type}, ID ${node.value.id}, ${!node.value.enabled ? "disabled" : node.value.solverIgnored ? "solver-ignored" : "enabled"})`;
+
       if (opts.collapse) {
         // Short form: the header line alone - identity beats content for an element neighbor.
-        return header;
+        return header + " { … }" + formatHandleMarker(node, opts);
       }
 
       const lines = [`${header} {`];

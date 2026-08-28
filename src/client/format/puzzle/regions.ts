@@ -4,6 +4,7 @@ import { parseCellNotation } from "../../../SudokuMakerSchemas";
 import { NoSuchHandleError } from "../NoSuchHandleError";
 import { leafNode } from "../generic/leafNode";
 import { childHandle } from "../childHandle";
+import { formatHandleMarker } from "../formatHandleMarker";
 
 /** Regions - the character grid. */
 export const regionsDescriptor: ObjectDescriptor<number[][], PuzzlePublic> = {
@@ -33,7 +34,7 @@ export const regionsDescriptor: ObjectDescriptor<number[][], PuzzlePublic> = {
     if (opts.collapse) {
       const height = node.value.length;
       const width = node.value[0]?.length ?? 0;
-      return `${width}×${height} regions`;
+      return `${width}×${height} regions${formatHandleMarker(node, opts)}`;
     }
 
     return (
