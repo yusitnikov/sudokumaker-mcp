@@ -598,4 +598,45 @@ describe("getArrayDiff", () => {
       ]);
     });
   });
+
+  describe("primitive values never edit", () => {
+    // A primitive has no interior for "edited" to point at - old value vs. new value is exactly
+    // what a removal and an addition already say. Line diffs are the direct motivation: two lines
+    // of text must never render as one "edited" line, only as a removed line and an added line.
+    test("reports two different strings at the same position as removed and added, not edited", () => {
+      expect(getArrayDiff(["a", "b", "c"], ["a", "x", "c"])).toEqual([
+        { type: "unchanged", items: [{ value: "a", index: 0 }] },
+        { type: "removed", item: { value: "b", index: 1 } },
+        { type: "added", item: { value: "x", index: 1 } },
+        { type: "unchanged", items: [{ value: "c", index: 2 }] },
+      ]);
+    });
+
+    // Numbers are primitives too - same rule, different type, to confirm this isn't string-specific.
+    test("reports two different numbers at the same position as removed and added, not edited", () => {
+      expect(getArrayDiff([1, 2, 3], [1, 20, 3])).toEqual([
+        { type: "unchanged", items: [{ value: 1, index: 0 }] },
+        { type: "removed", item: { value: 2, index: 1 } },
+        { type: "added", item: { value: 20, index: 1 } },
+        { type: "unchanged", items: [{ value: 3, index: 2 }] },
+      ]);
+    });
+
+    // A block of several differing primitive lines groups as all removals then all additions -
+    // there's no edit-eligible pairing anywhere to interleave with, unlike the object case.
+    test("groups a replaced block of primitive lines as removals then additions, never interleaved", () => {
+      expect(
+        getArrayDiff(["x", "a", "b", "c", "y"], ["x", "p", "q", "r", "y"]),
+      ).toEqual([
+        { type: "unchanged", items: [{ value: "x", index: 0 }] },
+        { type: "removed", item: { value: "a", index: 1 } },
+        { type: "removed", item: { value: "b", index: 2 } },
+        { type: "removed", item: { value: "c", index: 3 } },
+        { type: "added", item: { value: "p", index: 1 } },
+        { type: "added", item: { value: "q", index: 2 } },
+        { type: "added", item: { value: "r", index: 3 } },
+        { type: "unchanged", items: [{ value: "y", index: 4 }] },
+      ]);
+    });
+  });
 });

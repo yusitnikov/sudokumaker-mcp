@@ -18,6 +18,14 @@ const toPublicItem = <T>({
   index,
 }: ArrayItemInternal<T>): ArrayItem<T> => ({ value, index });
 
+const getType = (value: unknown) => {
+  return value === null
+    ? "null"
+    : Array.isArray(value)
+      ? "array"
+      : typeof value;
+};
+
 type DiffOperationByItemT<ItemT> =
   | {
       type: "unchanged";
@@ -101,14 +109,21 @@ export const getArrayDiff = <T>(
    * Keyed, that takes a shared key.
    * Unkeyed, it takes both items being absent from the other side,
    * since an item present on both has moved instead.
+   *
+   * "Edited" only makes sense when both sides are arrays or both are plain objects -
+   * something with an interior for the edit to point at.
+   * A primitive, or a value whose shape doesn't match the other side's,
+   * is always a removal and an addition (this is why line diffs never edit).
    */
   const canEdit = (
     fromItem: ArrayItemInternal<T>,
     toItem: ArrayItemInternal<T>,
   ): boolean =>
-    key
+    getType(fromItem.value) === getType(toItem.value) &&
+    ["array", "object"].includes(getType(fromItem.value)) &&
+    (key
       ? fromItem.id === toItem.id
-      : !moved.has(fromItem.id) && !moved.has(toItem.id);
+      : !moved.has(fromItem.id) && !moved.has(toItem.id));
 
   const n = from.length;
   const m = to.length;

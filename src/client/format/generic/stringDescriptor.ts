@@ -105,8 +105,9 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
       } else if (op.type === "added") {
         printLine("+ ", op.item);
       } else {
-        printLine("- ", op.from, false);
-        printLine("+ ", op.to);
+        throw new Error(
+          `Internal error: unexpected ${op.type} operation for a string diff`,
+        );
       }
     });
 
