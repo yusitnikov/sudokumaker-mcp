@@ -84,27 +84,22 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
         const { items } = op;
         // A blank line is never useful context on its own, so each boundary extends past blanks
         // to the nearest real content.
-        const firstReal = items.findIndex((item) => item.value !== "");
-
-        if (firstReal === -1) {
-          // Wholly blank: nothing to fold toward, so every line prints.
-          items.forEach((item) => printLine("  ", item));
-        } else {
-          let lastReal = items.length - 1;
-          while (items[lastReal].value === "") {
-            lastReal--;
-          }
-          const leadEnd = firstReal + 1;
-          const tailStart = lastReal;
-
-          if (leadEnd >= tailStart) {
-            items.forEach((item) => printLine("  ", item));
-          } else {
-            items.slice(0, leadEnd).forEach((item) => printLine("  ", item));
-            lines.push("…");
-            items.slice(tailStart).forEach((item) => printLine("  ", item));
-          }
+        let leadEnd = 1;
+        while (leadEnd < items.length && items[leadEnd - 1].value === "") {
+          leadEnd++;
         }
+        let tailStart = items.length - 1;
+        while (tailStart > 0 && items[tailStart].value === "") {
+          tailStart--;
+        }
+
+        items.slice(0, leadEnd).forEach((item) => printLine("  ", item));
+        if (tailStart > leadEnd) {
+          lines.push("…");
+        }
+        items
+          .slice(Math.max(tailStart, leadEnd))
+          .forEach((item) => printLine("  ", item));
       } else if (op.type === "removed") {
         printLine("- ", op.item, false);
       } else if (op.type === "added") {

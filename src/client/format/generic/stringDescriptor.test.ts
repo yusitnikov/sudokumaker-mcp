@@ -6,7 +6,7 @@ const node = (value: string) =>
   new ObjectNode(value, () => undefined, "text", value, stringDescriptor);
 
 const diff = (from: string, to: string) =>
-  stringDescriptor.diff!(node(from), node(to));
+  stringDescriptor.diff(node(from), node(to));
 
 const lines = (...ls: string[]) => ls.join("\n");
 
