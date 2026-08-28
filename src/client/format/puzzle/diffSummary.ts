@@ -1,6 +1,5 @@
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { puzzleNode } from "./puzzle";
-import { resolveHandle } from "../resolveHandle";
 import type { ObjectNode } from "../ObjectNode";
 
 /** `leadInText` followed by the diff between `from` and `to`, or `noChangesText` alone if they're equal. */
@@ -33,8 +32,8 @@ export const elementsDiffSummary = (
   after: PuzzlePublic,
 ): string =>
   summarize(
-    resolveHandle(puzzleNode(before), "allElements"),
-    resolveHandle(puzzleNode(after), "allElements"),
+    puzzleNode(before).child("allElements"),
+    puzzleNode(after).child("allElements"),
     "This is what changed:",
     "Nothing changed in the elements.",
   );
@@ -46,8 +45,8 @@ export const cellsDiffSummary = (
   leadInText = "This is what changed in the cells:",
 ): string =>
   summarize(
-    resolveHandle(puzzleNode(before), "cells"),
-    resolveHandle(puzzleNode(after), "cells"),
+    puzzleNode(before).child("cells"),
+    puzzleNode(after).child("cells"),
     leadInText,
     "Nothing changed in the cells.",
   );
