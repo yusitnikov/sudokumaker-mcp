@@ -16,6 +16,8 @@ import { stringDescriptor } from "../generic/stringDescriptor";
 import { getScalarDescriptor } from "../generic/scalarDescriptor";
 import { getElementFinalName } from "../../tools/elementUtils";
 import { formatHandleMarker } from "../formatHandleMarker";
+import { SUMMARY_BUDGET } from "../sizeLimits";
+import { truncate } from "../generic/truncate";
 
 const elementBaseDescriptor = getPlainObjectDescriptor<
   ElementPublic,
@@ -83,6 +85,13 @@ export const elementDescriptor: ObjectDescriptor<ElementPublic, PuzzlePublic> =
 
       lines.push("}");
       return lines.join("\n");
+    },
+
+    getSummary(node) {
+      return truncate(
+        `#${node.value.id} ${getElementFinalName(node.value)}`,
+        SUMMARY_BUDGET,
+      );
     },
 
     diff(from, to) {

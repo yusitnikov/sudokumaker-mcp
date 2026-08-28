@@ -2,7 +2,7 @@ import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { NoSuchHandleError } from "../NoSuchHandleError";
 import { alignArray } from "../renderDiff";
 import { truncate } from "./truncate";
-import { SIZE_FLOOR } from "../SIZE_FLOOR";
+import { SIZE_FLOOR, SUMMARY_BUDGET } from "../sizeLimits";
 import { formatHandleMarker } from "../formatHandleMarker";
 
 /** A string leaf. No children; long text collapses/diffs by line, per the "long text" collapse rule. */
@@ -39,6 +39,13 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
     // A multi-line string printed in full prints as a heredoc, not
     // JSON.stringify'd - escaped \n's turn a whole script into one illegible line.
     return lineCount > 1 ? `<<EOF\n${value}\nEOF` : JSON.stringify(value);
+  },
+
+  getSummary({ value }) {
+    const lineCount = value.split("\n").length;
+    return lineCount > 1
+      ? `${lineCount} lines`
+      : `"${truncate(value, SUMMARY_BUDGET - 2)}"`;
   },
 
   diff({ value: from }, { value: to }) {

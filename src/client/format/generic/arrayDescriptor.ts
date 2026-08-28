@@ -2,9 +2,8 @@ import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { NoSuchHandleError } from "../NoSuchHandleError";
 import { alignArray, type AlignOp, type ArrayItem } from "../renderDiff";
 import { indent } from "./indent";
-import { truncate } from "./truncate";
 import { markTextBlock } from "./markBlock";
-import { SIZE_FLOOR } from "../SIZE_FLOOR";
+import { SIZE_FLOOR } from "../sizeLimits";
 import { formatHandleMarker } from "../formatHandleMarker";
 import { stringifyValue } from "./stringifyValue";
 
@@ -39,23 +38,35 @@ export const getArrayDescriptor = <ItemT, RootT>({
   },
 
   format(node, opts, isRoot) {
-    const items = node.value.map((_, index) =>
-      node
-        ._child(index, itemDescriptor)
-        .format({ ...opts, skipHandle: opts.skipHandle || opts.collapse }),
+    const childNodes = node.value.map((_, index) =>
+      node._child(index, itemDescriptor),
     );
-
-    const itemsStr = items.join(", ");
-    const shortFormat = `[ ${itemsStr} ]`;
+    const items = childNodes.map((childNode) => childNode.format(opts));
+    const shortFormat = `[ ${items.join(", ")} ]`;
 
     if (opts.collapse) {
-      // Short form: the array's own inline text, truncated - with the item count appended once it
-      // no longer fits, since a truncated item list on its own doesn't say how much was cut.
-      const truncated = truncate(itemsStr, 50);
+      // If the oneliner is short enough, just return it
+      if (shortFormat.length <= 80) {
+        return shortFormat;
+      }
 
-      return truncated === itemsStr
-        ? shortFormat
-        : `[ ${truncated} (${node.value.length} ${countLabel}) ]${formatHandleMarker(node, opts)}`;
+      const summaries = childNodes.map((childNode) => childNode.getSummary());
+
+      let count = node.value.length;
+      const format = () => {
+        const parts = summaries.slice(0, count);
+        if (count !== node.value.length) {
+          parts.push(`… (${node.value.length} ${countLabel})`);
+        }
+        return `[ ${parts.join(", ")} ]${formatHandleMarker(node, opts)}`;
+      };
+
+      // Truncate the items in the end of the array
+      while (count > 0 && format().length > 80) {
+        count--;
+      }
+
+      return format();
     }
 
     if (!shortFormat.includes("\n") && shortFormat.length <= 200) {
@@ -112,6 +123,10 @@ export const getArrayDescriptor = <ItemT, RootT>({
     }
 
     return format();
+  },
+
+  getSummary(node) {
+    return `[ ${node.value.length} ${countLabel} ]`;
   },
 
   diff(from, to) {

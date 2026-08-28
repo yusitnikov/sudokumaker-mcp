@@ -2,6 +2,7 @@ import type { ObjectDescriptor } from "./ObjectDescriptor";
 import type { FormatOpts } from "./FormatOpts";
 import { childHandle } from "./childHandle";
 import { getUnknownDescriptor } from "./generic/unknownDescriptor";
+import { SUMMARY_BUDGET } from "./sizeLimits";
 
 export class ObjectNode<T, RootT> {
   constructor(
@@ -48,6 +49,22 @@ export class ObjectNode<T, RootT> {
    */
   format(opts: FormatOpts, isRoot?: boolean): string {
     return this.descriptor.format(this, opts, isRoot);
+  }
+
+  /**
+   * The shortest readable form of this node, for printing inside an already-collapsed parent.
+   *
+   * Prefers the real content: the collapsed text is returned as-is whenever it fits the budget,
+   * so a small object keeps its fields and a short string keeps its characters. Only text that
+   * overflows the budget falls back to the descriptor's own summary. A descriptor without one has
+   * nothing shorter to offer, so its collapsed text stands.
+   */
+  getSummary(): string {
+    const collapsed = this.format({ collapse: true, skipHandle: true });
+    if (collapsed.length <= SUMMARY_BUDGET) {
+      return collapsed;
+    }
+    return this.descriptor.getSummary?.(this) ?? collapsed;
   }
 
   /**

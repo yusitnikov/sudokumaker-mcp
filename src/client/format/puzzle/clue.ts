@@ -15,12 +15,7 @@ const clueLabel = (
 
   if (elementType.clue) {
     try {
-      // `elementType` is one of 46 concrete element types, each with its own clue shape - `clue`'s
-      // real type depends on which one this is, which is exactly the "heterogeneous, resolved only
-      // at runtime" case `ObjectNode<any, RootT>` covers at node edges generally.
-      const cells = (
-        elementType.clue.getAffectedCells as (clue: any) => string[]
-      )(clue);
+      const cells = elementType.clue.getAffectedCells(clue as any);
       if (cells.length) {
         return cells.join(" ");
       }
@@ -63,6 +58,17 @@ export const getClueDescriptor = (
       }
 
       return baseDescriptor.format(node, opts, isRoot);
+    },
+
+    getSummary(node) {
+      const affectedCellsCount = elementType.clue?.getAffectedCells(
+        node.value as any,
+      )?.length;
+      if (affectedCellsCount) {
+        return `${affectedCellsCount} cells`;
+      }
+
+      return baseDescriptor.getSummary?.(node);
     },
   };
 };

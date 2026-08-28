@@ -80,7 +80,7 @@ describe("array diff, items that changed position", () => {
   // collapsed note closes its own quote and names its length.
   test("cuts a big item short at both ends of a move", () => {
     const big: Clue = { id: 2, value: 20, note: "x".repeat(100) };
-    const short = `{ id: 2, value: 20, note: "${"x".repeat(39)}…" (100 characters) }`;
+    const short = '{ id: 2, value: 20, note: "xxxxxxxxxxxxxxxxx…" }';
 
     expect(
       diff([clue(1, 10), big, clue(3, 30)], [clue(1, 10), clue(3, 30), big]),

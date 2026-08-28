@@ -1,10 +1,10 @@
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import { NoSuchHandleError } from "../NoSuchHandleError";
 import { indent } from "./indent";
-import { truncate } from "./truncate";
 import type { ObjectNode } from "../ObjectNode";
 import { markLinesBlock } from "./markBlock";
 import { formatHandleMarker } from "../formatHandleMarker";
+import { SUMMARY_BUDGET } from "../sizeLimits";
 
 export type ObjectDescriptorsMap<T, RootT> = {
   [K in keyof T]?:
@@ -57,27 +57,42 @@ export const getPlainObjectDescriptor = <
     },
 
     format(node, opts) {
-      const parts = getKeys(node.value)
+      const childNodes = getKeys(node.value)
         .filter((key) => node.value[key] !== undefined)
-        .map(
-          (key) =>
-            `${key}: ${node.child(key).format({ ...opts, skipHandle: opts.skipHandle || opts.collapse })}`,
-        );
-      const partsStr = parts.join(", ");
+        .map((key) => ({ key, childNode: node.child(key) }));
+      const parts = childNodes.map(
+        ({ key, childNode }) => `${key}: ${childNode.format(opts)}`,
+      );
+      const shortFormat = `{ ${parts.join(", ")} }`;
 
       if (opts.collapse) {
-        // Short form: the object's own inline text, truncated - not a bare key count, since the
-        // leading fields are usually enough to recognize what this is (`{ position: { x: 4.5, ... }`).
-        const truncated = truncate(partsStr, 80);
-        // Only a truncated object withheld anything; one that fit is whole and needs no pointer.
-        return truncated === partsStr
-          ? `{ ${partsStr} }`
-          : `{ ${truncated} }${formatHandleMarker(node, opts)}`;
+        // If the oneliner is short enough, just return it
+        if (shortFormat.length <= 80) {
+          return shortFormat;
+        }
+
+        const summarized = childNodes
+          .map(({ key, childNode }) => `${key}: ${childNode.getSummary()}`)
+          .join(", ");
+        return `{ ${summarized} }${formatHandleMarker(node, opts)}`;
       }
 
-      return partsStr.includes("\n") || partsStr.length > 200
+      return shortFormat.includes("\n") || shortFormat.length > 200
         ? `{\n${indent(parts.join("\n"))}\n}`
-        : `{ ${partsStr} }`;
+        : shortFormat;
+    },
+
+    getSummary(node) {
+      const keys = getKeys(node.value).filter(
+        (key) => node.value[key] !== undefined,
+      );
+
+      // Key names identify an object far better than a count does, so they're kept while they fit:
+      // `{ x, y, radius }` says what this is, `{ 3 keys }` doesn't. The values are what overflowed.
+      const keysStr = `{ ${keys.join(", ")} }`;
+      return keysStr.length <= SUMMARY_BUDGET
+        ? keysStr
+        : `{ ${keys.length} ${keys.length === 1 ? "key" : "keys"} }`;
     },
 
     diff(from, to) {

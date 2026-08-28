@@ -95,7 +95,9 @@ the whole puzzle as `root` (so `cells` can read `allElements` for its region sep
 
 - `child(node, segment)` - one named child, for `resolveHandle`'s fold. Throws `NoSuchHandleError`
   naming what it *does* accept; the node that owns the vocabulary writes its own error text.
-- `format(node, opts)` - this node's whole text. `opts.collapse` picks the one-line short form.
+- `format(node, opts)` - this node's whole text. `opts.collapse` picks the short form, which is
+  always exactly one line.
+- `getSummary(node)` - optional shorter fallback for when even that line doesn't fit; `ObjectNode.getSummary` picks.
 - `diff(from, to)` - this node against an older version of itself.
 
 Descriptors are composed by hand along the known structure, never inferred from values or schemas:
