@@ -30,16 +30,17 @@ export const getArrayDescriptor = <ItemT, RootT>({
   sizeLimit = SIZE_FLOOR,
 }: ArrayDescriptorOptions<ItemT, RootT>): ObjectDescriptor<ItemT[], RootT> => ({
   child(node, segment) {
-    const index = Number(segment);
-    if (!Number.isInteger(index) || !(index in node.value)) {
-      throw new NoSuchHandleError(node.handle, "zero-based array index");
+    const position = Number(segment);
+    const index = position - 1;
+    if (!Number.isInteger(position) || !(index in node.value)) {
+      throw new NoSuchHandleError(node.handle, "one-based array index");
     }
-    return node._child(index, itemDescriptor);
+    return node._child(index, itemDescriptor, segment);
   },
 
   format(node, opts, isRoot) {
     const childNodes = node.value.map((_, index) =>
-      node._child(index, itemDescriptor),
+      node._child(index, itemDescriptor, index + 1),
     );
     const items = childNodes.map((childNode) => childNode.format(opts));
     const shortFormat = `[ ${items.join(", ")} ]`;
@@ -96,7 +97,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
     const collapseOpportunities = items
       .map((line, index) => {
         const collapsed = node
-          ._child(index, itemDescriptor)
+          ._child(index, itemDescriptor, index + 1)
           .format({ ...opts, collapse: true });
 
         return {
@@ -134,17 +135,21 @@ export const getArrayDescriptor = <ItemT, RootT>({
 
     return renderArrayDiff(ops, from.value.length, to.value.length, {
       formatAdded: (toItem) =>
-        to._child(toItem.index, itemDescriptor).format({ collapse: false }),
+        to
+          ._child(toItem.index, itemDescriptor, toItem.index + 1)
+          .format({ collapse: false }),
       formatRemoved: (fromItem, collapse = false) =>
         from
-          ._child(fromItem.index, itemDescriptor)
+          ._child(fromItem.index, itemDescriptor, fromItem.index + 1)
           .format({ collapse, skipHandle: true }),
       formatUnchanged: (toItem) =>
-        to._child(toItem.index, itemDescriptor).format({ collapse: true }),
+        to
+          ._child(toItem.index, itemDescriptor, toItem.index + 1)
+          .format({ collapse: true }),
       diffItem: (fromItem, toItem) =>
         from
-          ._child(fromItem.index, itemDescriptor)
-          .diff(to._child(toItem.index, itemDescriptor)),
+          ._child(fromItem.index, itemDescriptor, fromItem.index + 1)
+          .diff(to._child(toItem.index, itemDescriptor, toItem.index + 1)),
       countLabel,
     });
   },

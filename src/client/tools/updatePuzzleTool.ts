@@ -46,7 +46,7 @@ the puzzle state after earlier ones already applied.
         z.object({
           path: z.string().describe(
             // language=markdown
-            `The handle of the affected node, exactly as \`${getPuzzleToolName}\` prints it - dot-joined segments, e.g. \`allElements.0.config\`.`,
+            `The handle of the affected node, exactly as \`${getPuzzleToolName}\` prints it - dot-joined segments, e.g. \`allElements.1.config\`.`,
           ),
           update: z
             .union([

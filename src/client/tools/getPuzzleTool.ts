@@ -2,7 +2,6 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzle } from "../utils";
 import { getPuzzleToolName } from "./toolNames";
-import { getElementFinalName } from "./elementUtils";
 import { NoSuchHandleError } from "../format/NoSuchHandleError";
 import { puzzleNode } from "../format/puzzle/puzzle";
 
@@ -53,8 +52,7 @@ it returns only that sub-value instead of the whole puzzle, which is cheaper for
         {
           type: "text" as const,
           text: [
-            path &&
-              `"${puzzle.name}" — ${path}${describeEnclosingElement(puzzle, path)}`,
+            path && `"${puzzle.name}" — ${path}`,
             node.format({ collapse: false }, true),
             // language=markdown
             `
@@ -69,19 +67,3 @@ Handles are dot-joined paths (e.g. \`allElements.3.config.style\`); grid nodes t
     };
   },
 );
-
-/** For a re-rooted `path` inside `allElements.N`, a one-line gloss naming which element this is: ` of "Slow thermometers" (type Thermometer, ID 5)`. Empty string when `path` doesn't reach into an element. */
-const describeEnclosingElement = (
-  puzzle: ReturnType<typeof getPuzzle>,
-  path: string,
-): string => {
-  const match = /^allElements\.(\d+)/.exec(path);
-  if (!match) {
-    return "";
-  }
-  const element = puzzle.allElements[Number(match[1])];
-  if (!element) {
-    return "";
-  }
-  return ` of "${getElementFinalName(element)}" (type ${element.config.type}, ID ${element.id})`;
-};

@@ -90,7 +90,7 @@ describe("array diff, items that changed position", () => {
         "  { id: 1, value: 10 }",
         `- (moved to position 3) ${short}`,
         "  { id: 3, value: 30 }",
-        `+ (moved from position 2 with no changes) ${short}   <collapsed, full content at path "clues.2">`,
+        `+ (moved from position 2 with no changes) ${short}   <collapsed, full content at path "clues.3">`,
         "]",
       ].join("\n"),
     );

@@ -45,17 +45,22 @@ export class ObjectNode<T, RootT> {
     return current;
   }
 
-  /** Builds the child node for a known key of `value`, defaulting to the generic `object` descriptor. */
+  /**
+   * Builds the child node for a known key of `value`, defaulting to the generic `object` descriptor.
+   * `handleSegment` overrides the printed handle segment when it must differ from the storage key
+   * (e.g. an array index is stored zero-based but printed one-based, the way the reader counts).
+   */
   _child<KeyT extends keyof T>(
     key: KeyT,
     descriptor: ObjectDescriptor<T[KeyT], RootT> = getUnknownDescriptor(),
+    handleSegment: KeyT | string = key,
   ) {
     return new ObjectNode(
       this.value[key],
       (value) => {
         this.value[key] = value;
       },
-      childHandle(this.handle, String(key)),
+      childHandle(this.handle, String(handleSegment)),
       this.root,
       descriptor,
     );
