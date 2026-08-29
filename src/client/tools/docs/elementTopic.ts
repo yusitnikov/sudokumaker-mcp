@@ -7,7 +7,7 @@ import { elementsTopicName, elementTopicPrefix } from "./topicNames";
 const renderParams = (paramsSchema: z.ZodObject | undefined): string[] =>
   paramsSchema
     ? [
-        `Creating this variant takes a \`params\` object:`,
+        "Creating this variant takes a `params` object:",
         "```json",
         ...JSON.stringify(
           z.toJSONSchema(paramsSchema, { io: "input" }),
@@ -37,52 +37,56 @@ export const getElementTopic = (name: string): string | undefined => {
 
   const lines: string[] = [
     `# Element type \`${typeName}\``,
-    ``,
-    `## Variants`,
-    ``,
+    "",
+    "## Variants",
+    "",
   ];
 
   lines.push(
     `"${main.title}" — ${main.description}`,
     ...renderParams(main.paramsSchema),
-    ``,
+    "",
   );
 
   if (options.length > 0) {
     lines.push(
-      `This type also covers these variants (same config shape, different default values):`,
-      ``,
+      "This type also covers these variants (same config shape, different default values):",
+      "",
       ...options.flatMap((option) => [
         `- **${option.title}** — ${option.description}`,
         ...renderParams(option.paramsSchema).map((line) => `  ${line}`),
       ]),
-      ``,
+      "",
     );
+  }
+
+  for (const { header, contents } of element.extraDocs ?? []) {
+    lines.push(`## ${header}`, "", contents, "");
   }
 
   if (globalSchema) {
     lines.push(
-      `## Config`,
-      ``,
+      "## Config",
+      "",
       "```json",
       JSON.stringify(z.toJSONSchema(globalSchema, { io: "input" }), null, 2),
       "```",
-      ``,
+      "",
     );
   } else {
-    lines.push(`This type has no config fields of its own.`, ``);
+    lines.push("This type has no config fields of its own.", "");
   }
 
   if (clue) {
     lines.push(
-      `## Clues`,
-      ``,
+      "## Clues",
+      "",
       `Clues live in the \`${clue.key}\` array of the element's config. Each clue:`,
-      ``,
+      "",
       "```json",
       JSON.stringify(z.toJSONSchema(clue.schema, { io: "input" }), null, 2),
       "```",
-      ``,
+      "",
     );
   } else if (globalSchema) {
     // No `clue` descriptor means either "one implicit clue" (e.g. SudokuRules' `areas`,
@@ -94,12 +98,12 @@ export const getElementTopic = (name: string): string | undefined => {
     // true of every case: the fields are set as a whole via `update_element`.
     lines.push(
       `No separate clue array — the whole config above is set at once via \`${updateElementToolName}\`.`,
-      ``,
+      "",
     );
   } else {
     lines.push(
-      `No clues and no config — the element's mere presence in the puzzle is the whole clue.`,
-      ``,
+      "No clues and no config — the element's mere presence in the puzzle is the whole clue.",
+      "",
     );
   }
 

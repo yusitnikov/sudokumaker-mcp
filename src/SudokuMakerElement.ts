@@ -9,6 +9,7 @@ import {
   OuterCellId,
   parseCellNotation,
   CellsRectangle,
+  PuzzleTypeNative,
   Spec,
   SudokuLayer,
   DigitSetSchema,
@@ -74,6 +75,10 @@ export class SudokuMakerElement<
     PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
     ClueKeyT
   >[];
+  /** Extra sections appended to this type's generated `element:<TypeName>` docs topic. */
+  public readonly extraDocs?: { header: string; contents: string }[];
+  /** Given the target puzzle's spec, the reason adding this type is refused there - or undefined to allow it. */
+  public readonly getRefuseAddReason?: SpecGetter<string | undefined>;
 
   constructor({
     type,
@@ -81,6 +86,8 @@ export class SudokuMakerElement<
     clue,
     main,
     options = [],
+    getRefuseAddReason,
+    extraDocs,
   }: {
     type: TypeT;
     schema?: ConfigSchemaT;
@@ -94,6 +101,8 @@ export class SudokuMakerElement<
       PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
       ClueKeyT
     >[];
+    extraDocs?: { header: string; contents: string }[];
+    getRefuseAddReason?: SpecGetter<string | undefined>;
   }) {
     const cluesKey = clue?.key;
     const clueSchema = clue?.schema;
@@ -124,6 +133,8 @@ export class SudokuMakerElement<
     this.clue = clue;
     this.main = main;
     this.options = options;
+    this.extraDocs = extraDocs;
+    this.getRefuseAddReason = getRefuseAddReason;
   }
 
   getElementMetadata(
@@ -386,6 +397,13 @@ export const Cage = <ValueT extends z.ZodType>(ValueType: ValueT) => {
 // endregion
 
 // region Single-option elements
+const sudokuRulesRedundantOnSudokuTypeReason = `
+A puzzle whose type is "${PuzzleTypeNative.Sudoku}" already implies row/column uniqueness
+without this element present - adding it there is redundant.
+This element only has an effect on a "${PuzzleTypeNative.Custom}"-type puzzle,
+where nothing about rows or columns is implicit.
+`.trim();
+
 export const SudokuRulesElement = new SudokuMakerElement({
   type: ElementType.SudokuRules,
   schema: z.object({
@@ -395,6 +413,16 @@ export const SudokuRulesElement = new SudokuMakerElement({
     title: "Rows and columns",
     description: "All rows and columns must contain different digits.",
   },
+  extraDocs: [
+    {
+      header: "Availability",
+      contents: sudokuRulesRedundantOnSudokuTypeReason,
+    },
+  ],
+  getRefuseAddReason: (spec) =>
+    spec.type === PuzzleTypeNative.Sudoku
+      ? sudokuRulesRedundantOnSudokuTypeReason
+      : undefined,
 });
 
 export const GivensElement = new SudokuMakerElement({

@@ -15,7 +15,11 @@ import { getPuzzle, updatePuzzle } from "../utils";
 import { getElementById } from "./elementUtils";
 import { elementIdNote, partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
-import { elementsTopicName, elementTopicPattern } from "./docs/topicNames";
+import {
+  elementsTopicName,
+  elementTopicPattern,
+  elementTopicPrefix,
+} from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const addElementTool = new ToolImplementation(
@@ -156,6 +160,20 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
     }
 
     const elementType = getElementByTypeName(element.type);
+
+    const refuseReason = elementType.getRefuseAddReason?.(spec);
+    if (refuseReason) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `${refuseReason}\n\nSee docs topic \`${elementTopicPrefix}${elementType.typeName}\` for more.`,
+          },
+        ],
+        isError: true,
+      };
+    }
+
     const elementSubType = [elementType.main, ...elementType.options].find(
       ({ title }) => title === element.subType,
     )!;
