@@ -1314,17 +1314,11 @@ export const CustomElement = new SudokuMakerElement({
     getTitle: (config) => config.name || "Custom constraint",
     description: "Code your own constraints in Javascript",
     defaultConfig: {
-      definition: {
-        name: "New constraint",
-        input: [],
-        backend: {
-          type: "code",
-          code: "",
-        },
-        components: [],
-      },
-      input: {},
-      style: {},
+      name: "New constraint",
+      isGlobal: true,
+      inputGroups: [],
+      initializationCode: "",
+      customComponents: [],
     },
   },
 });
