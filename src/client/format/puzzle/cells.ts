@@ -95,9 +95,13 @@ export const formatCellToken = (cell: CellPublic): string => {
   return cell.valid ? core : `X${core}`;
 };
 
-const colorLegend = (cellsGrid: CellPublic[][]): string | undefined => {
+const colorLegend = (...cellsGrids: CellPublic[][][]): string | undefined => {
   const colors = [
-    ...new Set(cellsGrid.flatMap((row) => row.flatMap((cell) => cell.colors))),
+    ...new Set(
+      cellsGrids.flatMap((cellsGrid) =>
+        cellsGrid.flatMap((row) => row.flatMap((cell) => cell.colors)),
+      ),
+    ),
   ].sort((a, b) => a - b);
   if (!colors.length) {
     return undefined;
@@ -120,16 +124,18 @@ const regionAt = (
   column: number,
 ): number => (regions ? (regions[row - 1]?.[column - 1] ?? 0) : 0);
 
-const columnWidths = (cellsGrid: CellPublic[][]): number[] => {
-  const columnCount = cellsGrid[0]?.length ?? 0;
+const columnWidths = (...cellsGrids: CellPublic[][][]): number[] => {
+  const columnCount = cellsGrids[0]?.[0]?.length ?? 0;
   const widths = new Array<number>(columnCount).fill(1);
-  for (const row of cellsGrid) {
-    row.forEach((cell, columnIndex) => {
-      widths[columnIndex] = Math.max(
-        widths[columnIndex],
-        formatCellToken(cell).length,
-      );
-    });
+  for (const cellsGrid of cellsGrids) {
+    for (const row of cellsGrid) {
+      row.forEach((cell, columnIndex) => {
+        widths[columnIndex] = Math.max(
+          widths[columnIndex],
+          formatCellToken(cell).length,
+        );
+      });
+    }
   }
   return widths;
 };
@@ -223,7 +229,7 @@ const diffGridRows = (
   root: PuzzlePublic,
 ): string => {
   const regions = findRegionsGrid(root);
-  const widths = columnWidths(toGrid);
+  const widths = columnWidths(fromGrid, toGrid);
 
   const changedLines: string[] = [];
   toGrid.forEach((row, rowIndex) => {
@@ -248,7 +254,7 @@ const diffGridRows = (
 
   lines.push(...changedLines);
 
-  const legend = colorLegend(toGrid);
+  const legend = colorLegend(fromGrid, toGrid);
   if (legend) {
     lines.push(legend);
   }
