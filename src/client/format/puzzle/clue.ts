@@ -1,4 +1,4 @@
-import { getElementByTypeName } from "../../../SudokuMakerElement";
+import { type ElementWithClue } from "../../../SudokuMakerElement";
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { getUnknownDescriptor } from "../generic/unknownDescriptor";
@@ -7,10 +7,7 @@ import { formatCellNotation } from "../../../SudokuMakerSchemas";
 import { formatHandleMarker } from "../formatHandleMarker";
 
 /** Labels a clue by the cells it touches, falling back to no label. */
-const clueLabel = (
-  clue: unknown,
-  elementType: ReturnType<typeof getElementByTypeName>,
-): string => {
+const clueLabel = (clue: unknown, elementType: ElementWithClue): string => {
   // TODO: fix this mess
 
   if (elementType.clue) {
@@ -42,7 +39,7 @@ const clueLabel = (
 };
 
 export const getClueDescriptor = (
-  elementType: ReturnType<typeof getElementByTypeName>,
+  elementType: ElementWithClue,
 ): ObjectDescriptor<unknown, PuzzlePublic> => {
   const baseDescriptor = getUnknownDescriptor<unknown, PuzzlePublic>();
 

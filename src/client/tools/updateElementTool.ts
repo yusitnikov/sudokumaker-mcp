@@ -130,7 +130,7 @@ ${partialUpdateNote}
         ...(elementType.clue
           ? {
               clueBatchUpdates: ZodDeepPartial(
-                elementType.clue.schema,
+                elementType.clue.schema as any,
               ).optional(),
             }
           : {}),
@@ -155,7 +155,7 @@ ${partialUpdateNote}
           );
         }
         if (clueBatchUpdates && cluesKey) {
-          const config = element.config as {
+          const config = element.config as unknown as {
             [key in typeof cluesKey]: any[];
           };
           config[cluesKey] = config[cluesKey].map((value) =>

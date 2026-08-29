@@ -1,6 +1,7 @@
 import {
   type ElementPublic,
   getElementByTypeName,
+  isElementWithClue,
 } from "../../../SudokuMakerElement";
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
@@ -31,8 +32,6 @@ const elementBaseDescriptor = getPlainObjectDescriptor<
     config: (node) => {
       const elementType = getElementByTypeName(node.value.config.type);
 
-      const cluesKey = elementType.clue?.key;
-
       const childMap: ObjectDescriptorsMap<
         ElementPublic["config"],
         PuzzlePublic
@@ -40,10 +39,13 @@ const elementBaseDescriptor = getPlainObjectDescriptor<
         // TODO: fix this mess
         regions: regionsDescriptor as any,
       };
-      if (cluesKey) {
-        (childMap as any)[cluesKey] = getArrayDescriptor({
-          itemDescriptor: getClueDescriptor(elementType),
-        });
+      if (isElementWithClue(elementType)) {
+        const cluesKey = elementType.clue?.key;
+        if (cluesKey) {
+          (childMap as any)[cluesKey] = getArrayDescriptor({
+            itemDescriptor: getClueDescriptor(elementType),
+          });
+        }
       }
 
       return getPlainObjectDescriptor<ElementPublic["config"], PuzzlePublic>({

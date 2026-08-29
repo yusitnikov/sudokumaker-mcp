@@ -26,21 +26,28 @@ type PublicConfigT<
   ClueConfigSchemaT extends z.ZodType | never,
 > = z.input<ConfigSchemaT> & {
   type: (typeof ElementType)[TypeT];
-} & (ClueKeyT extends string
-    ? ClueConfigSchemaT extends z.ZodType
-      ? { [K in ClueKeyT]: z.input<ClueConfigSchemaT>[] }
-      : {}
-    : {});
+} &
+  // Multi-clue types add their clues array; types without a clue descriptor add nothing.
+  // The tuple brackets keep the conditional non-distributive: a bare `ClueKeyT extends ...`
+  // would evaluate per union member, and `never` (no members) would yield `never`,
+  // annihilating the whole intersection.
+  ([ClueKeyT] extends [never]
+    ? {}
+    : [ClueConfigSchemaT] extends [never]
+      ? {}
+      : { [K in ClueKeyT]: z.input<ClueConfigSchemaT>[] });
 type InternalConfigT<
   TypeT extends ElementType,
   ConfigSchemaT extends z.ZodType,
   ClueKeyT extends string | never,
   ClueConfigSchemaT extends z.ZodType | never,
-> = z.output<ConfigSchemaT> & { type: TypeT } & (ClueKeyT extends string
-    ? ClueConfigSchemaT extends z.ZodType
-      ? { [K in ClueKeyT]: z.output<ClueConfigSchemaT>[] }
-      : {}
-    : {});
+> = z.output<ConfigSchemaT> & { type: TypeT } &
+  // Clues array as in `PublicConfigT`, on the decoded side.
+  ([ClueKeyT] extends [never]
+    ? {}
+    : [ClueConfigSchemaT] extends [never]
+      ? {}
+      : { [K in ClueKeyT]: z.output<ClueConfigSchemaT>[] });
 
 interface ClueDescriptor<
   ClueKeyT extends string,
@@ -54,9 +61,9 @@ interface ClueDescriptor<
 export class SudokuMakerElement<
   TypeT extends ElementType,
   ConfigSchemaT extends z.ZodType,
-  ClueKeyT extends string | never,
-  ClueConfigSchemaT extends z.ZodType | never,
   ParamsSchemaT extends z.ZodObject,
+  ClueKeyT extends string | never = never,
+  ClueConfigSchemaT extends z.ZodType | never = never,
 > {
   public readonly typeId: TypeT;
   public readonly typeName: (typeof ElementType)[TypeT];
@@ -329,11 +336,14 @@ export const OuterClueStyle = z
 const LineClueSchema = z.array(CellId).meta({
   description: "The list of all cells that lines goes through",
 });
-const LineClue: ClueDescriptor<"lines", typeof LineClueSchema> = {
-  key: "lines",
+const getLineClue = <KeyT extends string>(
+  key: KeyT,
+): ClueDescriptor<KeyT, typeof LineClueSchema> => ({
+  key,
   schema: LineClueSchema,
   getAffectedCells: (cells) => cells,
-};
+});
+const LineClue = getLineClue("lines");
 
 export const LineElementConfigBase = z
   .object({
@@ -542,11 +552,14 @@ export const NonconsecutiveElement = new SudokuMakerElement({
   },
 });
 
-const SingleCellClue: ClueDescriptor<"cells", typeof CellId> = {
-  key: "cells" as const,
+const getSingleCellClue = <KeyT extends string>(
+  key: KeyT,
+): ClueDescriptor<KeyT, typeof CellId> => ({
+  key,
   schema: CellId,
   getAffectedCells: (cell) => [cell],
-};
+});
+const SingleCellClue = getSingleCellClue("cells");
 
 export const EvenElement = new SudokuMakerElement({
   type: ElementType.Even,
@@ -1472,10 +1485,7 @@ export const CosmeticSymbolElement = new SudokuMakerElement({
 
 export const FogLightsElement = new SudokuMakerElement({
   type: ElementType.FogLights,
-  clue: {
-    ...SingleCellClue,
-    key: "lightCells",
-  },
+  clue: getSingleCellClue("lightCells"),
   main: {
     title: "Fog lights",
     description:
@@ -1642,10 +1652,7 @@ export const ThermometerElement = new SudokuMakerElement({
       })
       .describe(""),
   }),
-  clue: {
-    ...LineClue,
-    key: "thermometers",
-  },
+  clue: getLineClue("thermometers"),
   main: {
     title: "Thermometers",
     description:
@@ -1952,3 +1959,15 @@ export type ElementByType<TypeT extends ElementType> = Omit<
 > & {
   config: ElementConfigByType<TypeT>;
 };
+
+type AnyElement = (typeof AllElements)[number];
+
+type WithClue<T> = T extends { clue?: ClueDescriptor<infer K, infer _S> }
+  ? [K] extends [never]
+    ? never
+    : T
+  : never;
+export type ElementWithClue = WithClue<AnyElement>;
+export const isElementWithClue = (
+  element: AnyElement,
+): element is ElementWithClue => !!element.clue;

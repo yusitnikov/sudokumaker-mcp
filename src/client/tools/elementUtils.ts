@@ -2,6 +2,7 @@ import { getPuzzle, updatePuzzle } from "../utils";
 import {
   type ElementPublic,
   getElementByTypeName,
+  isElementWithClue,
 } from "../../SudokuMakerElement";
 import { type CellNotation, CellIdPublic } from "../../SudokuMakerSchemas";
 import { z } from "zod";
@@ -69,14 +70,13 @@ export const getElementWithClueById = (elementId: number) => {
   const { index, targetElement } = getElementById(elementId);
   const elementType = getElementByTypeName(targetElement.config.type);
 
-  const clueType = elementType.clue;
-  if (!clueType) {
+  if (!isElementWithClue(elementType)) {
     throw new Error(
       `Element type "${targetElement.config.type}" has no clues - this tool only applies to multi-clue element types.`,
     );
   }
 
-  return { index, targetElement, elementType, clueType };
+  return { index, targetElement, elementType, clueType: elementType.clue! };
 };
 
 export const ClueCellsGroupFilter = z.array(CellIdPublic).meta({

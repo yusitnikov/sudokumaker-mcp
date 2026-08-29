@@ -1,30 +1,24 @@
 import { CellSchema } from "../SudokuMakerSchemas";
 import { z } from "zod";
 import { type PuzzlePublic, PuzzleSchema } from "../SudokuMakerPuzzleSchema";
-import {
-  type ElementByType,
-  ElementType,
-  getElementByConfig,
-} from "../SudokuMakerElement";
+import { getElementByConfig } from "../SudokuMakerElement";
 
 export const getPuzzle = () => {
   const puzzle = PuzzleSchema.encode(window.Api.getPuzzle());
 
-  puzzle.allElements.forEach(
-    <TypeT extends ElementType>(element: ElementByType<TypeT>) => {
-      const elementType = getElementByConfig<TypeT>(element.config);
+  puzzle.allElements.forEach((element) => {
+    const elementType = getElementByConfig(element.config);
 
-      const elementMetadata = elementType.getElementMetadata(
-        element.config,
-        puzzle.spec,
-      );
+    const elementMetadata = elementType.getElementMetadata(
+      element.config as any,
+      puzzle.spec,
+    );
 
-      element.elementMetadata = {
-        defaultName: elementMetadata.title,
-        description: elementMetadata.description,
-      };
-    },
-  );
+    element.elementMetadata = {
+      defaultName: elementMetadata.title,
+      description: elementMetadata.description,
+    };
+  });
 
   return puzzle;
 };

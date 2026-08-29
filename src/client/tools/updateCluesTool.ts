@@ -89,7 +89,7 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
         updateGroups: z.array(
           z.object({
             clueCells: ClueCellsGroupFilter,
-            updates: ZodDeepPartial(clueType.schema),
+            updates: ZodDeepPartial(clueType.schema as any),
           }),
         ),
       },
