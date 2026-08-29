@@ -7,7 +7,10 @@ import {
   parseElementSpecificData,
 } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
-import { operationDescriptionParam } from "./descriptionSnippets";
+import {
+  elementIdNote,
+  operationDescriptionParam,
+} from "./descriptionSnippets";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
 import {
   addCluesToolName,
@@ -35,10 +38,16 @@ clues are pushed onto the end of the element's clue list; use
     },
   },
   z.object({
-    elementId: z.number().int().describe(
-      // language=markdown
-      `ID of the target element (the multi-clue element to add clues to), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
-    ),
+    elementId: z
+      .number()
+      .int()
+      .describe(
+        // language=markdown
+        `
+ID of the target element (the multi-clue element to add clues to), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
+${elementIdNote}
+        `.trim(),
+      ),
     operationDescription: operationDescriptionParam,
     clues: z.array(jsonValue).describe(
       // language=markdown

@@ -8,6 +8,7 @@ import {
   removeElementToolName,
 } from "./toolNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
+import { elementIdNote } from "./descriptionSnippets";
 
 export const removeElementTool = new ToolImplementation(
   {
@@ -20,10 +21,16 @@ export const removeElementTool = new ToolImplementation(
     },
   },
   z.object({
-    elementId: z.number().int().describe(
-      // language=markdown
-      `ID of the element to remove, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
-    ),
+    elementId: z
+      .number()
+      .int()
+      .describe(
+        // language=markdown
+        `
+ID of the element to remove, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
+${elementIdNote}
+        `.trim(),
+      ),
     elementName: z.string().describe(
       // language=markdown
       `The element's display name - set it so the user sees which element they're deleting when reviewing this call, not just a bare ID.`,

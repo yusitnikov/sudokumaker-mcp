@@ -10,6 +10,7 @@ import {
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getPuzzle } from "../utils";
 import {
+  elementIdNote,
   operationDescriptionParam,
   partialUpdateNote,
 } from "./descriptionSnippets";
@@ -43,7 +44,10 @@ wasn't the clue you intended.
       .number()
       .int()
       .describe(
-        `ID of the target element (the multi-clue element whose clues to update), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
+        `
+ID of the target element (the multi-clue element whose clues to update), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
+${elementIdNote}
+        `.trim(),
       ),
     operationDescription: operationDescriptionParam,
     updateGroups: z

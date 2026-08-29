@@ -8,6 +8,7 @@ import {
 } from "./elementUtils";
 import { getPuzzle, updatePuzzle } from "../utils";
 import {
+  elementIdNote,
   operationDescriptionParam,
   partialUpdateNote,
 } from "./descriptionSnippets";
@@ -38,10 +39,16 @@ the \`clueBatchUpdates\` field here applies identically to ALL clues.
     },
   },
   z.object({
-    elementId: z.number().int().describe(
-      // language=markdown
-      `ID of the target element to update, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
-    ),
+    elementId: z
+      .number()
+      .int()
+      .describe(
+        // language=markdown
+        `
+ID of the target element to update, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
+${elementIdNote}
+        `.trim(),
+      ),
     operationDescription: operationDescriptionParam,
     elementUpdates: z
       .looseObject({})

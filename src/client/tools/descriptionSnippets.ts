@@ -18,3 +18,7 @@ export const operationDescriptionParam = z
  */
 export const partialUpdateNote =
   "Send only the fields you want to change, at any nesting level - any field you omit (at any level) keeps its current value. If you include an array-valued field, it replaces the whole array rather than merging item-by-item.";
+
+/** Shared description fragment for every `elementId` field: the ID is a stable identifier, not the element's position in `allElements`, which shifts if elements are reordered. */
+export const elementIdNote =
+  "This is the element's ID, not its `allElements.N` handle - the handle shifts if elements are reordered, the ID doesn't.";

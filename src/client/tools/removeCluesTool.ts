@@ -6,7 +6,10 @@ import {
   updateCluesByCellGroups,
 } from "./elementUtils";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { operationDescriptionParam } from "./descriptionSnippets";
+import {
+  elementIdNote,
+  operationDescriptionParam,
+} from "./descriptionSnippets";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
 import { getPuzzle } from "../utils";
 import {
@@ -33,10 +36,16 @@ the clue you intended.
     },
   },
   z.object({
-    elementId: z.number().int().describe(
-      // language=markdown
-      `ID of the target element (the multi-clue element to remove clues from), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.`,
-    ),
+    elementId: z
+      .number()
+      .int()
+      .describe(
+        // language=markdown
+        `
+ID of the target element (the multi-clue element to remove clues from), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
+${elementIdNote}
+        `.trim(),
+      ),
     operationDescription: operationDescriptionParam,
     clueCellGroups: z.array(ClueCellsGroupFilter).describe(
       // language=markdown

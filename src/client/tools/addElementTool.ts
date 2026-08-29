@@ -13,7 +13,7 @@ import {
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getPuzzle, updatePuzzle } from "../utils";
 import { getElementById } from "./elementUtils";
-import { partialUpdateNote } from "./descriptionSnippets";
+import { elementIdNote, partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
 import { elementsTopicName, elementTopicPattern } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
@@ -118,7 +118,10 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
           ),
         z
           .object({
-            elementId: z.number().int().describe("Target element ID"),
+            elementId: z
+              .number()
+              .int()
+              .describe(`Target element ID. ${elementIdNote}`),
             position: z.enum(["before", "after"]),
           })
           .describe(
