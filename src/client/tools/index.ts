@@ -1,6 +1,7 @@
 import { getPuzzleTool } from "./getPuzzleTool";
 import { getLogsTool } from "./getLogsTool";
 import { updatePuzzleTool } from "./updatePuzzleTool";
+import { updatePuzzleMetadataTool } from "./updatePuzzleMetadataTool";
 import { updateGivenDigitsTool } from "./updateGivenDigitsTool";
 import { updateCellValuesTool } from "./updateCellValuesTool";
 import { updateCellMarksTool } from "./updateCellMarksTool";
@@ -26,6 +27,7 @@ export const tools = [
   getPuzzleTool,
   getLogsTool,
   updatePuzzleTool,
+  updatePuzzleMetadataTool,
   updateGivenDigitsTool,
   updateCellValuesTool,
   updateCellMarksTool,

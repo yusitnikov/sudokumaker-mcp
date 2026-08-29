@@ -5,7 +5,7 @@ import {
   updateCellMarksToolName,
   updateCellValuesToolName,
   updateGivenDigitsToolName,
-  updatePuzzleToolName,
+  updatePuzzleMetadataToolName,
 } from "../toolNames";
 import {
   cosmeticsTopicName,
@@ -92,7 +92,7 @@ its own area in full, and this list exists so you know the capability exists at 
 Tool-level distinctions that the tool names alone don't settle:
 - Given digits (part of the puzzle definition) go through \`${updateGivenDigitsToolName}\`, not \`${updateCellValuesToolName}\`/\`${updateCellMarksToolName}\` —
   those two are for values/marks set by hand outside the given digits, and are separate from whatever the solver itself has written.
-- Puzzle metadata (title, author, rules text) goes through \`${updatePuzzleToolName}\`.
+- Puzzle metadata (title, author, rules text, completion message, digit range) goes through \`${updatePuzzleMetadataToolName}\`.
 - A mistake — yours or the user's — is reverted with \`${undoToolName}\`; the history is shared with the user's own UI actions.
 
 # MCP server description and instructions

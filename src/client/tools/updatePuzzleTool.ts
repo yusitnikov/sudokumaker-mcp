@@ -16,6 +16,7 @@ import {
   updateCluesToolName,
   updateElementToolName,
   updateGivenDigitsToolName,
+  updatePuzzleMetadataToolName,
   updatePuzzleToolName,
 } from "./toolNames";
 
@@ -27,12 +28,12 @@ export const updatePuzzleTool = new ToolImplementation(
       description:
         // language=markdown
         `
-Directly modify arbitrary paths of the raw puzzle object (title, rules text, or any nested field) -
-a **last-resort escape hatch** for changes no dedicated tool covers (\`${updateGivenDigitsToolName}\`,
-\`${updateCellValuesToolName}\`, \`${updateCellMarksToolName}\`,
-\`${addElementToolName}\`/\`${updateElementToolName}\`/\`${removeElementToolName}\`,
-\`${addCluesToolName}\`/\`${updateCluesToolName}\`/\`${removeCluesToolName}\`). Prefer those tools
-whenever one fits - they validate their inputs and produce readable echoes, this tool does neither.
+Directly modify arbitrary paths of the raw puzzle object - a **last-resort escape hatch** for
+changes no dedicated tool covers (\`${updateGivenDigitsToolName}\`, \`${updateCellValuesToolName}\`,
+\`${updateCellMarksToolName}\`,\`${addElementToolName}\`,\`${updateElementToolName}\`,\`${removeElementToolName}\`,
+\`${addCluesToolName}\`,\`${updateCluesToolName}\`,\`${removeCluesToolName}\`,\`${updatePuzzleMetadataToolName}\`).
+Prefer those tools whenever one fits - they validate their inputs and produce readable echoes,
+this tool does neither.
 
 Applies multiple \`{path, update}\` operations in order, as one atomic change; later operations see
 the puzzle state after earlier ones already applied.
