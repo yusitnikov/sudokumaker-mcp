@@ -1,7 +1,7 @@
 import { defineConfig, build, type Plugin } from "vite";
-import type { OutputChunk, RollupOutput } from "rollup";
+import type { OutputChunk, RolldownOutput } from "rolldown";
 import { dirname, resolve } from "path";
-import { runtimeGlobal } from "./src/client/runtimeGlobal";
+import { runtimeGlobal } from "./src/client/runtimeGlobal.ts";
 
 /**
  * Code that runs inside the Sudoku Maker page is authored as normal TypeScript under
@@ -34,7 +34,7 @@ const injectedPlugin = (): Plugin => {
       }
 
       const entry = resolve(
-        importer === undefined ? __dirname : dirname(importer),
+        importer === undefined ? import.meta.dirname : dirname(importer),
         id.slice(injectedPrefix.length),
       );
 
@@ -64,7 +64,7 @@ const injectedPlugin = (): Plugin => {
             write: false,
             target: "esnext",
             // The snippet crosses the broker on every install: 268 KB -> 107 KB.
-            minify: "esbuild",
+            minify: "oxc",
             lib: {
               entry,
               formats: ["iife"],
@@ -77,9 +77,9 @@ const injectedPlugin = (): Plugin => {
           },
         });
 
-        // build() returns RollupOutput | RollupOutput[] | RollupWatcher; only the first two are
-        // possible here, since this is a one-shot build with no watcher.
-        const outputs: RollupOutput[] = Array.isArray(result)
+        // build() returns RolldownOutput | RolldownOutput[] | RolldownWatcher; only the first two
+        // are possible here, since this is a one-shot build with no watcher.
+        const outputs: RolldownOutput[] = Array.isArray(result)
           ? result
           : "output" in result
             ? [result]
@@ -125,13 +125,13 @@ export default defineConfig({
     ssr: true,
     lib: {
       entry: {
-        index: resolve(__dirname, "src/index.ts"),
-        "bin/mcp-server": resolve(__dirname, "bin/mcp-server.ts"),
+        index: resolve(import.meta.dirname, "src/index.ts"),
+        "bin/mcp-server": resolve(import.meta.dirname, "bin/mcp-server.ts"),
       },
       formats: ["es"],
       fileName: (_format, entryName) => `${entryName}.js`,
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: [
         "@modelcontextprotocol/sdk",
         "@sitnikov/browser-automation",
