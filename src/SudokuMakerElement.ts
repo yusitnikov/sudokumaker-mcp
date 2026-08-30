@@ -1491,16 +1491,16 @@ export const CosmeticSymbol = z
 
 export const CosmeticSymbolElement = new SudokuMakerElement({
   type: ElementType.CosmeticSymbol,
-  schema: z.object({
-    symbols: z.array(CosmeticSymbol).describe(""),
-  }),
+  clue: {
+    key: "symbols",
+    schema: CosmeticSymbol,
+    // Naive: only looks at the symbol's center point, not its size or rotation.
+    getAffectedCells: (symbol) => getCellsTouchingPoint(symbol.position),
+  },
   main: {
     title: "Cosmetic symbols",
     description:
       "Place symbols (squares, circles, text, arrows) without any (programmed) logic associated with them.",
-    defaultConfig: {
-      symbols: [],
-    },
   },
 });
 
