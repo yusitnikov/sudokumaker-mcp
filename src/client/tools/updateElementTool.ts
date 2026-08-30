@@ -26,7 +26,7 @@ export const updateElementTool = new ToolImplementation(
   {
     definition: {
       name: updateElementToolName,
-      title: "Update Sudoku Maker element",
+      title: "Update SudokuMaker element",
       description:
         // language=markdown
         `

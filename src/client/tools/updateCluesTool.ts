@@ -28,7 +28,7 @@ export const updateCluesTool = new ToolImplementation(
   {
     definition: {
       name: updateCluesToolName,
-      title: "Update Sudoku Maker clues",
+      title: "Update SudokuMaker clues",
       description:
         // language=markdown
         `

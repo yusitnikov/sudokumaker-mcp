@@ -5,7 +5,7 @@ import type { ToolContext } from "./tools/ToolImplementation";
 
 /**
  * The page-side entry point. This module is bundled by the `injected` plugin (see vite.config.ts)
- * and eval'd in the Sudoku Maker tab once per build, rather than per tool call: the bundle carries
+ * and eval'd in the SudokuMaker tab once per build, rather than per tool call: the bundle carries
  * zod plus the whole puzzle schema graph, so shipping it on every call would cost ~110 KB a time.
  *
  * It installs itself on `window`, which survives between `execute_js` calls because the extension

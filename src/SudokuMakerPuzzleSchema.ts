@@ -55,11 +55,11 @@ export const PuzzleSchema = z
               useIncompleteGridAsSolution: z.boolean().describe(""),
             })
             .describe(
-              "Settings that control how the puzzle will be exported from Sudoku Maker to SudokuPad",
+              "Settings that control how the puzzle will be exported from SudokuMaker to SudokuPad",
             ),
         })
         .describe(
-          "Settings that control how the puzzle will be exported from Sudoku Maker to other platforms",
+          "Settings that control how the puzzle will be exported from SudokuMaker to other platforms",
         ),
       id: z
         .number()

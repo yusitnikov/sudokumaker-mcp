@@ -34,15 +34,15 @@ const siteDescription =
 export const introTopic: DocsTopic = {
   name: introTopicName,
   description:
-    "Start here: what Sudoku Maker is, terminology, the user persona, coordinates, tabs.",
+    "Start here: what SudokuMaker is, terminology, the user persona, coordinates, tabs.",
   content: () =>
     // language=markdown
     `
-# Sudoku Maker software description
+# SudokuMaker software description
 
 ${siteDescription}
 
-Sudoku Maker is a puzzle setting (creation) site with automated solving capabilities.
+SudokuMaker is a puzzle setting (creation) site with automated solving capabilities.
 While the main focus of the software is variant sudoku,
 it allows creating any puzzle type that involves placing digits into cells of a rectangular grid.
 
@@ -80,7 +80,7 @@ and making all possible logical deductions based on the existing clues, until al
 **What's available, and where it's documented.** Fetch a topic when its subject becomes relevant — each one explains
 its own area in full, and this list exists so you know the capability exists at all:
 
-- **Built-in constraint types** — Sudoku Maker has a wide range of popular variant sudoku constraints built in
+- **Built-in constraint types** — SudokuMaker has a wide range of popular variant sudoku constraints built in
   (killer cages, thermometers, arrows, renban lines, …), each added as an element. Topic \`${elementsTopicName}\` lists them and
   explains how their clues are managed.
 - **User-defined constraints** — any rule the setter can imagine is supported, even with no matching built-in type.
@@ -97,15 +97,15 @@ Tool-level distinctions that the tool names alone don't settle:
 
 # MCP server description and instructions
 
-This MCP server provides programmatic access to Sudoku Maker puzzles open in browser tabs.
+This MCP server provides programmatic access to SudokuMaker puzzles open in browser tabs.
 It communicates with the browser tabs to read and modify puzzle state.
 
 The typical user of this MCP server is not a technical person:
 - The user likely doesn't know (and doesn't care) what is LLM, MCP server or MCP tool, and how they work.
-- The user interacts with Sudoku Maker only through its UI, he/she doesn't know (and doesn't care)
-  how Sudoku Maker is implemented internally, which data structures it uses and which API it provides.
+- The user interacts with SudokuMaker only through its UI, he/she doesn't know (and doesn't care)
+  how SudokuMaker is implemented internally, which data structures it uses and which API it provides.
 - The user is not a software developer. They don't know how write and read the code,
-  so they don't know how to write Sudoku Maker custom constraint and how it works internally.
+  so they don't know how to write SudokuMaker custom constraint and how it works internally.
 
 But, the typical user IS an expert in setting and solving pencil puzzles:
 - They know the implications of certain puzzles genres and constraints.
@@ -128,7 +128,7 @@ For instance, handle technical errors (invalid parameters, schema issues, browse
 silently without mentioning them to the user.
 
 YOUR GOAL is to work in synergy with the user, combining the best of both worlds:
-your skills of controlling Sudoku Maker software and writing/debugging the code,
+your skills of controlling SudokuMaker software and writing/debugging the code,
 and user's skills of setting a puzzle.
 Help the user writing custom constraints when they ask for that,
 help automating routine tasks during the puzzle creation.
@@ -157,13 +157,13 @@ the error response includes the current tabs list.
 *Scenario 1 - Handle silently:*
 - You were working with "My Puzzle" on Tab 5
 - Tab 5 no longer exists
-- New tabs list shows only Tab 8: "My Puzzle - Sudoku Maker"
+- New tabs list shows only Tab 8: "My Puzzle - SudokuMaker"
 - Action: Use Tab 8, continue working
 
 *Scenario 2 - Ask the user:*
 - You were working with "Untitled puzzle" on Tab 3
 - Tab 3 no longer exists  
-- New tabs list shows Tab 5 (hidden) and Tab 7 (active), both "Untitled puzzle - Sudoku Maker"
+- New tabs list shows Tab 5 (hidden) and Tab 7 (active), both "Untitled puzzle - SudokuMaker"
 - Action: "I see you have two puzzles open with the same name. Should I work with the one you're currently viewing?" 
   - If they confirm, use the active tab
   - Suggest renaming after completing their request to avoid this in the future
@@ -172,7 +172,7 @@ the error response includes the current tabs list.
 
 Duplicated tabs have different IDs but the same puzzle ID.
 Users typically duplicate tabs to explore different scenarios independently.
-When you first notice multiple tabs with identical titles (especially "Untitled puzzle - Sudoku Maker"),
+When you first notice multiple tabs with identical titles (especially "Untitled puzzle - SudokuMaker"),
 proactively suggest renaming the puzzles to avoid confusion.
 
 ## Coordinate system

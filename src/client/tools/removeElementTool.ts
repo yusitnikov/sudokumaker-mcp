@@ -14,7 +14,7 @@ export const removeElementTool = new ToolImplementation(
   {
     definition: {
       name: removeElementToolName,
-      title: "Remove Sudoku Maker element",
+      title: "Remove SudokuMaker element",
       description:
         // language=markdown
         `Delete an entire element (and all of its clues, if any) from the puzzle by ID.`,

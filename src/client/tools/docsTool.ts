@@ -9,7 +9,7 @@ export const docsTool = new ToolImplementation(
   {
     definition: {
       name: docsToolName,
-      title: "Read Sudoku Maker MCP documentation",
+      title: "Read SudokuMaker MCP documentation",
       description:
         // language=markdown
         `

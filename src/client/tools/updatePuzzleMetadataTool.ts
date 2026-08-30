@@ -9,7 +9,7 @@ export const updatePuzzleMetadataTool = new ToolImplementation(
   {
     definition: {
       name: updatePuzzleMetadataToolName,
-      title: "Update Sudoku Maker puzzle metadata",
+      title: "Update SudokuMaker puzzle metadata",
       description:
         // language=markdown
         `
@@ -151,7 +151,7 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
         to.author = from.author;
         to.comment = from.comment;
         to.messages = from.messages;
-        // Sudoku Maker bug: unlike every other field written here, changes to `spec` aren't recorded
+        // SudokuMaker bug: unlike every other field written here, changes to `spec` aren't recorded
         // on the app's undo stack - `undo`/`redo` skip right over them.
         // Nothing to work around from this side; cells cleared below by the range
         // change are still undoable normally, only the `spec` write itself isn't.

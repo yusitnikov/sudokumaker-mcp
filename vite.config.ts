@@ -4,7 +4,7 @@ import { dirname, resolve } from "path";
 import { runtimeGlobal } from "./src/client/runtimeGlobal.ts";
 
 /**
- * Code that runs inside the Sudoku Maker page is authored as normal TypeScript under
+ * Code that runs inside the SudokuMaker page is authored as normal TypeScript under
  * `src/client/`, but has to reach the browser as a string: the only channel into the page is
  * `execute_js`, which evals its `code` argument.
  *

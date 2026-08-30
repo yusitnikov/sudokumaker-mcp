@@ -43,8 +43,8 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
       serverInfo: {
         name: "sudokumaker",
         version: "1.0.0",
-        title: "Sudoku Maker",
-        description: "MCP for controlling Sudoku Maker tabs in the browser",
+        title: "SudokuMaker",
+        description: "MCP for controlling SudokuMaker tabs in the browser",
       },
       serverOptions: {
         instructions: `Read the "${introTopicName}" topic of the ${docsToolName} tool before using any other tool of this MCP server.`,

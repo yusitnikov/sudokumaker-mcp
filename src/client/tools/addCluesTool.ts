@@ -26,7 +26,7 @@ export const addCluesTool = new ToolImplementation(
   {
     definition: {
       name: addCluesToolName,
-      title: "Add Sudoku Maker clues",
+      title: "Add SudokuMaker clues",
       description:
         // language=markdown
         `

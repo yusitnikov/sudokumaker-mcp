@@ -23,7 +23,7 @@ export const removeCluesTool = new ToolImplementation(
   {
     definition: {
       name: removeCluesToolName,
-      title: "Remove Sudoku Maker clues",
+      title: "Remove SudokuMaker clues",
       description:
         // language=markdown
         `

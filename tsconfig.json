@@ -6,7 +6,7 @@
     /*
      * DOM is needed even though the server runs in Node: the shared schema modules reference
      * `window.Api` inside codec transform closures, and everything under `src/client/tools/` runs in the
-     * Sudoku Maker page. Node types are needed for bin/, utils/, and vite.config.ts.
+     * SudokuMaker page. Node types are needed for bin/, utils/, and vite.config.ts.
      */
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"],

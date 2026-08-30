@@ -1,6 +1,6 @@
 # sudokumaker-mcp
 
-An MCP server that controls [Sudoku Maker](https://sudokumaker.app) puzzles open in browser tabs.
+An MCP server that controls [SudokuMaker](https://sudokumaker.app) puzzles open in browser tabs.
 The server runs in Node; everything that touches a puzzle runs inside the page. There is no HTTP API
 and no database - the only channel into a tab is `execute_js`, provided by the
 `@sitnikov/browser-automation` base server.

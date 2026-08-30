@@ -7,7 +7,7 @@ export const digitSetTopic: DocsTopic = {
   // language=markdown
   content: () => `
 \`DigitSet\` is a class that holds a set of digits that allows performing operations on them.
-Sudoku Maker uses \`DigitSet\` to operate with cell candidates,
+SudokuMaker uses \`DigitSet\` to operate with cell candidates,
 and also accepts it in some component arguments, like \`PredefinedCandidatesComponent\`.
 
 **Constructing \`DigitSet\`**:

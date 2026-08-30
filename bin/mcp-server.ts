@@ -5,7 +5,7 @@ import { SudokuMakerMcpServer } from "../src/SudokuMakerMcpServer";
 
 program
   .name("sudokumaker-mcp")
-  .description("MCP server for Sudoku Maker via browser automation")
+  .description("MCP server for SudokuMaker via browser automation")
   .version("0.0.4")
   .option(
     "--broker <url>",

@@ -26,7 +26,7 @@ export const addElementTool = new ToolImplementation(
   {
     definition: {
       name: addElementToolName,
-      title: "Add Sudoku Maker element",
+      title: "Add SudokuMaker element",
       description:
         // language=markdown
         `
@@ -214,7 +214,7 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
         content: [
           {
             type: "text",
-            text: "Something went wrong - failed to add the element. Please report the error to the Sudoku Maker MCP server developer (Chameleon)",
+            text: "Something went wrong - failed to add the element. Please report the error to the SudokuMaker MCP server developer (Chameleon)",
           },
         ],
         isError: true,

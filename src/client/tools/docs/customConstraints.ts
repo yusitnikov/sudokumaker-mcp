@@ -68,7 +68,7 @@ i.e. if the German whispers line is r2c2-r3c3-r4c4-r5c5, then the applied compon
 
 ### Standard components
 
-Sudoku Maker supports the following *standard components* out of the box:
+SudokuMaker supports the following *standard components* out of the box:
 - \`BetweenComponent(name: string, endPoints: [CellId, CellId], midPoints: CellId[])\`
   The digits on all \`midPoints\` must be between the digits on the \`endPoints\`.
 - \`ConsecutiveDigitsComponent(name: string, cells: CellId[])\`
@@ -186,7 +186,7 @@ Or, if the constraint accepts multiple parameters (e.g. multiple digit groups),
 then the \`value\` will contain all these parameters in a pre-defined format (e.g. comma-separated list),
 and the initialization code will parse this format into individual values.
 
-**Note:** Sudoku Maker will execute the initialization code after every user interaction in the UI.
+**Note:** SudokuMaker will execute the initialization code after every user interaction in the UI.
 This includes running the code when the user is in the middle of defining the input groups, for instance:
 - When the user created a new input group, but didn't add any cell yet and didn't type the value yet.
 - When the user started adding the cells to the input group, but didn't finish yet.
@@ -277,14 +277,14 @@ Fetch the \`${customComponentsTopicName}\` topic to learn more.
 
 ## Internal data structures, types, classes and helpers available in custom constraints
 
-**Data structures and format that Sudoku Maker uses in custom constraints
+**Data structures and format that SudokuMaker uses in custom constraints
 are different from the data structures and formats used by the MCP server tools.**
 
 The key differences are described below.
 
 ### Cell IDs and the coordinate system
 
-Sudoku Maker uses unique numeric IDs to reference cells. It uses it everywhere:
+SudokuMaker uses unique numeric IDs to reference cells. It uses it everywhere:
 - In the input groups - \`input.groups[N].cells\` is an array of cell IDs.
 - In the arguments of standard components - the \`CellId\` type in the documentation above
   refers to numeric cell IDs in this format.
@@ -308,7 +308,7 @@ There are helpers for getting human-readable descriptions of cells by IDs:
 ### \`DigitSet\`
 
 \`DigitSet\` is a class that holds a set of digits that allows performing operations on them.
-Sudoku Maker uses \`DigitSet\` to operate with cell candidates,
+SudokuMaker uses \`DigitSet\` to operate with cell candidates,
 and also accepts it in some component arguments, like \`PredefinedCandidatesComponent\`.
 
 The easiest way to create a \`DigitSet\` object is from an array of digits, e.g. \`DigitSet.from([1, 3, 6])\`.
