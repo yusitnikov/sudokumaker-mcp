@@ -89,13 +89,16 @@ export const getElementTopic = (name: string): string | undefined => {
       "",
     );
   } else if (globalSchema) {
-    // No `clue` descriptor means either "one implicit clue" (e.g. SudokuRules' `areas`,
-    // DiagonalPlus' `style`) or "a collection with no clue-array wiring" (e.g. Regions' whole grid
-    // mapping, CosmeticLine's `lines`) — and nothing in the schema shape (top-level array presence,
-    // required-ness) reliably tells the two apart: SudokuRules.areas and FogTriggers.triggers are
-    // both optional arrays, yet one is auxiliary scoping and the other is the element's entire
-    // content. Rather than guess and risk asserting "one clue" where it's false, say only what's
-    // true of every case: the fields are set as a whole via `update_element`.
+    /*
+     * No `clue` descriptor means either "one implicit clue"
+     * (e.g. SudokuRules' `areas`, DiagonalPlus' `style`)
+     * or "a collection with no clue-array wiring" (e.g. Regions' whole grid mapping).
+     * Nothing in the schema shape tells the two apart:
+     * SudokuRules.areas and FogTriggers.triggers are both optional arrays,
+     * yet one is auxiliary scoping and the other is the element's entire content.
+     * Rather than guess and risk asserting "one clue" where it's false,
+     * say only what's true of every case: the fields are set as a whole via `update_element`.
+     */
     lines.push(
       `No separate clue array — the whole config above is set at once via \`${updateElementToolName}\`.`,
       "",

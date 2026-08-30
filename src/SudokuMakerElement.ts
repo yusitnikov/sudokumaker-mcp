@@ -1336,10 +1336,24 @@ export const CustomElement = new SudokuMakerElement({
   },
 });
 
+/**
+ * Cells touched by one point.
+ *
+ * A point strictly inside a cell touches only that cell.
+ * A point exactly on an edge or corner touches every cell that shares it.
+ */
+const getCellsTouchingPoint = ({ x, y }: z.input<typeof IVector2>) => {
+  const columns = Number.isInteger(x) ? [x, x + 1] : [Math.ceil(x)];
+  const rows = Number.isInteger(y) ? [y, y + 1] : [Math.ceil(y)];
+
+  return rows.flatMap((row) =>
+    columns.map((column) => formatCellNotation({ row, column })),
+  );
+};
+
 export const CosmeticLineElement = new SudokuMakerElement({
   type: ElementType.CosmeticLine,
   schema: z.object({
-    lines: z.array(z.array(IVector2)).describe(""),
     style: z
       .intersection(
         LineStyle,
@@ -1349,12 +1363,19 @@ export const CosmeticLineElement = new SudokuMakerElement({
       )
       .describe(""),
   }),
+  clue: {
+    key: "lines",
+    schema: z.array(IVector2).describe(""),
+    // Naive: only looks at each segment's two endpoints, not the segment's actual path.
+    getAffectedCells: (points) => [
+      ...new Set(points.flatMap(getCellsTouchingPoint)),
+    ],
+  },
   main: {
     title: "Cosmetic lines",
     description:
       "Place lines without any (programmed) logic associated with them.",
     defaultConfig: {
-      lines: [],
       style: {
         thickness: 0.15,
         color: "#ff6666",
