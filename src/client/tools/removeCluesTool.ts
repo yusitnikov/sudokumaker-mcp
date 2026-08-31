@@ -2,6 +2,7 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import {
   ClueCellsGroupFilter,
+  CluePositionsFilter,
   getElementFinalName,
   updateCluesByCellGroups,
 } from "./elementUtils";
@@ -47,22 +48,28 @@ ${elementIdNote}
         `.trim(),
       ),
     operationDescription: operationDescriptionParam,
-    clueCellGroups: z.array(ClueCellsGroupFilter).describe(
-      // language=markdown
-      `
-Array of cell groups - a clue is deleted if **all** cells of a group are among the cells it affects
-(pass enough cells to identify one clue uniquely, or fewer to target several clues at once).
-Each group in this array independently selects clues to remove.
+    match: z
+      .union([
+        z.object({ positions: CluePositionsFilter }),
+        z.object({ clueCellGroups: z.array(ClueCellsGroupFilter) }),
+      ])
+      .describe(
+        // language=markdown
+        `
+Which clues to remove: either \`positions\` to remove exact clues directly, or \`clueCellGroups\` -
+one or more cell groups, each independently selecting the clue(s) it matches.
 `.trim(),
-    ),
+      ),
   }),
-  ({ elementId, clueCellGroups, operationDescription }): CallToolResult => {
+  ({ elementId, match, operationDescription }): CallToolResult => {
     const before = getPuzzle();
 
-    const { allMatchingIndexes, updatedElement, updatedClues, messages } =
+    const { allMatchingIndexes, updatedElement, messages } =
       updateCluesByCellGroups(
         elementId,
-        clueCellGroups,
+        "positions" in match
+          ? [{ positions: match.positions }]
+          : match.clueCellGroups.map((clueCells) => ({ clueCells })),
         (clues, _, allMatchingIndexes) =>
           clues.filter((_value, index) => !allMatchingIndexes.has(index)),
         operationDescription,
@@ -75,7 +82,7 @@ Each group in this array independently selects clues to remove.
         {
           type: "text",
           text: [
-            `Removed ${allMatchingIndexes.size} clues from "${getElementFinalName(updatedElement)}" in puzzle "${after.name || "(untitled)"}", there are ${updatedClues.length} clues in total now.`,
+            `Removed ${allMatchingIndexes.size} clues from "${getElementFinalName(updatedElement)}" in puzzle "${after.name || "(untitled)"}".`,
             "",
             ...messages,
             "",

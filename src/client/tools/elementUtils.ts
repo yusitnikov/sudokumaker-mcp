@@ -4,7 +4,7 @@ import {
   getElementByTypeName,
   isElementWithClue,
 } from "../../SudokuMakerElement";
-import { type CellNotation, CellIdPublic } from "../../SudokuMakerSchemas";
+import { CellIdPublic } from "../../SudokuMakerSchemas";
 import { z } from "zod";
 import { elementTopicPrefix } from "./docs/topicNames";
 import { docsToolName } from "./toolNames";
@@ -90,9 +90,20 @@ Pass enough cells to identify one clue uniquely, or fewer to target several clue
     `.trim(),
 });
 
+export const CluePositionsFilter = z
+  .array(z.number().int().min(1))
+  .describe(
+    "1-based positions in the element's clue array, selecting exactly those clues.",
+  );
+
+export const ClueMatch = z.union([
+  z.object({ clueCells: ClueCellsGroupFilter }),
+  z.object({ positions: CluePositionsFilter }),
+]);
+
 export const updateCluesByCellGroups = (
   elementId: number,
-  clueCellGroups: CellNotation[][],
+  clueMatches: z.input<typeof ClueMatch>[],
   updateCallback: (
     clues: any[],
     matchingIndexGroups: number[][],
@@ -111,9 +122,21 @@ export const updateCluesByCellGroups = (
       cells: clueType.getAffectedCells(clue),
     }),
   );
-  const matchingClues = clueCellGroups.map((cells) =>
-    clues.filter((clue) => cells.every((cell1) => clue.cells.includes(cell1))),
-  );
+  const matchingClues = clueMatches.map((match, groupIndex) => {
+    if ("clueCells" in match) {
+      return clues.filter((clue) =>
+        match.clueCells.every((cell) => clue.cells.includes(cell)),
+      );
+    }
+
+    const groupMatches = match.positions.map((position) => clues[position - 1]);
+    if (groupMatches.some((item) => !item)) {
+      throw new Error(
+        `Group #${groupIndex + 1}: invalid positions provided - this element has ${clues.length} clues.`,
+      );
+    }
+    return groupMatches;
+  });
   const allMatchingIndexes = new Set(
     matchingClues.flat().map(({ index }) => index),
   );
@@ -151,6 +174,23 @@ export const updateCluesByCellGroups = (
   const updatedElement = getPuzzle().allElements[index];
   const updatedClues = (updatedElement.config as any)[cluesKey] as any[];
 
+  const messages: string[] = [];
+  for (const [groupIndex, matches] of matchingClues.entries()) {
+    if ("clueCells" in clueMatches[groupIndex]) {
+      const formattedClues = matches.map(
+        ({ index, cells }) => `position ${index + 1}: ${cells.join(" ")}`,
+      );
+      messages.push(
+        `Group #${groupIndex + 1} - targeted ${matches.length} clues: [${formattedClues.join(", ")}]`,
+      );
+    }
+  }
+  if (messages.length) {
+    messages.push(
+      "If some of the targeted clues above don't match your expectations, UNDO THE OPERATION IMMEDIATELY!",
+    );
+  }
+
   return {
     index,
     targetElement,
@@ -161,13 +201,6 @@ export const updateCluesByCellGroups = (
     allMatchingIndexes,
     updatedElement,
     updatedClues,
-    messages: [
-      ...matchingClues.map(
-        (matches, groupIndex) =>
-          // TODO: format properly or remove
-          `Cells group #${groupIndex + 1} - targeted ${matches.length} clues: ${JSON.stringify(matches.map(({ clue }) => clue))}`,
-      ),
-      "If some of the targeted clues above don't match your expectations, UNDO THE OPERATION IMMEDIATELY!",
-    ],
+    messages,
   };
 };

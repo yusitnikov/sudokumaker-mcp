@@ -1,7 +1,7 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import {
-  ClueCellsGroupFilter,
+  ClueMatch,
   getElementFinalName,
   getElementWithClueById,
   parseElementSpecificData,
@@ -34,8 +34,8 @@ export const updateCluesTool = new ToolImplementation(
         `
 Update one or more existing clues of a multi-clue element (e.g. retotal killer cages, retarget an arrow).
 
-The response lists which clues were matched by each cell group - **undo immediately** if a match
-wasn't the clue you intended.
+The response lists which clues each group matched - **undo immediately** if a match wasn't the clue
+you intended.
 `.trim(),
     },
   },
@@ -53,7 +53,7 @@ ${elementIdNote}
     updateGroups: z
       .array(
         z.object({
-          clueCells: ClueCellsGroupFilter,
+          match: ClueMatch,
           updates: jsonValue.describe(
             // language=markdown
             `
@@ -71,9 +71,9 @@ ${partialUpdateNote}
       .describe(
         // language=markdown
         `
-Array of group objects. Every clue matched by a group receives that same group's \`updates\` object.
+Array of group objects. Every clue matched by a group's \`match\` receives that same group's \`updates\` object.
 
-Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
+Example: \`[{"match": {"clueCells": ["r1c1"]}, "updates": {"value": 21}}]\`.
 `.trim(),
       ),
   }),
@@ -88,7 +88,7 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
       {
         updateGroups: z.array(
           z.object({
-            clueCells: ClueCellsGroupFilter,
+            match: ClueMatch,
             updates: ZodDeepPartial(clueType.schema as any),
           }),
         ),
@@ -101,7 +101,7 @@ Example: \`[{"clueCells": ["r1c1"], "updates": {"value": 21}}]\`.
     const { allMatchingIndexes, updatedElement, messages } =
       updateCluesByCellGroups(
         elementId,
-        updateGroups.map(({ clueCells }) => clueCells),
+        updateGroups.map(({ match }) => match),
         (clues, matchingIndexGroups) => {
           for (const [
             updateGroupIndex,
