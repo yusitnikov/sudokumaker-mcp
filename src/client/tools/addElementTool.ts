@@ -159,6 +159,8 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
       }
     }
 
+    // TODO: where's the validation of the advertised schema?
+
     const elementType = getElementByTypeName(element.type);
 
     const refuseReason = elementType.getRefuseAddReason?.(spec);
