@@ -6,5 +6,4 @@ export const leafNode = <T, RootT>(
   setValue: (value: T) => void,
   handle: string,
   root: RootT,
-): ObjectNode<T, RootT> =>
-  new ObjectNode(value, setValue, handle, root, getUnknownDescriptor());
+): ObjectNode<T, RootT> => new ObjectNode(value, setValue, handle, root, getUnknownDescriptor());

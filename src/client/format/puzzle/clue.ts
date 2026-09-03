@@ -24,8 +24,7 @@ const clueLabel = (clue: unknown, elementType: ElementWithClue): string => {
     if (Array.isArray(clue.cells) && clue.cells.length) {
       return (clue.cells as string[]).join(" ");
     }
-    const point = (clue.position ??
-      (Array.isArray(clue.points) ? clue.points[0] : undefined)) as
+    const point = (clue.position ?? (Array.isArray(clue.points) ? clue.points[0] : undefined)) as
       | { x: number; y: number }
       | undefined;
     if (point) {
@@ -38,9 +37,7 @@ const clueLabel = (clue: unknown, elementType: ElementWithClue): string => {
   return "";
 };
 
-export const getClueDescriptor = (
-  elementType: ElementWithClue,
-): ObjectDescriptor<unknown, PuzzlePublic> => {
+export const getClueDescriptor = (elementType: ElementWithClue): ObjectDescriptor<unknown, PuzzlePublic> => {
   const baseDescriptor = getUnknownDescriptor<unknown, PuzzlePublic>();
 
   return {
@@ -58,9 +55,7 @@ export const getClueDescriptor = (
     },
 
     getSummary(node) {
-      const affectedCellsCount = elementType.clue?.getAffectedCells(
-        node.value as any,
-      )?.length;
+      const affectedCellsCount = elementType.clue?.getAffectedCells(node.value as any)?.length;
       if (affectedCellsCount) {
         return `${affectedCellsCount} cells`;
       }

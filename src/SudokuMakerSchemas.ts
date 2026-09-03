@@ -77,9 +77,7 @@ const shortCellNotationPattern = /^r(-?\d+)c(-?\d+)$/;
 export const parseCellNotation = (cellStr: CellNotation): CellCoords => {
   const match = shortCellNotationPattern.exec(cellStr);
   if (!match) {
-    throw new Error(
-      `Invalid cell coordinates "${cellStr}" - expected "rXcY" notation, e.g. "r2c3".`,
-    );
+    throw new Error(`Invalid cell coordinates "${cellStr}" - expected "rXcY" notation, e.g. "r2c3".`);
   }
 
   const [, row, column] = match;
@@ -87,8 +85,7 @@ export const parseCellNotation = (cellStr: CellNotation): CellCoords => {
 };
 
 /** Formats a `{row, column}` pair back into the public "rXcY" string. */
-export const formatCellNotation = ({ row, column }: CellCoords): CellNotation =>
-  `r${row}c${column}`;
+export const formatCellNotation = ({ row, column }: CellCoords): CellNotation => `r${row}c${column}`;
 
 export const CellIdPublic = z
   .string()
@@ -123,40 +120,33 @@ const getCellCoordsCodecParams = (helper: () => CellCoordsTransformHelper) => ({
 // cellIds is the only helper with a "safe" coordinate lookup (returns undefined instead of throwing for
 // out-of-grid coordinates), so CellId - unlike CornerId/OuterCellId below - gets its own codec that reports
 // out-of-grid cells as a proper zod issue instead of an uncaught throw.
-export const CellId: z.ZodCodec<typeof CellIdPublic, typeof CellIdInternal> =
-  z.codec(CellIdPublic, CellIdInternal, {
-    encode: (cellId) => {
-      const { x, y } =
-        window.Api.getPuzzle().helpers.cellIds.getCoordsFromId(cellId);
+export const CellId: z.ZodCodec<typeof CellIdPublic, typeof CellIdInternal> = z.codec(CellIdPublic, CellIdInternal, {
+  encode: (cellId) => {
+    const { x, y } = window.Api.getPuzzle().helpers.cellIds.getCoordsFromId(cellId);
 
-      return formatCellNotation({ row: y + 1, column: x + 1 });
-    },
-    decode: (cellStr, payload) => {
-      const { row, column } = parseCellNotation(cellStr);
+    return formatCellNotation({ row: y + 1, column: x + 1 });
+  },
+  decode: (cellStr, payload) => {
+    const { row, column } = parseCellNotation(cellStr);
 
-      const cellId = window.Api.getPuzzle().helpers.cellIds.getIdFromCoordsSafe(
-        { x: column - 1, y: row - 1 },
-      );
-      if (cellId === undefined) {
-        payload.issues.push({
-          code: "custom",
-          message: `Cell "${cellStr}" is outside the grid.`,
-          input: cellStr,
-        });
-        return z.NEVER;
-      }
+    const cellId = window.Api.getPuzzle().helpers.cellIds.getIdFromCoordsSafe({ x: column - 1, y: row - 1 });
+    if (cellId === undefined) {
+      payload.issues.push({
+        code: "custom",
+        message: `Cell "${cellStr}" is outside the grid.`,
+        input: cellStr,
+      });
+      return z.NEVER;
+    }
 
-      return cellId;
-    },
-  });
+    return cellId;
+  },
+});
 
 const CornerIdInternal = z.number().meta({
   description: "",
 });
-export const CornerId: z.ZodCodec<
-  typeof CellIdPublic,
-  typeof CornerIdInternal
-> = z.codec(
+export const CornerId: z.ZodCodec<typeof CellIdPublic, typeof CornerIdInternal> = z.codec(
   CellIdPublic.describe(
     'A cell coordinate string in "rXcY" notation, but naming the cell\'s top-left corner rather than the cell itself ' +
       '(e.g. the corner shared by r2c3, r2c4, r3c3 and r3c4 is named by "r3c4" - the cell below-right of that corner). ' +
@@ -180,52 +170,47 @@ const EdgeIdPublic = z.tuple([CellIdPublic, CellIdPublic]).meta({
   description:
     "Coordinates of one cell grid edge, defined by coordinates of 2 cells that share the edge. One of the cells might be outside the grid.",
 });
-export const EdgeId: z.ZodCodec<typeof EdgeIdPublic, typeof EdgeIdInternal> =
-  z.codec(EdgeIdPublic, EdgeIdInternal, {
-    encode: (cellId) => {
-      const { x, y } =
-        window.Api.getPuzzle().helpers.edgeIds.getCoordsFromId(cellId);
+export const EdgeId: z.ZodCodec<typeof EdgeIdPublic, typeof EdgeIdInternal> = z.codec(EdgeIdPublic, EdgeIdInternal, {
+  encode: (cellId) => {
+    const { x, y } = window.Api.getPuzzle().helpers.edgeIds.getCoordsFromId(cellId);
 
-      return x % 1 === 0
-        ? [
-            formatCellNotation({
-              row: y + 0.5,
-              column: x,
-            }),
-            formatCellNotation({
-              row: y + 0.5,
-              column: x + 1,
-            }),
-          ]
-        : [
-            formatCellNotation({
-              row: y,
-              column: x + 0.5,
-            }),
-            formatCellNotation({
-              row: y + 1,
-              column: x + 0.5,
-            }),
-          ];
-    },
-    decode: ([cell1Str, cell2Str]) => {
-      const cell1 = parseCellNotation(cell1Str),
-        cell2 = parseCellNotation(cell2Str);
+    return x % 1 === 0
+      ? [
+          formatCellNotation({
+            row: y + 0.5,
+            column: x,
+          }),
+          formatCellNotation({
+            row: y + 0.5,
+            column: x + 1,
+          }),
+        ]
+      : [
+          formatCellNotation({
+            row: y,
+            column: x + 0.5,
+          }),
+          formatCellNotation({
+            row: y + 1,
+            column: x + 0.5,
+          }),
+        ];
+  },
+  decode: ([cell1Str, cell2Str]) => {
+    const cell1 = parseCellNotation(cell1Str),
+      cell2 = parseCellNotation(cell2Str);
 
-      return window.Api.getPuzzle().helpers.edgeIds.getIdFromCoords({
-        x: (cell1.column + cell2.column) / 2 - 0.5,
-        y: (cell1.row + cell2.row) / 2 - 0.5,
-      });
-    },
-  });
+    return window.Api.getPuzzle().helpers.edgeIds.getIdFromCoords({
+      x: (cell1.column + cell2.column) / 2 - 0.5,
+      y: (cell1.row + cell2.row) / 2 - 0.5,
+    });
+  },
+});
 
 const OuterCellIdInternal = z.number().meta({
   description: "",
 });
-export const OuterCellId: z.ZodCodec<
-  typeof CellIdPublic,
-  typeof OuterCellIdInternal
-> = z.codec(
+export const OuterCellId: z.ZodCodec<typeof CellIdPublic, typeof OuterCellIdInternal> = z.codec(
   CellIdPublic.describe(
     "Coordinates of a cell outside the grid (row/column would be 0 for top/left cells, or greater than grid height/width for bottom/right cells)",
   ),
@@ -269,8 +254,7 @@ export const PuzzleType = z.enum(PuzzleTypeNative).meta({
 
 export const DigitSetSchema = z.codec(
   z.array(z.number()).meta({
-    description:
-      "A set of digits (usually cell candidates, but not restricted to that)",
+    description: "A set of digits (usually cell candidates, but not restricted to that)",
   }),
   z.number().meta({
     description:
@@ -296,17 +280,8 @@ export const ColorsSet = DigitSetSchema.meta({
 });
 
 export const CellSchemaNoId = z.object({
-  given: z
-    .boolean()
-    .describe(
-      'Does the cell contain a given digit? (goes together with the "value" field)',
-    ),
-  value: z
-    .number()
-    .optional()
-    .describe(
-      "The value of the cell: either a given digit or logically deduced value",
-    ),
+  given: z.boolean().describe('Does the cell contain a given digit? (goes together with the "value" field)'),
+  value: z.number().optional().describe("The value of the cell: either a given digit or logically deduced value"),
   candidates: DigitSetSchema.describe(
     "Logically deduced set of possible candidates for the cell. " +
       "Empty array means that the cell wasn't analyzed for candidates yet.",
@@ -364,9 +339,7 @@ export type CellPublic = z.input<typeof CellSchema>;
  */
 export const CellsArray = <ItemT extends z.ZodType>(itemSchema: ItemT) =>
   z.codec(
-    z
-      .array(z.array(itemSchema).describe("Row's cells, left to right"))
-      .describe("Rows of cells, top to bottom"),
+    z.array(z.array(itemSchema).describe("Row's cells, left to right")).describe("Rows of cells, top to bottom"),
     z.array(itemSchema),
     {
       encode: (array) => {
@@ -399,6 +372,5 @@ export const Spec = z
       .describe(""),
   })
   .meta({
-    description:
-      "Puzzle specification - essential information about puzzle type and dimensions",
+    description: "Puzzle specification - essential information about puzzle type and dimensions",
   });

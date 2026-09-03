@@ -21,11 +21,7 @@ const toolsByName = new Map(tools.map((tool) => [tool.name, tool]));
 interface Runtime {
   /** Build hash, stamped on by the server right after installing this bundle. */
   h?: string;
-  call: (
-    name: string,
-    params: unknown,
-    context: ToolContext,
-  ) => Promise<CallToolResult>;
+  call: (name: string, params: unknown, context: ToolContext) => Promise<CallToolResult>;
   /** The tab state as of the last `getTabState` call - see tabState.ts. */
   lastTabStateSnapshot?: TabStateSnapshot;
 }

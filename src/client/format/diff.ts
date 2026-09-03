@@ -13,17 +13,10 @@ interface ArrayItemInternal<T> {
   index: number;
 }
 export type ArrayItem<T> = Pick<ArrayItemInternal<T>, "value" | "index">;
-const toPublicItem = <T>({
-  value,
-  index,
-}: ArrayItemInternal<T>): ArrayItem<T> => ({ value, index });
+const toPublicItem = <T>({ value, index }: ArrayItemInternal<T>): ArrayItem<T> => ({ value, index });
 
 const getType = (value: unknown) => {
-  return value === null
-    ? "null"
-    : Array.isArray(value)
-      ? "array"
-      : typeof value;
+  return value === null ? "null" : Array.isArray(value) ? "array" : typeof value;
 };
 
 type DiffOperationByItemT<ItemT> =
@@ -53,9 +46,7 @@ export type DiffOperation<T> = DiffOperationByItemT<ArrayItem<T>>;
  * The fields are copied out rather than passed through, so the identity strings don't ride along
  * as extra properties on a structurally compatible object.
  */
-const toPublicDiffOperation = <T>(
-  op: DiffOperationInternal<T>,
-): DiffOperation<T> => {
+const toPublicDiffOperation = <T>(op: DiffOperationInternal<T>): DiffOperation<T> => {
   switch (op.type) {
     case "edited":
       return {
@@ -116,25 +107,18 @@ export const getArrayDiff = <T>(
    * A primitive, or a value whose shape doesn't match the other side's,
    * is always a removal and an addition (this is why line diffs never edit).
    */
-  const canEdit = (
-    fromItem: ArrayItemInternal<T>,
-    toItem: ArrayItemInternal<T>,
-  ): boolean =>
+  const canEdit = (fromItem: ArrayItemInternal<T>, toItem: ArrayItemInternal<T>): boolean =>
     canEditItems &&
     getType(fromItem.value) === getType(toItem.value) &&
     ["array", "object"].includes(getType(fromItem.value)) &&
-    (key
-      ? fromItem.id === toItem.id
-      : !moved.has(fromItem.id) && !moved.has(toItem.id));
+    (key ? fromItem.id === toItem.id : !moved.has(fromItem.id) && !moved.has(toItem.id));
 
   const n = from.length;
   const m = to.length;
 
   // Levenshtein over the identities: the cheapest script of removals, additions and edits turning
   // one array into the other.
-  const cost: number[][] = Array.from({ length: n + 1 }, () =>
-    new Array<number>(m + 1).fill(0),
-  );
+  const cost: number[][] = Array.from({ length: n + 1 }, () => new Array<number>(m + 1).fill(0));
   for (let i = n - 1; i >= 0; i--) {
     cost[i][m] = n - i;
   }
@@ -148,9 +132,7 @@ export const getArrayDiff = <T>(
         continue;
       }
       const withoutEdit = 1 + Math.min(cost[i + 1][j], cost[i][j + 1]);
-      cost[i][j] = canEdit(from[i], to[j])
-        ? Math.min(withoutEdit, 1 + cost[i + 1][j + 1])
-        : withoutEdit;
+      cost[i][j] = canEdit(from[i], to[j]) ? Math.min(withoutEdit, 1 + cost[i + 1][j + 1]) : withoutEdit;
     }
   }
 
@@ -175,10 +157,7 @@ export const getArrayDiff = <T>(
       }
       i++;
       j++;
-    } else if (
-      canEdit(from[i], to[j]) &&
-      cost[i][j] === 1 + cost[i + 1][j + 1]
-    ) {
+    } else if (canEdit(from[i], to[j]) && cost[i][j] === 1 + cost[i + 1][j + 1]) {
       ops.push({ type: "edited", from: from[i], to: to[j] });
       i++;
       j++;
@@ -206,10 +185,7 @@ export const getArrayDiff = <T>(
  * The identities present exactly once on each side, so the item can only have moved.
  * An identity occurring twice is left out: either half could pair with either counterpart.
  */
-const findMovedIdentities = <T>(
-  from: ArrayItemInternal<T>[],
-  to: ArrayItemInternal<T>[],
-): Set<string> => {
+const findMovedIdentities = <T>(from: ArrayItemInternal<T>[], to: ArrayItemInternal<T>[]): Set<string> => {
   const [fromCounts, toCounts] = [from, to].map((items) => {
     const counts = new Map<string, number>();
     for (const { id } of items) {
@@ -229,10 +205,7 @@ const findMovedIdentities = <T>(
 };
 
 /** Gives each half of a move the other half's index. */
-const markMoves = <T>(
-  ops: DiffOperationInternal<T>[],
-  moved: Set<string>,
-): DiffOperationInternal<T>[] => {
+const markMoves = <T>(ops: DiffOperationInternal<T>[], moved: Set<string>): DiffOperationInternal<T>[] => {
   /** Each half's counterpart in the other array, by the identity they share. */
   const movedFromById = new Map<string, ArrayItemInternal<T>>();
   const movedToById = new Map<string, ArrayItemInternal<T>>();

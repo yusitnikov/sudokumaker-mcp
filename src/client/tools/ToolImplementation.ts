@@ -1,8 +1,5 @@
 import { z } from "zod";
-import type {
-  CallToolResult,
-  Tool as SdkTool,
-} from "@modelcontextprotocol/sdk/types.js";
+import type { CallToolResult, Tool as SdkTool } from "@modelcontextprotocol/sdk/types.js";
 import { TabState, TabStateChangedError } from "../tabState";
 import { type PuzzlePublic, PuzzleSchema } from "../../SudokuMakerPuzzleSchema";
 import { ClueMatch, getElementWithClueById } from "./elementUtils";
@@ -27,10 +24,7 @@ const advertisedSchemaOverrides = z.registry<{ advertisedSchema: unknown }>();
 /**
  * Registers `advertisedSchema` as the `publicShape` replacement for `realSchema`, and returns `realSchema` unchanged.
  */
-export const withAdvertisedSchema = <T extends z.ZodType>(
-  realSchema: T,
-  advertisedSchema: z.ZodType,
-): T => {
+export const withAdvertisedSchema = <T extends z.ZodType>(realSchema: T, advertisedSchema: z.ZodType): T => {
   advertisedSchemaOverrides.add(realSchema, { advertisedSchema });
   return realSchema;
 };
@@ -112,13 +106,10 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
       const unwrapped = stripNonShapeWrappers(rawField);
 
       // Cast is safe: `withAdvertisedSchema` is the only writer, and only accepts a `z.ZodType`.
-      const override = advertisedSchemaOverrides.get(unwrapped)
-        ?.advertisedSchema as z.ZodType | undefined;
+      const override = advertisedSchemaOverrides.get(unwrapped)?.advertisedSchema as z.ZodType | undefined;
 
       const advertisedField = override ?? rawField;
-      const isOptional =
-        advertisedField instanceof z.ZodOptional ||
-        advertisedField instanceof z.ZodDefault;
+      const isOptional = advertisedField instanceof z.ZodOptional || advertisedField instanceof z.ZodDefault;
 
       // `z.any()` still rejects a missing value in Zod v4, so optionality has to be reapplied here.
       let publicField: z.ZodType = z.any().meta(
@@ -140,10 +131,7 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
     try {
       const validatedParams = this.inputSchema.parse(params);
 
-      const result = await this._run(
-        this.inputSchema.encode(validatedParams),
-        context,
-      );
+      const result = await this._run(this.inputSchema.encode(validatedParams), context);
 
       if (this.prevTabState?.puzzleChanged) {
         const warningText = `[WARNING] The tab state changed since the last tool call: ${this.prevTabState.formattedDiff}`;
@@ -209,10 +197,7 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
 
   protected async updatePuzzle(
     updateCallback: (puzzle: PuzzlePublic) => { puzzle?: PuzzlePublic } | void,
-    copyCallback: (
-      from: z.output<typeof PuzzleSchema>,
-      to: z.output<typeof PuzzleSchema>,
-    ) => void,
+    copyCallback: (from: z.output<typeof PuzzleSchema>, to: z.output<typeof PuzzleSchema>) => void,
     operationDescription: string | ((puzzle: PuzzlePublic) => string),
   ): Promise<{ tabState: TabState }>;
   protected async updatePuzzle<UpdateResultT>(
@@ -225,22 +210,16 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
       to: z.output<typeof PuzzleSchema>,
       updateResult: UpdateResultT,
     ) => void,
-    operationDescription:
-      | string
-      | ((puzzle: PuzzlePublic, updateResult: UpdateResultT) => string),
+    operationDescription: string | ((puzzle: PuzzlePublic, updateResult: UpdateResultT) => string),
   ): Promise<{ tabState: TabState; result: UpdateResultT }>;
   protected async updatePuzzle<UpdateResultT>(
-    updateCallback: (
-      puzzle: PuzzlePublic,
-    ) => { puzzle?: PuzzlePublic; result?: UpdateResultT } | void,
+    updateCallback: (puzzle: PuzzlePublic) => { puzzle?: PuzzlePublic; result?: UpdateResultT } | void,
     copyCallback: (
       from: z.output<typeof PuzzleSchema>,
       to: z.output<typeof PuzzleSchema>,
       updateResult: UpdateResultT,
     ) => void,
-    operationDescription:
-      | string
-      | ((puzzle: PuzzlePublic, updateResult?: UpdateResultT) => string),
+    operationDescription: string | ((puzzle: PuzzlePublic, updateResult?: UpdateResultT) => string),
   ): Promise<{ tabState: TabState; result?: UpdateResultT }> {
     const tabState = this.checkPrevTabState(false);
 
@@ -269,11 +248,7 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
         const result = run(puzzle);
         updatePuzzleResult = result.updatePuzzleResult;
 
-        copyCallback(
-          result.updatedSudokuMakerPuzzle,
-          sudokuMakerPuzzle,
-          updatePuzzleResult!,
-        );
+        copyCallback(result.updatedSudokuMakerPuzzle, sudokuMakerPuzzle, updatePuzzleResult!);
       },
       typeof operationDescription === "function"
         ? operationDescription(tabState.puzzle, dryRunResult.updatePuzzleResult)
@@ -303,29 +278,20 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
       result: { index, matchingClues, allMatchingIndexes },
     } = await this.updatePuzzle(
       (puzzle) => {
-        const { index, targetElement, clueType } = getElementWithClueById(
-          puzzle,
-          elementId,
-        );
+        const { index, targetElement, clueType } = getElementWithClueById(puzzle, elementId);
 
         const cluesKey = clueType.key;
-        const clues = ((targetElement.config as any)[cluesKey] as any[]).map(
-          (clue, index) => ({
-            index,
-            clue,
-            cells: clueType.getAffectedCells(clue),
-          }),
-        );
+        const clues = ((targetElement.config as any)[cluesKey] as any[]).map((clue, index) => ({
+          index,
+          clue,
+          cells: clueType.getAffectedCells(clue),
+        }));
         const matchingClues = clueMatches.map((match, groupIndex) => {
           if ("clueCells" in match) {
-            return clues.filter((clue) =>
-              match.clueCells.every((cell) => clue.cells.includes(cell)),
-            );
+            return clues.filter((clue) => match.clueCells.every((cell) => clue.cells.includes(cell)));
           }
 
-          const groupMatches = match.positions.map(
-            (position) => clues[position - 1],
-          );
+          const groupMatches = match.positions.map((position) => clues[position - 1]);
           if (groupMatches.some((item) => !item)) {
             throw new Error(
               `Group #${groupIndex + 1}: invalid positions provided - this element has ${clues.length} clues.`,
@@ -333,14 +299,10 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
           }
           return groupMatches;
         });
-        const allMatchingIndexes = new Set(
-          matchingClues.flat().map(({ index }) => index),
-        );
+        const allMatchingIndexes = new Set(matchingClues.flat().map(({ index }) => index));
 
         if (allMatchingIndexes.size === 0) {
-          const allClueCells = clues.map(
-            ({ cells }) => `(${cells.join(", ") || "none"})`,
-          );
+          const allClueCells = clues.map(({ cells }) => `(${cells.join(", ") || "none"})`);
 
           throw new Error(
             `No matching clues found, please check the filters. There are clues with the following affected cells - you can target only these cells: ${allClueCells.join("; ") || "none"}`,
@@ -363,9 +325,7 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
         };
       },
       (from, to, { index, cluesKey }) => {
-        (to.allConstraints[index].config as any)[cluesKey] = (
-          from.allConstraints[index].config as any
-        )[cluesKey];
+        (to.allConstraints[index].config as any)[cluesKey] = (from.allConstraints[index].config as any)[cluesKey];
       },
       operationDescription,
     );
@@ -375,12 +335,8 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
     const messages: string[] = [];
     for (const [groupIndex, matches] of matchingClues.entries()) {
       if ("clueCells" in clueMatches[groupIndex]) {
-        const formattedClues = matches.map(
-          ({ index, cells }) => `position ${index + 1}: ${cells.join(" ")}`,
-        );
-        messages.push(
-          `Group #${groupIndex + 1} - targeted ${matches.length} clues: [${formattedClues.join(", ")}]`,
-        );
+        const formattedClues = matches.map(({ index, cells }) => `position ${index + 1}: ${cells.join(" ")}`);
+        messages.push(`Group #${groupIndex + 1} - targeted ${matches.length} clues: [${formattedClues.join(", ")}]`);
       }
     }
     if (messages.length) {

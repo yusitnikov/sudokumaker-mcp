@@ -12,13 +12,7 @@
 // exhaustive enum on purpose - the extraction is structure-based (content present or not, icon
 // present or not), so an app update adding a new kind still extracts correctly; this field just
 // passes the app's own label through instead of collapsing every kind to the same shape.
-export type SudokuMakerLogEntryKind =
-  | "deduction"
-  | "solved"
-  | "count"
-  | "text"
-  | "solvingProgress"
-  | (string & {});
+export type SudokuMakerLogEntryKind = "deduction" | "solved" | "count" | "text" | "solvingProgress" | (string & {});
 
 export interface SudokuMakerLogEntry {
   // The app's own class name for this entry - see SudokuMakerLogEntryKind.
@@ -91,30 +85,20 @@ export function readSudokuMakerLogs(): SudokuMakerLogEntry[] {
       // "Icon ErrorIcon RedErrorIcon", "Icon" goes first, then "ErrorIcon" is a suffix of
       // "RedErrorIcon" and goes too, leaving just the most specific class: ["RedErrorIcon"]. Finally
       // strip the "Icon" suffix off what's left for readability: ["RedError"].
-      const allClasses = (svg?.getAttribute("class") || "")
-        .split(/\s+/)
-        .filter((cls) => cls && cls !== "Icon");
+      const allClasses = (svg?.getAttribute("class") || "").split(/\s+/).filter((cls) => cls && cls !== "Icon");
       const iconClasses = allClasses
-        .filter(
-          (cls) =>
-            !allClasses.some((other) => other !== cls && other.endsWith(cls)),
-        )
+        .filter((cls) => !allClasses.some((other) => other !== cls && other.endsWith(cls)))
         .map((cls) => cls.replace(/Icon$/, ""));
 
       return {
         kind,
         text: (content.textContent || "").replace(/\s+/g, " ").trim(),
         iconClasses,
-        duration:
-          li.querySelector(":scope > .duration")?.textContent?.trim() ||
-          undefined,
+        duration: li.querySelector(":scope > .duration")?.textContent?.trim() || undefined,
         outOfDate,
         inProgress: false,
         html,
       };
     })
-    .filter(
-      (entry): entry is SudokuMakerLogEntry =>
-        entry !== undefined && entry.text.length > 0,
-    );
+    .filter((entry): entry is SudokuMakerLogEntry => entry !== undefined && entry.text.length > 0);
 }

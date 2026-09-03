@@ -42,9 +42,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
   },
 
   format(node, opts, isRoot) {
-    const childNodes = node.value.map((_, index) =>
-      node._child(index, itemDescriptor, index + 1),
-    );
+    const childNodes = node.value.map((_, index) => node._child(index, itemDescriptor, index + 1));
     const items = childNodes.map((childNode) => childNode.format(opts));
     const shortFormat = `[ ${items.join(", ")} ]`;
 
@@ -83,9 +81,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
       const truncatedLines = items.slice(0, count);
       const remaining = items.length - count;
       if (remaining) {
-        truncatedLines.push(
-          `… ${remaining}${count ? " more" : ""} ${countLabel}${formatHandleMarker(node, opts)}`,
-        );
+        truncatedLines.push(`… ${remaining}${count ? " more" : ""} ${countLabel}${formatHandleMarker(node, opts)}`);
       }
       return `[\n${indent(truncatedLines.join("\n"))}\n]`;
     };
@@ -99,9 +95,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
 
     const collapseOpportunities = items
       .map((line, index) => {
-        const collapsed = node
-          ._child(index, itemDescriptor, index + 1)
-          .format({ ...opts, collapse: true });
+        const collapsed = node._child(index, itemDescriptor, index + 1).format({ ...opts, collapse: true });
 
         return {
           index,
@@ -137,18 +131,10 @@ export const getArrayDescriptor = <ItemT, RootT>({
     const ops = getArrayDiff(from.value, to.value, key, canEditItems);
 
     return renderArrayDiff(ops, from.value.length, to.value.length, {
-      formatAdded: (toItem) =>
-        to
-          ._child(toItem.index, itemDescriptor, toItem.index + 1)
-          .format({ collapse: false }),
+      formatAdded: (toItem) => to._child(toItem.index, itemDescriptor, toItem.index + 1).format({ collapse: false }),
       formatRemoved: (fromItem, collapse = false) =>
-        from
-          ._child(fromItem.index, itemDescriptor, fromItem.index + 1)
-          .format({ collapse, skipHandle: true }),
-      formatUnchanged: (toItem) =>
-        to
-          ._child(toItem.index, itemDescriptor, toItem.index + 1)
-          .format({ collapse: true }),
+        from._child(fromItem.index, itemDescriptor, fromItem.index + 1).format({ collapse, skipHandle: true }),
+      formatUnchanged: (toItem) => to._child(toItem.index, itemDescriptor, toItem.index + 1).format({ collapse: true }),
       diffItem: (fromItem, toItem) =>
         from
           ._child(fromItem.index, itemDescriptor, fromItem.index + 1)
@@ -203,24 +189,14 @@ const renderArrayDiff = <T>(
         }
 
         if (shown.has(0)) {
-          lines.push(
-            markTextBlock("  ", itemOps.formatUnchanged(op.items[0]), true),
-          );
+          lines.push(markTextBlock("  ", itemOps.formatUnchanged(op.items[0]), true));
         }
         const foldedCount = n - shown.size;
         if (foldedCount > 0) {
-          lines.push(
-            `  ... (${foldedCount} ${itemOps.countLabel}, didn't change)`,
-          );
+          lines.push(`  ... (${foldedCount} ${itemOps.countLabel}, didn't change)`);
         }
         if (lastIndex !== 0 && shown.has(lastIndex)) {
-          lines.push(
-            markTextBlock(
-              "  ",
-              itemOps.formatUnchanged(op.items[lastIndex]),
-              true,
-            ),
-          );
+          lines.push(markTextBlock("  ", itemOps.formatUnchanged(op.items[lastIndex]), true));
         }
         break;
       }
@@ -228,8 +204,7 @@ const renderArrayDiff = <T>(
         // A moved item was already in the list, so its content isn't news - what's new is where it
         // sits now, and whatever changed on the way. The removal half names this position back.
         const from = op.movedFrom;
-        const edited =
-          from && stringifyValue(from.value) !== stringifyValue(op.item.value);
+        const edited = from && stringifyValue(from.value) !== stringifyValue(op.item.value);
         lines.push(
           markTextBlock(
             "+ ",

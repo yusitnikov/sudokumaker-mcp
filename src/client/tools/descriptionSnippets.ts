@@ -8,9 +8,7 @@ export const reversibleActionNote = `Note: this action could be undone and redon
 export const operationDescriptionNote =
   "Plain-language sentence describing what this call will actually change, for the user to approve or reject.";
 
-export const operationDescriptionParam = z
-  .string()
-  .describe(operationDescriptionNote);
+export const operationDescriptionParam = z.string().describe(operationDescriptionNote);
 
 /**
  * Shared description fragment for partial-update fields: the merge is recursive, so this applies at

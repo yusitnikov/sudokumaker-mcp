@@ -14,11 +14,7 @@ import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getElementById } from "./elementUtils";
 import { elementIdNote, partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
-import {
-  elementsTopicName,
-  elementTopicPattern,
-  elementTopicPrefix,
-} from "./docs/topicNames";
+import { elementsTopicName, elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const addElementTool = new ToolImplementation(
@@ -49,9 +45,7 @@ into the element list at a chosen position.
                 ...(option.paramsSchema ? { params: option.paramsSchema } : {}),
                 ...(element.globalSchema
                   ? {
-                      overrides: ZodDeepPartial(
-                        element.globalSchema,
-                      ).optional(),
+                      overrides: ZodDeepPartial(element.globalSchema).optional(),
                     }
                   : {}),
               })
@@ -121,10 +115,7 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
           ),
         z
           .object({
-            elementId: z
-              .number()
-              .int()
-              .describe(`Target element ID. ${elementIdNote}`),
+            elementId: z.number().int().describe(`Target element ID. ${elementIdNote}`),
             position: z.enum(["before", "after"]),
           })
           .describe(
@@ -137,13 +128,7 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
         `Where to insert the new element in the puzzle's ordered element list (order affects layering).`,
       ),
   }),
-  async function ({
-    name,
-    enabled = true,
-    solverIgnored = false,
-    element,
-    position,
-  }) {
+  async function ({ name, enabled = true, solverIgnored = false, element, position }) {
     const {
       tabState,
       result: { index, id },
@@ -192,9 +177,7 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
           },
           element.overrides ?? {},
         );
-        const id = currentElements.length
-          ? Math.max(...currentElements.map(({ id = 0 }) => id)) + 1
-          : 1;
+        const id = currentElements.length ? Math.max(...currentElements.map(({ id = 0 }) => id)) + 1 : 1;
 
         puzzle.allElements.splice(index, 0, {
           id,

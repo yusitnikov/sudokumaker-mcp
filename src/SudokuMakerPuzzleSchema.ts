@@ -6,25 +6,17 @@ export const PuzzleSchema = z
   .intersection(
     z.codec(
       z.object({
-        allElements: z
-          .array(ElementSchema)
-          .describe(
-            "The list of all elements (aka constraints, clues) of the puzzle",
-          ),
+        allElements: z.array(ElementSchema).describe("The list of all elements (aka constraints, clues) of the puzzle"),
       }),
       z.object({
         allConstraints: z.array(ElementSchema),
       }),
       {
         encode: ({ allConstraints }) => ({
-          allElements: allConstraints.map((element) =>
-            ElementSchema.decode(element),
-          ),
+          allElements: allConstraints.map((element) => ElementSchema.decode(element)),
         }),
         decode: ({ allElements }) => ({
-          allConstraints: allElements.map((element) =>
-            ElementSchema.encode(element),
-          ),
+          allConstraints: allElements.map((element) => ElementSchema.encode(element)),
         }),
       },
     ),
@@ -36,10 +28,7 @@ export const PuzzleSchema = z
         .describe(
           "Puzzle comment provided by the setter. Usually it just describes the rules of the puzzle, but there's no limitation",
         ),
-      creationTimestamp: z
-        .number()
-        .readonly()
-        .describe("Timestamp of when the puzzle was created, in milliseconds"),
+      creationTimestamp: z.number().readonly().describe("Timestamp of when the puzzle was created, in milliseconds"),
       exportSettings: z
         .object({
           sudokuPad: z
@@ -54,13 +43,9 @@ export const PuzzleSchema = z
                 .describe(""),
               useIncompleteGridAsSolution: z.boolean().describe(""),
             })
-            .describe(
-              "Settings that control how the puzzle will be exported from SudokuMaker to SudokuPad",
-            ),
+            .describe("Settings that control how the puzzle will be exported from SudokuMaker to SudokuPad"),
         })
-        .describe(
-          "Settings that control how the puzzle will be exported from SudokuMaker to other platforms",
-        ),
+        .describe("Settings that control how the puzzle will be exported from SudokuMaker to other platforms"),
       id: z
         .number()
         .readonly()
@@ -71,9 +56,7 @@ export const PuzzleSchema = z
         completion: z
           .string()
           .optional()
-          .describe(
-            "Message that will be displayed to the solver after completing the puzzle successfully",
-          ),
+          .describe("Message that will be displayed to the solver after completing the puzzle successfully"),
       }),
       name: z.string().describe("Puzzle name"),
       spec: Spec,

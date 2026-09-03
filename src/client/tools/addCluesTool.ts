@@ -1,15 +1,8 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
-import {
-  getElementFinalName,
-  getElementWithClueById,
-  parseElementSpecificData,
-} from "./elementUtils";
-import {
-  elementIdNote,
-  operationDescriptionParam,
-} from "./descriptionSnippets";
+import { getElementFinalName, getElementWithClueById, parseElementSpecificData } from "./elementUtils";
+import { elementIdNote, operationDescriptionParam } from "./descriptionSnippets";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
 import {
   addCluesToolName,
@@ -65,17 +58,12 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
       result: { index, cluesKey, targetElement },
     } = await this.updatePuzzle(
       (puzzle) => {
-        const { index, targetElement, elementType, clueType } =
-          getElementWithClueById(puzzle, elementId);
+        const { index, targetElement, elementType, clueType } = getElementWithClueById(puzzle, elementId);
 
         // Manually parse the type-specific data after knowing the type schema,
         // only to validate the input and report the errors.
         // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-        parseElementSpecificData(
-          elementType.typeName,
-          { clues: z.array(clueType.schema) },
-          { clues },
-        );
+        parseElementSpecificData(elementType.typeName, { clues: z.array(clueType.schema) }, { clues });
 
         const cluesKey = clueType.key;
 
@@ -84,9 +72,7 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
         return { result: { index, cluesKey, targetElement } };
       },
       (from, to, { index, cluesKey }) => {
-        (to.allConstraints[index].config as any)[cluesKey] = (
-          from.allConstraints[index].config as any
-        )[cluesKey];
+        (to.allConstraints[index].config as any)[cluesKey] = (from.allConstraints[index].config as any)[cluesKey];
       },
       operationDescription,
     );

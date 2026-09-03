@@ -15,31 +15,19 @@ import {
   updateElementToolName,
   updateGivenDigitsToolName,
 } from "../toolNames";
-import {
-  cosmeticsTopicName,
-  customConstraintsTopicName,
-  elementsTopicName,
-  elementTopicPattern,
-} from "./topicNames";
+import { cosmeticsTopicName, customConstraintsTopicName, elementsTopicName, elementTopicPattern } from "./topicNames";
 
 const renderCatalog = (): string =>
-  AllElements.flatMap(
-    ({ typeName, main: { title, description }, options, extraDocs }) => {
-      const formattedExtraDocs = (extraDocs ?? [])
-        .map(
-          ({ header, contents }) =>
-            ` **${header}**: ${contents.replaceAll("\n", " ")}`,
-        )
-        .join("");
+  AllElements.flatMap(({ typeName, main: { title, description }, options, extraDocs }) => {
+    const formattedExtraDocs = (extraDocs ?? [])
+      .map(({ header, contents }) => ` **${header}**: ${contents.replaceAll("\n", " ")}`)
+      .join("");
 
-      return [
-        `- \`${typeName}\` — "${title}": ${description}${formattedExtraDocs}`,
-        ...options.map(
-          (option) => `  - "${option.title}": ${option.description}`,
-        ),
-      ];
-    },
-  ).join("\n");
+    return [
+      `- \`${typeName}\` — "${title}": ${description}${formattedExtraDocs}`,
+      ...options.map((option) => `  - "${option.title}": ${option.description}`),
+    ];
+  }).join("\n");
 
 export const elementsTopic: DocsTopic = {
   name: elementsTopicName,

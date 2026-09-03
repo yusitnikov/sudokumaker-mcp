@@ -5,8 +5,6 @@
  */
 export class NoSuchHandleError extends Error {
   constructor(resolvedHandle: string, accepts: string) {
-    super(
-      `No such handle (resolved as far as "${resolvedHandle || "<root>"}"). Handles available there: ${accepts}.`,
-    );
+    super(`No such handle (resolved as far as "${resolvedHandle || "<root>"}"). Handles available there: ${accepts}.`);
   }
 }

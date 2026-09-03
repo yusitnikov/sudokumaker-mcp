@@ -1,18 +1,11 @@
-import {
-  type ElementPublic,
-  getElementByTypeName,
-  isElementWithClue,
-} from "../../../SudokuMakerElement";
+import { type ElementPublic, getElementByTypeName, isElementWithClue } from "../../../SudokuMakerElement";
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { indent } from "../generic/indent";
 import { regionsDescriptor } from "./regions";
 import { getClueDescriptor } from "./clue";
 import { getArrayDescriptor } from "../generic/arrayDescriptor";
-import {
-  getPlainObjectDescriptor,
-  type ObjectDescriptorsMap,
-} from "../generic/plainObjectDescriptor";
+import { getPlainObjectDescriptor, type ObjectDescriptorsMap } from "../generic/plainObjectDescriptor";
 import { stringDescriptor } from "../generic/stringDescriptor";
 import { getScalarDescriptor } from "../generic/scalarDescriptor";
 import { getElementFinalName } from "../../tools/elementUtils";
@@ -20,10 +13,7 @@ import { formatHandleMarker } from "../formatHandleMarker";
 import { SUMMARY_BUDGET } from "../sizeLimits";
 import { truncate } from "../generic/truncate";
 
-const elementBaseDescriptor = getPlainObjectDescriptor<
-  ElementPublic,
-  PuzzlePublic
->({
+const elementBaseDescriptor = getPlainObjectDescriptor<ElementPublic, PuzzlePublic>({
   childMap: {
     id: getScalarDescriptor(),
     name: stringDescriptor,
@@ -32,10 +22,7 @@ const elementBaseDescriptor = getPlainObjectDescriptor<
     config: (node) => {
       const elementType = getElementByTypeName(node.value.config.type);
 
-      const childMap: ObjectDescriptorsMap<
-        ElementPublic["config"],
-        PuzzlePublic
-      > = {
+      const childMap: ObjectDescriptorsMap<ElementPublic["config"], PuzzlePublic> = {
         // TODO: fix this mess
         regions: regionsDescriptor as any,
       };
@@ -55,48 +42,43 @@ const elementBaseDescriptor = getPlainObjectDescriptor<
     },
   },
   allowOtherKeys: false,
-  ignoredKeys: ({ config }) =>
-    Object.keys(config).length === 1 ? ["config"] : [],
+  ignoredKeys: ({ config }) => (Object.keys(config).length === 1 ? ["config"] : []),
 });
 
 /** Element - getElementSummary + description, then config fields (scalars, style, clues). */
-export const elementDescriptor: ObjectDescriptor<ElementPublic, PuzzlePublic> =
-  {
-    ...elementBaseDescriptor,
+export const elementDescriptor: ObjectDescriptor<ElementPublic, PuzzlePublic> = {
+  ...elementBaseDescriptor,
 
-    format(node, opts) {
-      const header = `"${getElementFinalName(node.value)}" (type ${node.value.config.type}, ID ${node.value.id}, ${!node.value.enabled ? "disabled" : node.value.solverIgnored ? "solver-ignored" : "enabled"})`;
+  format(node, opts) {
+    const header = `"${getElementFinalName(node.value)}" (type ${node.value.config.type}, ID ${node.value.id}, ${!node.value.enabled ? "disabled" : node.value.solverIgnored ? "solver-ignored" : "enabled"})`;
 
-      if (opts.collapse) {
-        // Short form: the header line alone - identity beats content for an element neighbor.
-        return header + " { … }" + formatHandleMarker(node, opts);
-      }
+    if (opts.collapse) {
+      // Short form: the header line alone - identity beats content for an element neighbor.
+      return header + " { … }" + formatHandleMarker(node, opts);
+    }
 
-      const lines = [`${header} {`];
+    const lines = [`${header} {`];
 
-      const description = node.value.elementMetadata?.description;
-      if (description) {
-        lines.push(`  // ${description}`);
-      }
+    const description = node.value.elementMetadata?.description;
+    if (description) {
+      lines.push(`  // ${description}`);
+    }
 
-      try {
-        lines.push(indent(`config: ${node.child("config").format(opts)}`));
-      } catch {
-        // skip empty field
-      }
+    try {
+      lines.push(indent(`config: ${node.child("config").format(opts)}`));
+    } catch {
+      // skip empty field
+    }
 
-      lines.push("}");
-      return lines.join("\n");
-    },
+    lines.push("}");
+    return lines.join("\n");
+  },
 
-    getSummary(node) {
-      return truncate(
-        `#${node.value.id} ${getElementFinalName(node.value)}`,
-        SUMMARY_BUDGET,
-      );
-    },
+  getSummary(node) {
+    return truncate(`#${node.value.id} ${getElementFinalName(node.value)}`, SUMMARY_BUDGET);
+  },
 
-    diff(from, to) {
-      return `"${getElementFinalName(to.value)}" (type ${to.value.config.type}) ${elementBaseDescriptor.diff(from, to)}`;
-    },
-  };
+  diff(from, to) {
+    return `"${getElementFinalName(to.value)}" (type ${to.value.config.type}) ${elementBaseDescriptor.diff(from, to)}`;
+  },
+};

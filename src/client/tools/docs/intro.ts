@@ -25,16 +25,11 @@ import {
 const siteDescription =
   typeof document === "undefined"
     ? ""
-    : ((
-        document.head.querySelector(
-          'meta[name="description"]',
-        ) as HTMLMetaElement | null
-      )?.content ?? "");
+    : ((document.head.querySelector('meta[name="description"]') as HTMLMetaElement | null)?.content ?? "");
 
 export const introTopic: DocsTopic = {
   name: introTopicName,
-  description:
-    "Start here: what SudokuMaker is, terminology, the user persona, coordinates, tabs.",
+  description: "Start here: what SudokuMaker is, terminology, the user persona, coordinates, tabs.",
   content: () =>
     // language=markdown
     `

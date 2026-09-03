@@ -1,23 +1,10 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import {
-  ClueMatch,
-  getElementFinalName,
-  getElementWithClueById,
-  parseElementSpecificData,
-} from "./elementUtils";
+import { ClueMatch, getElementFinalName, getElementWithClueById, parseElementSpecificData } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
-import {
-  elementIdNote,
-  operationDescriptionParam,
-  partialUpdateNote,
-} from "./descriptionSnippets";
+import { elementIdNote, operationDescriptionParam, partialUpdateNote } from "./descriptionSnippets";
 import { KillerCagesElement } from "../../SudokuMakerElement";
-import {
-  addElementToolName,
-  getPuzzleToolName,
-  updateCluesToolName,
-} from "./toolNames";
+import { addElementToolName, getPuzzleToolName, updateCluesToolName } from "./toolNames";
 import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { jsonValue } from "../../jsonValue";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
@@ -76,43 +63,36 @@ Example: \`[{"match": {"clueCells": ["r1c1"]}, "updates": {"value": 21}}]\`.
       ),
   }),
   async function ({ elementId, updateGroups, operationDescription }) {
-    const { tabState, allMatchingIndexes, updatedElement, messages } =
-      await this.updateCluesByCellGroups(
-        elementId,
-        updateGroups.map(({ match }) => match),
-        (clues, matchingIndexGroups, _, puzzle) => {
-          const { elementType, clueType } = getElementWithClueById(
-            puzzle,
-            elementId,
-          );
+    const { tabState, allMatchingIndexes, updatedElement, messages } = await this.updateCluesByCellGroups(
+      elementId,
+      updateGroups.map(({ match }) => match),
+      (clues, matchingIndexGroups, _, puzzle) => {
+        const { elementType, clueType } = getElementWithClueById(puzzle, elementId);
 
-          // Manually parse the type-specific data after knowing the type schema,
-          // only to validate the input and report the errors.
-          // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-          parseElementSpecificData(
-            elementType.typeName,
-            {
-              updateGroups: z.array(
-                z.object({
-                  match: ClueMatch,
-                  updates: ZodDeepPartial(clueType.schema as any),
-                }),
-              ),
-            },
-            { updateGroups },
-          );
+        // Manually parse the type-specific data after knowing the type schema,
+        // only to validate the input and report the errors.
+        // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
+        parseElementSpecificData(
+          elementType.typeName,
+          {
+            updateGroups: z.array(
+              z.object({
+                match: ClueMatch,
+                updates: ZodDeepPartial(clueType.schema as any),
+              }),
+            ),
+          },
+          { updateGroups },
+        );
 
-          for (const [
-            updateGroupIndex,
-            { updates },
-          ] of updateGroups.entries()) {
-            for (const clueIndex of matchingIndexGroups[updateGroupIndex]) {
-              clues[clueIndex] = mergeDeepUpdates(clues[clueIndex], updates);
-            }
+        for (const [updateGroupIndex, { updates }] of updateGroups.entries()) {
+          for (const clueIndex of matchingIndexGroups[updateGroupIndex]) {
+            clues[clueIndex] = mergeDeepUpdates(clues[clueIndex], updates);
           }
-        },
-        operationDescription,
-      );
+        }
+      },
+      operationDescription,
+    );
 
     return {
       content: [

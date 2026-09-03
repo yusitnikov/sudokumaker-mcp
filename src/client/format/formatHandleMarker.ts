@@ -6,10 +6,5 @@ import type { FormatOpts } from "./FormatOpts";
  * One phrasing for every collapse site, so a reader meets the same sentence wherever content was withheld.
  * Empty when handles are suppressed.
  */
-export const formatHandleMarker = <T, RootT>(
-  node: ObjectNode<T, RootT>,
-  opts: FormatOpts,
-): string =>
-  opts.skipHandle
-    ? ""
-    : `   <collapsed, full content at path "${node.handle}">`;
+export const formatHandleMarker = <T, RootT>(node: ObjectNode<T, RootT>, opts: FormatOpts): string =>
+  opts.skipHandle ? "" : `   <collapsed, full content at path "${node.handle}">`;

@@ -3,10 +3,7 @@ import { cellsDescriptor } from "./cells";
 import { ObjectNode } from "../ObjectNode";
 import { PuzzleTypeNative, type CellPublic } from "../../../SudokuMakerSchemas";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
-import {
-  type ElementPublic,
-  RegionsElement,
-} from "../../../SudokuMakerElement";
+import { type ElementPublic, RegionsElement } from "../../../SudokuMakerElement";
 
 const cell = (overrides: Partial<CellPublic> = {}): CellPublic => ({
   coords: "r1c1",
@@ -47,11 +44,8 @@ const root: PuzzlePublic = {
 const node = (value: CellPublic[][], puzzleRoot: PuzzlePublic = root) =>
   new ObjectNode(value, () => undefined, "cells", puzzleRoot, cellsDescriptor);
 
-const diff = (
-  from: CellPublic[][],
-  to: CellPublic[][],
-  puzzleRoot: PuzzlePublic = root,
-) => cellsDescriptor.diff!(node(from, puzzleRoot), node(to, puzzleRoot));
+const diff = (from: CellPublic[][], to: CellPublic[][], puzzleRoot: PuzzlePublic = root) =>
+  cellsDescriptor.diff!(node(from, puzzleRoot), node(to, puzzleRoot));
 
 const format = (value: CellPublic[][], puzzleRoot: PuzzlePublic = root) =>
   cellsDescriptor.format(node(value, puzzleRoot), { collapse: false });
@@ -118,12 +112,7 @@ describe("cells diff, column alignment", () => {
   });
 
   test("pads the '+' and '-' rows just as wide when the 'to' token is the wider one instead (the mirror case)", () => {
-    const from = [
-      [
-        cell({ coords: "r1c1", given: true, value: 1 }),
-        cell({ coords: "r1c2" }),
-      ],
-    ];
+    const from = [[cell({ coords: "r1c1", given: true, value: 1 }), cell({ coords: "r1c2" })]];
     const to = [
       [
         cell({ coords: "r1c1" }),
@@ -151,11 +140,7 @@ describe("cells diff, column alignment", () => {
     // Row 1 never changes, but its "." tokens still have to be padded to the same column widths
     // as row 2's wide "from" token - widths come from the whole grid, not just the changed row.
     const from = [
-      [
-        cell({ coords: "r1c1" }),
-        cell({ coords: "r1c2" }),
-        cell({ coords: "r1c3" }),
-      ],
+      [cell({ coords: "r1c1" }), cell({ coords: "r1c2" }), cell({ coords: "r1c3" })],
       [
         cell({ coords: "r2c1" }),
         cell({
@@ -168,16 +153,8 @@ describe("cells diff, column alignment", () => {
       ],
     ];
     const to = [
-      [
-        cell({ coords: "r1c1" }),
-        cell({ coords: "r1c2" }),
-        cell({ coords: "r1c3" }),
-      ],
-      [
-        cell({ coords: "r2c1" }),
-        cell({ coords: "r2c2" }),
-        cell({ coords: "r2c3" }),
-      ],
+      [cell({ coords: "r1c1" }), cell({ coords: "r1c2" }), cell({ coords: "r1c3" })],
+      [cell({ coords: "r2c1" }), cell({ coords: "r2c2" }), cell({ coords: "r2c3" })],
     ];
 
     expect(diff(from, to)).toBe(
@@ -229,10 +206,7 @@ describe("cells diff, column alignment", () => {
 describe("cells format, column alignment", () => {
   test("pads every row of a single grid to the widest token in each column", () => {
     const grid = [
-      [
-        cell({ coords: "r1c1", given: true, value: 1 }),
-        cell({ coords: "r1c2" }),
-      ],
+      [cell({ coords: "r1c1", given: true, value: 1 }), cell({ coords: "r1c2" })],
       [
         cell({ coords: "r2c1" }),
         cell({

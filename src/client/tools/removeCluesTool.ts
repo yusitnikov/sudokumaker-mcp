@@ -1,20 +1,9 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import {
-  ClueCellsGroupFilter,
-  CluePositionsFilter,
-  getElementFinalName,
-} from "./elementUtils";
-import {
-  elementIdNote,
-  operationDescriptionParam,
-} from "./descriptionSnippets";
+import { ClueCellsGroupFilter, CluePositionsFilter, getElementFinalName } from "./elementUtils";
+import { elementIdNote, operationDescriptionParam } from "./descriptionSnippets";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
-import {
-  addElementToolName,
-  getPuzzleToolName,
-  removeCluesToolName,
-} from "./toolNames";
+import { addElementToolName, getPuzzleToolName, removeCluesToolName } from "./toolNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
 export const removeCluesTool = new ToolImplementation(
@@ -59,16 +48,14 @@ one or more cell groups, each independently selecting the clue(s) it matches.
       ),
   }),
   async function ({ elementId, match, operationDescription }) {
-    const { tabState, allMatchingIndexes, updatedElement, messages } =
-      await this.updateCluesByCellGroups(
-        elementId,
-        "positions" in match
-          ? [{ positions: match.positions }]
-          : match.clueCellGroups.map((clueCells) => ({ clueCells })),
-        (clues, _, allMatchingIndexes) =>
-          clues.filter((_value, index) => !allMatchingIndexes.has(index)),
-        operationDescription,
-      );
+    const { tabState, allMatchingIndexes, updatedElement, messages } = await this.updateCluesByCellGroups(
+      elementId,
+      "positions" in match
+        ? [{ positions: match.positions }]
+        : match.clueCellGroups.map((clueCells) => ({ clueCells })),
+      (clues, _, allMatchingIndexes) => clues.filter((_value, index) => !allMatchingIndexes.has(index)),
+      operationDescription,
+    );
 
     return {
       content: [

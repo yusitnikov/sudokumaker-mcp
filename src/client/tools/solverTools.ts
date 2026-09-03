@@ -14,11 +14,7 @@ import {
 } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
-import {
-  type ElementPublic,
-  ElementType,
-  getElementByTypeName,
-} from "../../SudokuMakerElement";
+import { type ElementPublic, ElementType, getElementByTypeName } from "../../SudokuMakerElement";
 import { getElementFinalName } from "./elementUtils";
 import { solvingTopicName } from "./docs/topicNames";
 import { TabState } from "../tabState";
@@ -29,11 +25,7 @@ const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
 
 /** The text block for an append-style tool's response: the log entries this call itself appended, oldest first. */
-const appendedLogResultText = ({
-  solverLogsChanged,
-  solverLogs,
-  previousSolverLogs,
-}: TabState) =>
+const appendedLogResultText = ({ solverLogsChanged, solverLogs, previousSolverLogs }: TabState) =>
   solverLogsChanged
     ? "Solver logs changed:\n" +
       new RootObjectNode(
@@ -50,10 +42,7 @@ const appendedLogResultText = ({
  * An unfinished run keeps the diff, labelled as progress - the cells really do hold those values.
  * It drops the closing notes: they all speak about an outcome that doesn't exist yet.
  */
-const solverResultText = (
-  { finished, message, tabState }: SolverWaitResult,
-  logText: string,
-) => {
+const solverResultText = ({ finished, message, tabState }: SolverWaitResult, logText: string) => {
   const { previousPuzzle: puzzleBefore, puzzle: puzzleAfter } = tabState;
 
   return [
@@ -118,10 +107,7 @@ ${reversibleActionNote}
       content: [
         {
           type: "text",
-          text: solverResultText(
-            result,
-            appendedLogResultText(result.tabState),
-          ),
+          text: solverResultText(result, appendedLogResultText(result.tabState)),
         },
       ],
     };
@@ -158,10 +144,7 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
       content: [
         {
           type: "text",
-          text: solverResultText(
-            result,
-            appendedLogResultText(result.tabState),
-          ),
+          text: solverResultText(result, appendedLogResultText(result.tabState)),
         },
       ],
     };
@@ -203,10 +186,7 @@ ${reversibleActionNote}
       content: [
         {
           type: "text",
-          text: solverResultText(
-            result,
-            replacedLogResultText(result.tabState),
-          ),
+          text: solverResultText(result, replacedLogResultText(result.tabState)),
         },
       ],
     };
@@ -244,10 +224,7 @@ Blind to free-text rules and cosmetic-only elements.
       content: [
         {
           type: "text",
-          text: solverResultText(
-            result,
-            replacedLogResultText(result.tabState),
-          ),
+          text: solverResultText(result, replacedLogResultText(result.tabState)),
         },
       ],
     };
@@ -282,10 +259,7 @@ Use this if a previous solver call's response indicated the solve was still in p
            * Whether the run being waited on writes to the grid isn't knowable here.
            * Assume it does, since the three writing tools are the common case.
            */
-          text: solverResultText(
-            result,
-            replacedLogResultText(result.tabState),
-          ),
+          text: solverResultText(result, replacedLogResultText(result.tabState)),
         },
       ],
     };
@@ -297,8 +271,7 @@ export const stopSolverTool = new ToolImplementation(
     definition: {
       name: stopSolverToolName,
       title: "Stop the solver",
-      description:
-        "Abort a currently running solver operation before it finishes on its own.",
+      description: "Abort a currently running solver operation before it finishes on its own.",
     },
   },
   z.object({}),
@@ -368,11 +341,9 @@ const waitForSolver = async (timeout: number): Promise<SolverWaitResult> => {
 /** The reason the solver can't see a given element, or `undefined` when it can. */
 const solverBlindSpotReason = (element: ElementPublic): string | undefined => {
   if (
-    [
-      ElementType.CosmeticLine,
-      ElementType.CosmeticCage,
-      ElementType.CosmeticSymbol,
-    ].includes(getElementByTypeName(element.config.type).typeId)
+    [ElementType.CosmeticLine, ElementType.CosmeticCage, ElementType.CosmeticSymbol].includes(
+      getElementByTypeName(element.config.type).typeId,
+    )
   ) {
     return "cosmetic";
   }

@@ -17,11 +17,7 @@ export interface ObjectDescriptor<T, RootT> {
    * parameter of its own rather than a `FormatOpts` field so that formatting a child - which is
    * not what the caller asked for - can't inherit it by passing `opts` along.
    */
-  format(
-    node: ObjectNode<T, RootT>,
-    opts: FormatOpts,
-    isRoot?: boolean,
-  ): string;
+  format(node: ObjectNode<T, RootT>, opts: FormatOpts, isRoot?: boolean): string;
 
   /**
    * The shortest statement of what this node is, for when its collapsed text is still too long

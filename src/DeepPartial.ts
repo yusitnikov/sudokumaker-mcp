@@ -1,11 +1,7 @@
 import { z } from "zod";
 import deepmerge from "deepmerge";
 
-export type DeepPartial<T> = T extends any[]
-  ? T
-  : T extends object
-    ? { [K in keyof T]?: DeepPartial<T[K]> }
-    : T;
+export type DeepPartial<T> = T extends any[] ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
 // noinspection JSUnusedGlobalSymbols
 export const mergeDeepUpdates = <T>(object: T, updates: DeepPartial<T>) =>
@@ -52,9 +48,7 @@ const ZodDeepPartialInner = <OutputT, InputT>(
       Object.fromEntries(
         Object.entries(schema.def.shape).map(([key, value]) => [
           key,
-          ZodDeepPartial(
-            value instanceof z.ZodOptional ? value.unwrap() : value,
-          ).optional(),
+          ZodDeepPartial(value instanceof z.ZodOptional ? value.unwrap() : value).optional(),
         ]),
       ),
     ) as any;
@@ -70,10 +64,7 @@ const ZodDeepPartialInner = <OutputT, InputT>(
   }
 
   if (schema instanceof z.ZodIntersection) {
-    return z.intersection(
-      ZodDeepPartial(schema.def.left),
-      ZodDeepPartial(schema.def.right),
-    ) as any;
+    return z.intersection(ZodDeepPartial(schema.def.left), ZodDeepPartial(schema.def.right)) as any;
   }
 
   if (schema instanceof z.ZodUnion) {

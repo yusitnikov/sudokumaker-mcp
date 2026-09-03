@@ -13,10 +13,7 @@ import { getArrayDescriptor } from "../generic/arrayDescriptor";
  */
 export const solverLogDescriptor: ObjectDescriptor<SudokuMakerLogEntry, any> = {
   child(node) {
-    throw new NoSuchHandleError(
-      node.handle,
-      "(no children - a log entry prints as one line)",
-    );
+    throw new NoSuchHandleError(node.handle, "(no children - a log entry prints as one line)");
   },
 
   format(node, opts) {
@@ -24,10 +21,7 @@ export const solverLogDescriptor: ObjectDescriptor<SudokuMakerLogEntry, any> = {
 
     const parts: string[] = inProgress
       ? ["[In progress]"]
-      : [
-          ...(outOfDate ? ["[Outdated]"] : []),
-          ...iconClasses.map((cls) => `[${cls}]`),
-        ];
+      : [...(outOfDate ? ["[Outdated]"] : []), ...iconClasses.map((cls) => `[${cls}]`)];
 
     parts.push(opts.collapse && parts.length ? "…" : text);
 
@@ -56,10 +50,7 @@ export const solverLogDescriptor: ObjectDescriptor<SudokuMakerLogEntry, any> = {
  * markup for an entry is what identifies it - it folds in every other field, including the
  * `outOfDate` class that a later grid edit adds.
  */
-export const solverLogsDescriptor = getArrayDescriptor<
-  SudokuMakerLogEntry,
-  any
->({
+export const solverLogsDescriptor = getArrayDescriptor<SudokuMakerLogEntry, any>({
   itemDescriptor: solverLogDescriptor,
   countLabel: "log entries",
   canEditItems: false,

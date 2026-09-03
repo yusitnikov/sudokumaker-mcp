@@ -43,9 +43,7 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
         }
       },
       (from, to) => copyCells(from.cells, to.cells),
-      digit === -1
-        ? `Remove given digits from ${cellsStr}`
-        : `Put given ${digit} into ${cellsStr}`,
+      digit === -1 ? `Remove given digits from ${cellsStr}` : `Put given ${digit} into ${cellsStr}`,
     );
 
     return {

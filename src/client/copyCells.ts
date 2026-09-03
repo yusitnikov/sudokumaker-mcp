@@ -7,10 +7,7 @@ import { z } from "zod";
  * Use it for
  * @see ToolImplementation.updatePuzzle()
  */
-export const copyCells = (
-  from: z.output<typeof CellSchema>[],
-  to: z.output<typeof CellSchema>[],
-) => {
+export const copyCells = (from: z.output<typeof CellSchema>[], to: z.output<typeof CellSchema>[]) => {
   for (const [index, cell] of from.entries()) {
     Object.assign(to[index], cell);
   }

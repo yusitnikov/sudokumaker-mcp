@@ -1,11 +1,6 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import {
-  type CellNotation,
-  CellId,
-  CellSchemaNoId,
-  parseCellNotation,
-} from "../../SudokuMakerSchemas";
+import { type CellNotation, CellId, CellSchemaNoId, parseCellNotation } from "../../SudokuMakerSchemas";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updateCellMarksToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
@@ -47,16 +42,14 @@ How to combine the given values with each cell's existing marks:
         Omit to leave candidates untouched.
       `.trim(),
     ),
-    cornerPencilMarks: CellSchemaNoId.shape.cornerPencilMarks
-      .optional()
-      .describe(
-        // language=markdown
-        `
+    cornerPencilMarks: CellSchemaNoId.shape.cornerPencilMarks.optional().describe(
+      // language=markdown
+      `
           ${CellSchemaNoId.shape.cornerPencilMarks.description}
           
           Omit to leave corner marks untouched.
         `.trim(),
-      ),
+    ),
     colors: CellSchemaNoId.shape.colors.optional().describe(
       // language=markdown
       `
@@ -66,14 +59,7 @@ How to combine the given values with each cell's existing marks:
       `.trim(),
     ),
   }),
-  async function ({
-    operationDescription,
-    cells,
-    operation,
-    candidates,
-    cornerPencilMarks,
-    colors,
-  }) {
+  async function ({ operationDescription, cells, operation, candidates, cornerPencilMarks, colors }) {
     const {
       tabState,
       result: { updatedCells, skippedCells },
@@ -91,10 +77,7 @@ How to combine the given values with each cell's existing marks:
             continue;
           }
 
-          const update = (
-            key: "candidates" | "cornerPencilMarks" | "colors",
-            value: number[] | undefined,
-          ) => {
+          const update = (key: "candidates" | "cornerPencilMarks" | "colors", value: number[] | undefined) => {
             if (value === undefined) {
               return;
             }
@@ -131,10 +114,7 @@ How to combine the given values with each cell's existing marks:
         content: [
           {
             type: "text",
-            text: [
-              `Updated cell marks in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
-              diffText,
-            ].join("\n"),
+            text: [`Updated cell marks in puzzle "${tabState.puzzle.name || "(untitled)"}".`, diffText].join("\n"),
           },
         ],
       };

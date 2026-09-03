@@ -22,10 +22,7 @@ const descriptorFor = (value: unknown): ObjectDescriptor<any, any> => {
  * Generic fallback descriptor for a value of unknown shape: dispatches to `string`/`scalar`/
  * `array`/`plainObject` by runtime type.
  */
-export const getUnknownDescriptor = <T, RootT>(): ObjectDescriptor<
-  T,
-  RootT
-> => ({
+export const getUnknownDescriptor = <T, RootT>(): ObjectDescriptor<T, RootT> => ({
   child(node, segment) {
     return descriptorFor(node.value).child(node, segment);
   },

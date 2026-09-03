@@ -114,9 +114,7 @@ the puzzle state after earlier ones already applied.
               const items = isText ? node.value.split("\n") : node.value;
 
               if (!Array.isArray(items)) {
-                throw new Error(
-                  `${path || "the puzzle"} is not an array or a text, it's ${typeof node.value}`,
-                );
+                throw new Error(`${path || "the puzzle"} is not an array or a text, it's ${typeof node.value}`);
               }
 
               items.splice(
@@ -149,10 +147,7 @@ the puzzle state after earlier ones already applied.
       content: [
         {
           type: "text",
-          text: [
-            `Updated puzzle "${tabState.puzzle.name || "(untitled)"}".`,
-            puzzleDiffSummary(tabState),
-          ].join("\n"),
+          text: [`Updated puzzle "${tabState.puzzle.name || "(untitled)"}".`, puzzleDiffSummary(tabState)].join("\n"),
         },
       ],
     };

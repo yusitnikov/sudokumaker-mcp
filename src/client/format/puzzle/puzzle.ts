@@ -7,14 +7,10 @@ import { getArrayDescriptor } from "../generic/arrayDescriptor";
 import { elementDescriptor } from "./element";
 
 /** Object node for a puzzle object. */
-export const puzzleNode = (value: PuzzlePublic) =>
-  new RootObjectNode(value, puzzleDescriptor);
+export const puzzleNode = (value: PuzzlePublic) => new RootObjectNode(value, puzzleDescriptor);
 
 /** Puzzle - the header lines, then cells and each element, in printing order. */
-export const puzzleDescriptor = getPlainObjectDescriptor<
-  PuzzlePublic,
-  PuzzlePublic
->({
+export const puzzleDescriptor = getPlainObjectDescriptor<PuzzlePublic, PuzzlePublic>({
   childMap: {
     name: stringDescriptor,
     author: stringDescriptor,

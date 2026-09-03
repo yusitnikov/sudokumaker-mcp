@@ -1,14 +1,7 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import {
-  type CellNotation,
-  CellId,
-  parseCellNotation,
-} from "../../SudokuMakerSchemas";
-import {
-  updateCellValuesToolName,
-  updateGivenDigitsToolName,
-} from "./toolNames";
+import { type CellNotation, CellId, parseCellNotation } from "../../SudokuMakerSchemas";
+import { updateCellValuesToolName, updateGivenDigitsToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 import { copyCells } from "../copyCells";
 
@@ -63,8 +56,7 @@ Setting a value also clears any candidates/corner marks already in that cell.
         return { result: { updatedCells, skippedCells } };
       },
       (from, to) => copyCells(from.cells, to.cells),
-      (digit === -1 ? "Remove values from " : `Put value ${digit} into `) +
-        cells.join(", "),
+      (digit === -1 ? "Remove values from " : `Put value ${digit} into `) + cells.join(", "),
     );
 
     const diffText = cellsDiffSummary(tabState);
@@ -74,10 +66,7 @@ Setting a value also clears any candidates/corner marks already in that cell.
         content: [
           {
             type: "text",
-            text: [
-              `Updated cell values in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
-              diffText,
-            ].join("\n"),
+            text: [`Updated cell values in puzzle "${tabState.puzzle.name || "(untitled)"}".`, diffText].join("\n"),
           },
         ],
       };

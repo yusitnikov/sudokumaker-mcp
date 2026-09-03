@@ -49,10 +49,7 @@ type InternalConfigT<
       ? {}
       : { [K in ClueKeyT]: z.output<ClueConfigSchemaT>[] });
 
-interface ClueDescriptor<
-  ClueKeyT extends string,
-  ClueConfigSchemaT extends z.ZodType,
-> {
+interface ClueDescriptor<ClueKeyT extends string, ClueConfigSchemaT extends z.ZodType> {
   key: ClueKeyT;
   schema: ClueConfigSchemaT;
   getAffectedCells: (clue: z.input<ClueConfigSchemaT>) => CellNotation[];
@@ -126,9 +123,7 @@ export class SudokuMakerElement<
           }),
           ...(cluesKey && clueSchema
             ? {
-                [cluesKey]: z
-                  .array(clueSchema)
-                  .describe("Array of element's clues"),
+                [cluesKey]: z.array(clueSchema).describe("Array of element's clues"),
               }
             : {}),
         }),
@@ -162,8 +157,7 @@ export class SudokuMakerElement<
 
     return {
       title: detectedOption.getTitle?.(config, spec) ?? detectedOption.title,
-      description:
-        detectedOption.getDescription?.(spec) ?? detectedOption.description,
+      description: detectedOption.getDescription?.(spec) ?? detectedOption.description,
     };
   }
 }
@@ -191,15 +185,9 @@ export interface SecondarySudokuMakerElementOption<
   detect: ConfigGetter<ConfigT, boolean>;
 }
 
-type SpecGetter<ResultT, ArgsT extends any[] = []> = (
-  spec: z.input<typeof Spec>,
-  ...args: ArgsT
-) => ResultT;
+type SpecGetter<ResultT, ArgsT extends any[] = []> = (spec: z.input<typeof Spec>, ...args: ArgsT) => ResultT;
 
-type ConfigGetter<ConfigT, ResultT> = (
-  config: ConfigT,
-  spec: z.input<typeof Spec>,
-) => ResultT;
+type ConfigGetter<ConfigT, ResultT> = (config: ConfigT, spec: z.input<typeof Spec>) => ResultT;
 // endregion
 
 export enum ElementType {
@@ -336,9 +324,7 @@ export const OuterClueStyle = z
 const LineClueSchema = z.array(CellId).meta({
   description: "The list of all cells that lines goes through",
 });
-const getLineClue = <KeyT extends string>(
-  key: KeyT,
-): ClueDescriptor<KeyT, typeof LineClueSchema> => ({
+const getLineClue = <KeyT extends string>(key: KeyT): ClueDescriptor<KeyT, typeof LineClueSchema> => ({
   key,
   schema: LineClueSchema,
   getAffectedCells: (cells) => cells,
@@ -430,9 +416,7 @@ export const SudokuRulesElement = new SudokuMakerElement({
     },
   ],
   getRefuseAddReason: (spec) =>
-    spec.type === PuzzleTypeNative.Sudoku
-      ? sudokuRulesRedundantOnSudokuTypeReason
-      : undefined,
+    spec.type === PuzzleTypeNative.Sudoku ? sudokuRulesRedundantOnSudokuTypeReason : undefined,
 });
 
 export const GivensElement = new SudokuMakerElement({
@@ -520,8 +504,7 @@ export const AntikingElement = new SudokuMakerElement({
   type: ElementType.Antiking,
   main: {
     title: "Antiking",
-    description:
-      "Cells separated by a king’s move in chess cannot have the same digit.",
+    description: "Cells separated by a king’s move in chess cannot have the same digit.",
   },
 });
 
@@ -529,8 +512,7 @@ export const AntiknightElement = new SudokuMakerElement({
   type: ElementType.Antiknight,
   main: {
     title: "Antiknight",
-    description:
-      "Cells separated by a knight’s move in chess cannot have the same digit.",
+    description: "Cells separated by a knight’s move in chess cannot have the same digit.",
   },
 });
 
@@ -538,8 +520,7 @@ export const DisjointGroupsElement = new SudokuMakerElement({
   type: ElementType.DisjointGroups,
   main: {
     title: "Disjoint groups",
-    description:
-      "Cells with the same position within the boxes contain all the numbers 1 to 9",
+    description: "Cells with the same position within the boxes contain all the numbers 1 to 9",
   },
 });
 
@@ -547,14 +528,11 @@ export const NonconsecutiveElement = new SudokuMakerElement({
   type: ElementType.Nonconsecutive,
   main: {
     title: "Non-consecutive",
-    description:
-      "Cells that are orthogonally adjacent cannot contain consecutive digits.",
+    description: "Cells that are orthogonally adjacent cannot contain consecutive digits.",
   },
 });
 
-const getSingleCellClue = <KeyT extends string>(
-  key: KeyT,
-): ClueDescriptor<KeyT, typeof CellId> => ({
+const getSingleCellClue = <KeyT extends string>(key: KeyT): ClueDescriptor<KeyT, typeof CellId> => ({
   key,
   schema: CellId,
   getAffectedCells: (cell) => [cell],
@@ -619,8 +597,7 @@ export const MaximumElement = new SudokuMakerElement({
   clue: SingleCellClue,
   main: {
     title: "Maximum",
-    description:
-      "Cells with this constraint are greater than all adjacent cells without this constraint.",
+    description: "Cells with this constraint are greater than all adjacent cells without this constraint.",
     defaultConfig: {
       style: {
         color: "#00000033",
@@ -641,8 +618,7 @@ export const MinimumElement = new SudokuMakerElement({
   clue: SingleCellClue,
   main: {
     title: "Minimum",
-    description:
-      "Cells with this constraint are smaller than all adjacent cells without this constraint.",
+    description: "Cells with this constraint are smaller than all adjacent cells without this constraint.",
     defaultConfig: {
       style: {
         color: "#00000033",
@@ -710,8 +686,7 @@ export const KillerCagesElement = new SudokuMakerElement({
   clue: Cage(z.number().describe("")),
   main: {
     title: "Killer cages",
-    description:
-      "Digits in cages must sum to the number in the top-left corner and cannot repeat",
+    description: "Digits in cages must sum to the number in the top-left corner and cannot repeat",
     defaultConfig: {
       style: {
         text: {
@@ -738,8 +713,7 @@ export const CloneElement = new SudokuMakerElement({
   }),
   main: {
     title: "Clones",
-    description:
-      "The arrangement of digits in a part of the sudoku must be the same elsewhere",
+    description: "The arrangement of digits in a part of the sudoku must be the same elsewhere",
     defaultConfig: {
       groups: [],
       style: {
@@ -765,10 +739,7 @@ export const QuadrupleElement = new SudokuMakerElement({
         'The corner where the 4 quadruple digits are written, as the "rXcY" coordinates of the cell below-right of that corner ' +
           '(e.g. "r3c4" names the corner shared by r2c3, r2c4, r3c3 and r3c4).',
       ),
-      digits: z
-        .array(z.number())
-        .max(4)
-        .describe("Quadruple digits (up to 4 digits)"),
+      digits: z.array(z.number()).max(4).describe("Quadruple digits (up to 4 digits)"),
     }),
     getAffectedCells: ({ corner }) => {
       const { row, column } = parseCellNotation(corner);
@@ -783,8 +754,7 @@ export const QuadrupleElement = new SudokuMakerElement({
   },
   main: {
     title: "Quadruples",
-    description:
-      "Every digit in a circle has to be assigned to one of the surrounding cells.",
+    description: "Every digit in a circle has to be assigned to one of the surrounding cells.",
     defaultConfig: {
       style: {
         singleLine: false,
@@ -847,8 +817,7 @@ export const RenbanElement = new SudokuMakerElement({
   clue: LineClue,
   main: {
     title: "Renban lines",
-    description:
-      "Every renban line contains a set of consecutive digits in any order, without repeats",
+    description: "Every renban line contains a set of consecutive digits in any order, without repeats",
     defaultConfig: {
       style: {
         color: "#f067f0",
@@ -864,8 +833,7 @@ export const PalindromeElement = new SudokuMakerElement({
   clue: LineClue,
   main: {
     title: "Palindromes",
-    description:
-      "Digits on a palindrome line read the same forwards and backwards",
+    description: "Digits on a palindrome line read the same forwards and backwards",
     defaultConfig: {
       style: {
         color: "#bbbbbb",
@@ -881,8 +849,7 @@ export const BetweenLinesElement = new SudokuMakerElement({
   clue: LineClue,
   main: {
     title: "Between lines",
-    description:
-      "Digits along a between line must be between the digits on the circled ends of the line.",
+    description: "Digits along a between line must be between the digits on the circled ends of the line.",
     defaultConfig: {
       style: {
         lines: {
@@ -913,8 +880,7 @@ export const RegionSumLineElement = new SudokuMakerElement({
   clue: LineClue,
   main: {
     title: "Region sum lines",
-    description:
-      "For each line, digits on the line have an equal sum N within each box it passes through.",
+    description: "For each line, digits on the line have an equal sum N within each box it passes through.",
     defaultConfig: {
       singleRegionTotals: false,
       style: {
@@ -1005,15 +971,11 @@ export const ArrowElement = new SudokuMakerElement({
             "If multiple arrows attached to the bulb, digits on each arrow line sum to the number in the bulb INDIVIDUALLY.",
         ),
     }),
-    getAffectedCells: ({ bulbCells, arrows }) => [
-      ...bulbCells,
-      ...arrows.flat(),
-    ],
+    getAffectedCells: ({ bulbCells, arrows }) => [...bulbCells, ...arrows.flat()],
   },
   main: {
     title: "Arrows",
-    description:
-      "Numbers along an arrow sum to the number shown in the circled cells.",
+    description: "Numbers along an arrow sum to the number shown in the circled cells.",
     defaultConfig: {
       style: {
         bulb: {
@@ -1092,8 +1054,7 @@ export const LittleKillersElement = new SudokuMakerElement({
   },
   main: {
     title: "Little killers",
-    description:
-      "Digits along marked diagonals sum to the number indicated outside the grid.",
+    description: "Digits along marked diagonals sum to the number indicated outside the grid.",
     defaultConfig: {
       style: {
         text: {
@@ -1115,8 +1076,7 @@ export const SandwichSumsElement = new SudokuMakerElement({
   clue: OuterClue(z.number().optional().describe("sandwich sum")),
   main: {
     title: "Sandwich sums",
-    description:
-      "Digits between 1 and 9 in the indicated row or column must sum to the indicated value",
+    description: "Digits between 1 and 9 in the indicated row or column must sum to the indicated value",
     defaultConfig: {
       style: {
         color: "#000000ff",
@@ -1133,8 +1093,7 @@ export const XSumsElement = new SudokuMakerElement({
   clue: OuterClue(z.number().optional().describe("")),
   main: {
     title: "X-sums",
-    description:
-      "Clues at the edge of the grid show the sum of the first X digits, where X is the first seen digit.",
+    description: "Clues at the edge of the grid show the sum of the first X digits, where X is the first seen digit.",
     defaultConfig: {
       style: {
         color: "#000000",
@@ -1191,8 +1150,7 @@ export const RowIndexerElement = new SudokuMakerElement({
   clue: SingleCellClue,
   main: {
     title: "Row indexers",
-    description:
-      "A marked cell in row X indicates the row where X appears in the column.",
+    description: "A marked cell in row X indicates the row where X appears in the column.",
     defaultConfig: {
       style: {
         color: "#0080f955",
@@ -1213,8 +1171,7 @@ export const ColumnIndexerElement = new SudokuMakerElement({
   clue: SingleCellClue,
   main: {
     title: "Column indexers",
-    description:
-      "A marked cell in column X indicates the column where X appears in the row.",
+    description: "A marked cell in column X indicates the column where X appears in the row.",
     defaultConfig: {
       style: {
         color: "#f9000055",
@@ -1291,13 +1248,7 @@ export const CustomElement = new SudokuMakerElement({
         initializationCode: code,
         customComponents: components,
       }),
-      decode: ({
-        name,
-        isGlobal,
-        inputGroups,
-        initializationCode,
-        customComponents,
-      }) => ({
+      decode: ({ name, isGlobal, inputGroups, initializationCode, customComponents }) => ({
         definition: {
           name,
           input: isGlobal
@@ -1315,9 +1266,7 @@ export const CustomElement = new SudokuMakerElement({
           },
           components: customComponents,
         },
-        input: isGlobal
-          ? {}
-          : { groups: CustomConstraintInputGroupsSchema.encode(inputGroups) },
+        input: isGlobal ? {} : { groups: CustomConstraintInputGroupsSchema.encode(inputGroups) },
         style: {},
       }),
     },
@@ -1346,9 +1295,7 @@ const getCellsTouchingPoint = ({ x, y }: z.input<typeof IVector2>) => {
   const columns = Number.isInteger(x) ? [x, x + 1] : [Math.ceil(x)];
   const rows = Number.isInteger(y) ? [y, y + 1] : [Math.ceil(y)];
 
-  return rows.flatMap((row) =>
-    columns.map((column) => formatCellNotation({ row, column })),
-  );
+  return rows.flatMap((row) => columns.map((column) => formatCellNotation({ row, column })));
 };
 
 export const CosmeticLineElement = new SudokuMakerElement({
@@ -1367,14 +1314,11 @@ export const CosmeticLineElement = new SudokuMakerElement({
     key: "lines",
     schema: z.array(IVector2).describe(""),
     // Naive: only looks at each segment's two endpoints, not the segment's actual path.
-    getAffectedCells: (points) => [
-      ...new Set(points.flatMap(getCellsTouchingPoint)),
-    ],
+    getAffectedCells: (points) => [...new Set(points.flatMap(getCellsTouchingPoint))],
   },
   main: {
     title: "Cosmetic lines",
-    description:
-      "Place lines without any (programmed) logic associated with them.",
+    description: "Place lines without any (programmed) logic associated with them.",
     defaultConfig: {
       style: {
         thickness: 0.15,
@@ -1392,8 +1336,7 @@ export const CosmeticCageElement = new SudokuMakerElement({
   clue: Cage(z.string().describe("")),
   main: {
     title: "Cosmetic cages",
-    description:
-      "Place cages without any (programmed) logic associated with them.",
+    description: "Place cages without any (programmed) logic associated with them.",
     defaultConfig: {
       style: {
         text: {
@@ -1472,12 +1415,7 @@ export const ArrowSymbolParams = z
   .describe("");
 
 export const SymbolParams = z
-  .union([
-    RectangleSymbolParams,
-    EllipseSymbolParams,
-    TextSymbolParams,
-    ArrowSymbolParams,
-  ])
+  .union([RectangleSymbolParams, EllipseSymbolParams, TextSymbolParams, ArrowSymbolParams])
   .describe("");
 
 export const CosmeticSymbol = z
@@ -1499,8 +1437,7 @@ export const CosmeticSymbolElement = new SudokuMakerElement({
   },
   main: {
     title: "Cosmetic symbols",
-    description:
-      "Place symbols (squares, circles, text, arrows) without any (programmed) logic associated with them.",
+    description: "Place symbols (squares, circles, text, arrows) without any (programmed) logic associated with them.",
   },
 });
 
@@ -1523,9 +1460,7 @@ export enum CustomFogClearingPatternNative {
   row,
   column,
 }
-export const CustomFogClearingPattern = z
-  .enum(CustomFogClearingPatternNative)
-  .describe("");
+export const CustomFogClearingPattern = z.enum(CustomFogClearingPatternNative).describe("");
 
 export const FogTriggersElement = new SudokuMakerElement({
   type: ElementType.FogTriggers,
@@ -1576,10 +1511,11 @@ export const FogTriggersElement = new SudokuMakerElement({
 const describeDigitGroups = (groups: number[][]) =>
   groups.length ? groups.map((digits) => digits.join("")).join("/") : "???";
 
-const getDigitGroups: SpecGetter<
-  number[][],
-  [number, (digit: number) => number]
-> = ({ minDigit, maxDigit }, count, getGroup) => {
+const getDigitGroups: SpecGetter<number[][], [number, (digit: number) => number]> = (
+  { minDigit, maxDigit },
+  count,
+  getGroup,
+) => {
   const groups = Array(count)
     .fill(undefined)
     .map(() => [] as number[]);
@@ -1597,29 +1533,20 @@ const getEntropicGroups: SpecGetter<number[][]> = (spec) => {
   const limit1 = minDigit + Math.round(digitCount / 3);
   const limit2 = minDigit + Math.round((digitCount * 2) / 3);
 
-  return getDigitGroups(spec, 3, (digit) =>
-    digit <= limit1 ? 0 : digit <= limit2 ? 1 : 2,
-  );
+  return getDigitGroups(spec, 3, (digit) => (digit <= limit1 ? 0 : digit <= limit2 ? 1 : 2));
 };
 
 const getModuloGroups: SpecGetter<number[][], [number]> = (spec, count) => {
   return getDigitGroups(spec, count, (digit) => digit % count);
 };
 
-const areSameDigitGroups = (
-  group1List: number[][],
-  group2List: number[][],
-): boolean => {
+const areSameDigitGroups = (group1List: number[][], group2List: number[][]): boolean => {
   if (group1List.length !== group2List.length) {
     return false;
   }
 
-  const group1 = group1List
-    .map((digits) => DigitSetSchema.decode(digits))
-    .sort();
-  const group2 = group2List
-    .map((digits) => DigitSetSchema.decode(digits))
-    .sort();
+  const group1 = group1List.map((digits) => DigitSetSchema.decode(digits)).sort();
+  const group2 = group2List.map((digits) => DigitSetSchema.decode(digits)).sort();
   return group1.every((value, index) => value === group2[index]);
 };
 
@@ -1632,8 +1559,7 @@ export const GlobalEntropyElement = new SudokuMakerElement({
   main: {
     title: "Global 2x2 groups",
     getTitle: ({ groups }) => `Global ${describeDigitGroups(groups)}`,
-    description:
-      "Every 2x2 square of cells must contain at least 1 digit of every specified group.",
+    description: "Every 2x2 square of cells must contain at least 1 digit of every specified group.",
     paramsSchema: GlobalEntropyParamsSchema,
   },
   options: [
@@ -1644,8 +1570,7 @@ export const GlobalEntropyElement = new SudokuMakerElement({
       defaultConfig: (spec) => ({
         groups: getEntropicGroups(spec),
       }),
-      detect: ({ groups }, spec) =>
-        areSameDigitGroups(groups, getEntropicGroups(spec)),
+      detect: ({ groups }, spec) => areSameDigitGroups(groups, getEntropicGroups(spec)),
     },
     {
       title: "Global modulo-3",
@@ -1654,8 +1579,7 @@ export const GlobalEntropyElement = new SudokuMakerElement({
       defaultConfig: (spec) => ({
         groups: getModuloGroups(spec, 3),
       }),
-      detect: ({ groups }, spec) =>
-        areSameDigitGroups(groups, getModuloGroups(spec, 3)),
+      detect: ({ groups }, spec) => areSameDigitGroups(groups, getModuloGroups(spec, 3)),
     },
   ],
 });
@@ -1676,8 +1600,7 @@ export const ThermometerElement = new SudokuMakerElement({
   clue: getLineClue("thermometers"),
   main: {
     title: "Thermometers",
-    description:
-      "Numbers on a thermometer strictly increase as they move away from the bulb",
+    description: "Numbers on a thermometer strictly increase as they move away from the bulb",
     defaultConfig: {
       slow: false,
       style: {
@@ -1690,8 +1613,7 @@ export const ThermometerElement = new SudokuMakerElement({
   options: [
     {
       title: "Slow thermometers",
-      description:
-        "Numbers on a slow thermometer increase or stay the same as they move away from the bulb",
+      description: "Numbers on a slow thermometer increase or stay the same as they move away from the bulb",
       defaultConfig: {
         slow: true,
         style: {
@@ -1705,17 +1627,11 @@ export const ThermometerElement = new SudokuMakerElement({
   ],
 });
 
-const getGermanWhisperDiff: SpecGetter<number> = ({ digitCount }) =>
-  Math.ceil(digitCount / 2);
-const getDutchWhisperDiff: SpecGetter<number> = (spec) =>
-  getGermanWhisperDiff(spec) - 1;
+const getGermanWhisperDiff: SpecGetter<number> = ({ digitCount }) => Math.ceil(digitCount / 2);
+const getDutchWhisperDiff: SpecGetter<number> = (spec) => getGermanWhisperDiff(spec) - 1;
 
 const WhisperParamsSchema = z.object({
-  minDifference: z
-    .number()
-    .describe(
-      "Two cells connected by a whisper line must have this minimal difference",
-    ),
+  minDifference: z.number().describe("Two cells connected by a whisper line must have this minimal difference"),
 });
 
 export const WhisperElement = new SudokuMakerElement({
@@ -1725,8 +1641,7 @@ export const WhisperElement = new SudokuMakerElement({
   main: {
     title: "Whisper lines",
     getTitle: ({ minDifference }) => `${minDifference}-whisper lines`,
-    description:
-      "Two cells connected by a whisper line must have a difference of at least defined number.",
+    description: "Two cells connected by a whisper line must have a difference of at least defined number.",
     paramsSchema: WhisperParamsSchema,
     defaultConfig: (_spec, { minDifference }) => ({
       minDifference,
@@ -1750,8 +1665,7 @@ export const WhisperElement = new SudokuMakerElement({
           thickness: 0.15,
         },
       }),
-      detect: ({ minDifference }, spec) =>
-        minDifference === getGermanWhisperDiff(spec),
+      detect: ({ minDifference }, spec) => minDifference === getGermanWhisperDiff(spec),
     },
     {
       title: "Dutch whisper lines",
@@ -1766,8 +1680,7 @@ export const WhisperElement = new SudokuMakerElement({
           thickness: 0.15,
         },
       }),
-      detect: ({ minDifference }, spec) =>
-        minDifference === getDutchWhisperDiff(spec),
+      detect: ({ minDifference }, spec) => minDifference === getDutchWhisperDiff(spec),
     },
   ],
 });
@@ -1805,8 +1718,7 @@ export const EntropyLinesElement = new SudokuMakerElement({
           thickness: 0.15,
         },
       }),
-      detect: ({ groups }, spec) =>
-        areSameDigitGroups(groups, getEntropicGroups(spec)),
+      detect: ({ groups }, spec) => areSameDigitGroups(groups, getEntropicGroups(spec)),
     },
     {
       title: "3-modular lines",
@@ -1819,13 +1731,11 @@ export const EntropyLinesElement = new SudokuMakerElement({
           thickness: 0.15,
         },
       }),
-      detect: ({ groups }, spec) =>
-        areSameDigitGroups(groups, getModuloGroups(spec, 3)),
+      detect: ({ groups }, spec) => areSameDigitGroups(groups, getModuloGroups(spec, 3)),
     },
     {
       title: "Parity (odd/even) lines",
-      description:
-        "Every pair of consecutive cells along a parity line must contain an even and odd digit.",
+      description: "Every pair of consecutive cells along a parity line must contain an even and odd digit.",
       defaultConfig: (spec) => ({
         groups: getModuloGroups(spec, 2),
         style: {
@@ -1833,8 +1743,7 @@ export const EntropyLinesElement = new SudokuMakerElement({
           thickness: 0.15,
         },
       }),
-      detect: ({ groups }, spec) =>
-        areSameDigitGroups(groups, getModuloGroups(spec, 2)),
+      detect: ({ groups }, spec) => areSameDigitGroups(groups, getModuloGroups(spec, 2)),
     },
   ],
 });
@@ -1889,11 +1798,8 @@ const AllElementsMap = {
   [ElementType.EntropyLines]: EntropyLinesElement,
 };
 export const AllElements = Object.values(AllElementsMap);
-export const getElementByTypeName = (typeName: string) =>
-  AllElements.find((element) => element.typeName === typeName)!;
-export const getElementByConfig = <TypeT extends ElementType>(
-  config: ElementConfigByType<TypeT>,
-) =>
+export const getElementByTypeName = (typeName: string) => AllElements.find((element) => element.typeName === typeName)!;
+export const getElementByConfig = <TypeT extends ElementType>(config: ElementConfigByType<TypeT>) =>
   getElementByTypeName(config.type) as unknown as SudokuMakerElement<
     TypeT,
     z.ZodType<unknown, ElementConfigByType<TypeT>>,
@@ -1910,10 +1816,7 @@ export const ElementConfigSchema = SmartDiscriminatedUnion(
 });
 
 export const ElementMainSchema = z.object({
-  id: z
-    .number()
-    .optional()
-    .describe("Element ID, must be unique within the puzzle"),
+  id: z.number().optional().describe("Element ID, must be unique within the puzzle"),
   name: z
     .string()
     .optional()
@@ -1947,11 +1850,7 @@ export const ElementSchema = z
               .describe(
                 'Element name, adjusted to the specific element\'s config - this value would be displayed if the "name" field omitted',
               ),
-            description: z
-              .string()
-              .describe(
-                "Element description, adjusted to the specific element's config",
-              ),
+            description: z.string().describe("Element description, adjusted to the specific element's config"),
           })
           .optional()
           .readonly()
@@ -1970,25 +1869,14 @@ export const ElementSchema = z
 
 export type ElementPublic = z.input<typeof ElementSchema>;
 
-export type ElementConfigByType<TypeT extends ElementType> = z.input<
-  (typeof AllElementsMap)[TypeT]["schema"]
->;
+export type ElementConfigByType<TypeT extends ElementType> = z.input<(typeof AllElementsMap)[TypeT]["schema"]>;
 
-export type ElementByType<TypeT extends ElementType> = Omit<
-  ElementPublic,
-  "config"
-> & {
+export type ElementByType<TypeT extends ElementType> = Omit<ElementPublic, "config"> & {
   config: ElementConfigByType<TypeT>;
 };
 
 type AnyElement = (typeof AllElements)[number];
 
-type WithClue<T> = T extends { clue?: ClueDescriptor<infer K, infer _S> }
-  ? [K] extends [never]
-    ? never
-    : T
-  : never;
+type WithClue<T> = T extends { clue?: ClueDescriptor<infer K, infer _S> } ? ([K] extends [never] ? never : T) : never;
 export type ElementWithClue = WithClue<AnyElement>;
-export const isElementWithClue = (
-  element: AnyElement,
-): element is ElementWithClue => !!element.clue;
+export const isElementWithClue = (element: AnyElement): element is ElementWithClue => !!element.clue;

@@ -9,9 +9,7 @@ import { SUMMARY_BUDGET } from "../sizeLimits";
 export type ObjectDescriptorsMap<T, RootT> = {
   [K in keyof T]?:
     | ObjectDescriptor<Exclude<T[K], undefined>, RootT>
-    | ((
-        node: ObjectNode<T, RootT>,
-      ) => ObjectDescriptor<Exclude<T[K], undefined>, RootT>);
+    | ((node: ObjectNode<T, RootT>) => ObjectDescriptor<Exclude<T[K], undefined>, RootT>);
 };
 
 /** A plain object, printed and diffed key by key. */
@@ -25,12 +23,9 @@ export const getPlainObjectDescriptor = <T extends Record<string, any>, RootT>({
   ignoredKeys?: (keyof T)[] | ((value: T) => (keyof T)[]);
 } = {}): ObjectDescriptor<T, RootT> => {
   const getKeys = (value: T) => {
-    const ignoredKeysCalc =
-      typeof ignoredKeys === "function" ? ignoredKeys(value) : ignoredKeys;
+    const ignoredKeysCalc = typeof ignoredKeys === "function" ? ignoredKeys(value) : ignoredKeys;
 
-    return Object.keys(allowOtherKeys ? value : (childMap ?? value)).filter(
-      (key) => !ignoredKeysCalc?.includes(key),
-    );
+    return Object.keys(allowOtherKeys ? value : (childMap ?? value)).filter((key) => !ignoredKeysCalc?.includes(key));
   };
 
   return {
@@ -38,10 +33,7 @@ export const getPlainObjectDescriptor = <T extends Record<string, any>, RootT>({
       const keys = getKeys(node.value);
 
       if (!keys.includes(segment)) {
-        throw new NoSuchHandleError(
-          node.handle,
-          keys.join(", ") || "(no children)",
-        );
+        throw new NoSuchHandleError(node.handle, keys.join(", ") || "(no children)");
       }
 
       const descriptor = childMap?.[segment];
@@ -57,9 +49,7 @@ export const getPlainObjectDescriptor = <T extends Record<string, any>, RootT>({
       const childNodes = getKeys(node.value)
         .filter((key) => node.value[key] !== undefined)
         .map((key) => ({ key, childNode: node.child(key) }));
-      const parts = childNodes.map(
-        ({ key, childNode }) => `${key}: ${childNode.format(opts)}`,
-      );
+      const parts = childNodes.map(({ key, childNode }) => `${key}: ${childNode.format(opts)}`);
       const shortFormat = `{ ${parts.join(", ")} }`;
 
       if (opts.collapse) {
@@ -68,46 +58,32 @@ export const getPlainObjectDescriptor = <T extends Record<string, any>, RootT>({
           return shortFormat;
         }
 
-        const summarized = childNodes
-          .map(({ key, childNode }) => `${key}: ${childNode.getSummary()}`)
-          .join(", ");
+        const summarized = childNodes.map(({ key, childNode }) => `${key}: ${childNode.getSummary()}`).join(", ");
         return `{ ${summarized} }${formatHandleMarker(node, opts)}`;
       }
 
-      return shortFormat.includes("\n") || shortFormat.length > 200
-        ? `{\n${indent(parts.join("\n"))}\n}`
-        : shortFormat;
+      return shortFormat.includes("\n") || shortFormat.length > 200 ? `{\n${indent(parts.join("\n"))}\n}` : shortFormat;
     },
 
     getSummary(node) {
-      const keys = getKeys(node.value).filter(
-        (key) => node.value[key] !== undefined,
-      );
+      const keys = getKeys(node.value).filter((key) => node.value[key] !== undefined);
 
       // Key names identify an object far better than a count does, so they're kept while they fit:
       // `{ x, y, radius }` says what this is, `{ 3 keys }` doesn't. The values are what overflowed.
       const keysStr = `{ ${keys.join(", ")} }`;
-      return keysStr.length <= SUMMARY_BUDGET
-        ? keysStr
-        : `{ ${keys.length} ${keys.length === 1 ? "key" : "keys"} }`;
+      return keysStr.length <= SUMMARY_BUDGET ? keysStr : `{ ${keys.length} ${keys.length === 1 ? "key" : "keys"} }`;
     },
 
     diff(from, to) {
       const keys = [...new Set([...getKeys(from.value), ...getKeys(to.value)])];
-      const lines = keys.flatMap((key) =>
-        diffChild(key, from.child(key), to.child(key)),
-      );
+      const lines = keys.flatMap((key) => diffChild(key, from.child(key), to.child(key)));
       return `{\n${lines.join("\n")}\n}`;
     },
   };
 };
 
 /** Diffs one child of a composite node. */
-const diffChild = <T, RootT>(
-  key: string,
-  fromNode: ObjectNode<T, RootT>,
-  toNode: ObjectNode<T, RootT>,
-): string[] => {
+const diffChild = <T, RootT>(key: string, fromNode: ObjectNode<T, RootT>, toNode: ObjectNode<T, RootT>): string[] => {
   if (fromNode.value === undefined && toNode.value === undefined) {
     return [];
   }

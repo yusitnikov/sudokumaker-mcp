@@ -1,17 +1,10 @@
 import { z } from "zod";
 
-const ExtractZodObject = <
-  OutputT,
-  InputT,
-  T extends z.ZodType<OutputT, InputT>,
-  IoT extends "in" | "out",
->(
+const ExtractZodObject = <OutputT, InputT, T extends z.ZodType<OutputT, InputT>, IoT extends "in" | "out">(
   schema: T,
   io: IoT,
 ): z.ZodObject<{
-  [K in keyof (IoT extends "in" ? InputT : OutputT)]: z.ZodType<
-    (IoT extends "in" ? InputT : OutputT)[K]
-  >;
+  [K in keyof (IoT extends "in" ? InputT : OutputT)]: z.ZodType<(IoT extends "in" ? InputT : OutputT)[K]>;
 }> => {
   if (schema instanceof z.ZodObject) {
     return schema as any;
@@ -32,10 +25,7 @@ const ExtractZodObject = <
   throw new Error("Object not supported!");
 };
 
-const ExtractZodLiteral = <IoT extends "in" | "out">(
-  schema: z.ZodType,
-  io: IoT,
-): any => {
+const ExtractZodLiteral = <IoT extends "in" | "out">(schema: z.ZodType, io: IoT): any => {
   if (schema instanceof z.ZodCodec) {
     return ExtractZodLiteral(schema.def[io] as any, io);
   }
@@ -48,22 +38,13 @@ const ExtractZodLiteral = <IoT extends "in" | "out">(
   throw new Error("Literal not supported!");
 };
 
-export const SmartDiscriminatedUnion = <T extends z.ZodType>(
-  discriminator: string,
-  options: T[],
-): z.ZodUnion<T[]> => {
+export const SmartDiscriminatedUnion = <T extends z.ZodType>(discriminator: string, options: T[]): z.ZodUnion<T[]> => {
   const optionsEx = options.map((option) => {
     const inSchema = ExtractZodObject(option, "in");
     const outSchema = ExtractZodObject(option, "out");
 
-    const inValue = ExtractZodLiteral(
-      (inSchema.shape as any)[discriminator],
-      "in",
-    );
-    const outValue = ExtractZodLiteral(
-      (outSchema.shape as any)[discriminator],
-      "out",
-    );
+    const inValue = ExtractZodLiteral((inSchema.shape as any)[discriminator], "in");
+    const outValue = ExtractZodLiteral((outSchema.shape as any)[discriminator], "out");
 
     return {
       source: option,
@@ -88,14 +69,8 @@ export const SmartDiscriminatedUnion = <T extends z.ZodType>(
     optionsEx.find((option) => option[io].value === value[discriminator]);
 
   return z.codec(
-    z.discriminatedUnion(
-      discriminator,
-      optionsEx.map(({ in: { schema } }) => schema) as any,
-    ),
-    z.discriminatedUnion(
-      discriminator,
-      optionsEx.map(({ out: { schema } }) => schema) as any,
-    ),
+    z.discriminatedUnion(discriminator, optionsEx.map(({ in: { schema } }) => schema) as any),
+    z.discriminatedUnion(discriminator, optionsEx.map(({ out: { schema } }) => schema) as any),
     {
       encode: (value) => {
         const option = findOption(value, "out")!;

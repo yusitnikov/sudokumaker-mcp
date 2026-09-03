@@ -89,9 +89,7 @@ export class ObjectNode<T, RootT> {
     if (collapsed.length <= SUMMARY_BUDGET) {
       return collapsed;
     }
-    return (
-      this.descriptor.getSummary?.(this) ?? truncate(collapsed, SUMMARY_BUDGET)
-    );
+    return this.descriptor.getSummary?.(this) ?? truncate(collapsed, SUMMARY_BUDGET);
   }
 
   /**

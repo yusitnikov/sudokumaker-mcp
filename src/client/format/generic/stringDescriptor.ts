@@ -8,10 +8,7 @@ import { formatHandleMarker } from "../formatHandleMarker";
 /** A string leaf. No children; long text collapses/diffs by line, per the "long text" collapse rule. */
 export const stringDescriptor: ObjectDescriptor<string, any> = {
   child(node) {
-    throw new NoSuchHandleError(
-      node.handle,
-      "(no children - this is a leaf value)",
-    );
+    throw new NoSuchHandleError(node.handle, "(no children - this is a leaf value)");
   },
 
   format(node, opts, isRoot) {
@@ -23,9 +20,7 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
       const truncated = truncate(value, 40);
       return (
         JSON.stringify(truncated) +
-        (truncated === value
-          ? ""
-          : ` (${value.length} characters)${formatHandleMarker(node, opts)}`)
+        (truncated === value ? "" : ` (${value.length} characters)${formatHandleMarker(node, opts)}`)
       );
     }
 
@@ -43,14 +38,11 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
 
   getSummary({ value }) {
     const lineCount = value.split("\n").length;
-    return lineCount > 1
-      ? `${lineCount} lines`
-      : `"${truncate(value, SUMMARY_BUDGET - 2)}"`;
+    return lineCount > 1 ? `${lineCount} lines` : `"${truncate(value, SUMMARY_BUDGET - 2)}"`;
   },
 
   diff({ value: from }, { value: to }) {
-    const isLong = (text: string) =>
-      text.length > 100 || text.split("\n").length > 1;
+    const isLong = (text: string) => text.length > 100 || text.split("\n").length > 1;
     if (!isLong(from) && !isLong(to)) {
       return `${JSON.stringify(from)} → ${JSON.stringify(to)}`;
     }
@@ -63,21 +55,12 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
 
     // Line numbers are 1-based, while the items' indexes count from 0.
     // Padded to the widest number either side can print, so the colons line up down the block.
-    const numberWidth = Math.max(
-      fromLines.length.toString().length,
-      toLines.length.toString().length,
-    );
+    const numberWidth = Math.max(fromLines.length.toString().length, toLines.length.toString().length);
 
     const lines: string[] = ["", `${" ".repeat(numberWidth + 4)}<<EOF`];
 
-    const printLine = (
-      marker: string,
-      item: ArrayItem<string>,
-      printLineNumber = true,
-    ) =>
-      lines.push(
-        `${marker}${(printLineNumber ? `${item.index + 1}:` : "").padStart(numberWidth + 1)} ${item.value}`,
-      );
+    const printLine = (marker: string, item: ArrayItem<string>, printLineNumber = true) =>
+      lines.push(`${marker}${(printLineNumber ? `${item.index + 1}:` : "").padStart(numberWidth + 1)} ${item.value}`);
 
     ops.forEach((op) => {
       if (op.type === "unchanged") {
@@ -97,17 +80,13 @@ export const stringDescriptor: ObjectDescriptor<string, any> = {
         if (tailStart > leadEnd) {
           lines.push("…");
         }
-        items
-          .slice(Math.max(tailStart, leadEnd))
-          .forEach((item) => printLine("  ", item));
+        items.slice(Math.max(tailStart, leadEnd)).forEach((item) => printLine("  ", item));
       } else if (op.type === "removed") {
         printLine("- ", op.item, false);
       } else if (op.type === "added") {
         printLine("+ ", op.item);
       } else {
-        throw new Error(
-          `Internal error: unexpected ${op.type} operation for a string diff`,
-        );
+        throw new Error(`Internal error: unexpected ${op.type} operation for a string diff`);
       }
     });
 

@@ -8,8 +8,7 @@ import {
 
 export const customConstraintsTopic: DocsTopic = {
   name: customConstraintsTopicName,
-  description:
-    "How to write a custom constraint: standard components, initialization code, input groups, visuals.",
+  description: "How to write a custom constraint: standard components, initialization code, input groups, visuals.",
   // language=markdown
   content: () => `
 # Custom constraints

@@ -84,10 +84,7 @@ declare global {
     Api: {
       getPuzzle(): Puzzle;
 
-      updatePuzzle(
-        updater: (puzzle: Puzzle) => void,
-        operationDescription?: string,
-      ): void;
+      updatePuzzle(updater: (puzzle: Puzzle) => void, operationDescription?: string): void;
 
       triggerAction(action: TriggerableAction): void;
 

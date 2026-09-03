@@ -23,16 +23,11 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
   z.object({
     operationDescription: operationDescriptionParam,
     name: z.string().optional().describe("Puzzle title, shown to the solver."),
-    author: z
-      .string()
-      .optional()
-      .describe("Puzzle author/setter name, shown to the solver."),
+    author: z.string().optional().describe("Puzzle author/setter name, shown to the solver."),
     comment: z
       .string()
       .optional()
-      .describe(
-        "Rules text, shown to the solver. Usually describes the puzzle's rules, but can hold any text.",
-      ),
+      .describe("Rules text, shown to the solver. Usually describes the puzzle's rules, but can hold any text."),
     completionMessage: z
       .string()
       .optional()
@@ -44,26 +39,10 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
       .int()
       .min(0)
       .optional()
-      .describe(
-        "Lowest digit allowed in the grid (e.g. 1 for standard sudoku, 0 for a 0-indexed variant).",
-      ),
-    maxDigit: z
-      .number()
-      .int()
-      .optional()
-      .describe(
-        "Highest digit allowed in the grid (e.g. 9 for standard sudoku).",
-      ),
+      .describe("Lowest digit allowed in the grid (e.g. 1 for standard sudoku, 0 for a 0-indexed variant)."),
+    maxDigit: z.number().int().optional().describe("Highest digit allowed in the grid (e.g. 9 for standard sudoku)."),
   }),
-  async function ({
-    operationDescription,
-    name,
-    author,
-    comment,
-    completionMessage,
-    minDigit,
-    maxDigit,
-  }) {
+  async function ({ operationDescription, name, author, comment, completionMessage, minDigit, maxDigit }) {
     const {
       tabState,
       result: { clearedCellsCount },
@@ -71,10 +50,7 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
       (puzzle) => {
         const effectiveMinDigit = minDigit ?? puzzle.spec.minDigit;
         const effectiveMaxDigit = maxDigit ?? puzzle.spec.maxDigit;
-        if (
-          (minDigit !== undefined || maxDigit !== undefined) &&
-          effectiveMinDigit > effectiveMaxDigit
-        ) {
+        if ((minDigit !== undefined || maxDigit !== undefined) && effectiveMinDigit > effectiveMaxDigit) {
           throw new Error(
             `minDigit must be not greater than maxDigit; the resulting range would be ${effectiveMinDigit}..${effectiveMaxDigit}.`,
           );
@@ -101,14 +77,12 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
           puzzle.spec.maxDigit = maxDigit;
         }
         if (minDigit !== undefined || maxDigit !== undefined) {
-          puzzle.spec.digitCount =
-            puzzle.spec.maxDigit + 1 - puzzle.spec.minDigit;
+          puzzle.spec.digitCount = puzzle.spec.maxDigit + 1 - puzzle.spec.minDigit;
         }
 
         // Automatically remove out of range digits after changing the digits range
         if (minDigit !== undefined || maxDigit !== undefined) {
-          const isOutOfRange = (digit: number) =>
-            digit < effectiveMinDigit || digit > effectiveMaxDigit;
+          const isOutOfRange = (digit: number) => digit < effectiveMinDigit || digit > effectiveMaxDigit;
 
           for (const row of puzzle.cells) {
             for (const cell of row) {
@@ -121,16 +95,12 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
               }
 
               if (cell.candidates.some(isOutOfRange)) {
-                cell.candidates = cell.candidates.filter(
-                  (digit) => !isOutOfRange(digit),
-                );
+                cell.candidates = cell.candidates.filter((digit) => !isOutOfRange(digit));
                 fixed = true;
               }
 
               if (cell.cornerPencilMarks.some(isOutOfRange)) {
-                cell.cornerPencilMarks = cell.cornerPencilMarks.filter(
-                  (digit) => !isOutOfRange(digit),
-                );
+                cell.cornerPencilMarks = cell.cornerPencilMarks.filter((digit) => !isOutOfRange(digit));
                 fixed = true;
               }
 

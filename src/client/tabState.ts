@@ -1,8 +1,5 @@
 import { type PuzzlePublic, PuzzleSchema } from "../SudokuMakerPuzzleSchema";
-import {
-  readSudokuMakerLogs,
-  type SudokuMakerLogEntry,
-} from "../SudokuMakerLogs";
+import { readSudokuMakerLogs, type SudokuMakerLogEntry } from "../SudokuMakerLogs";
 import { readPendingActionLabel } from "../SudokuMakerUndoRedo";
 import { stringifyValue } from "./format/generic/stringifyValue";
 import { getTabStateSnapshotNode } from "./format/tabState/snapshot";
@@ -32,10 +29,7 @@ const getPuzzle = () => {
   puzzle.allElements.forEach((element) => {
     const elementType = getElementByConfig(element.config);
 
-    const elementMetadata = elementType.getElementMetadata(
-      element.config as any,
-      puzzle.spec,
-    );
+    const elementMetadata = elementType.getElementMetadata(element.config as any, puzzle.spec);
 
     element.elementMetadata = {
       defaultName: elementMetadata.title,
@@ -97,9 +91,7 @@ export class TabState implements TabStateSnapshot {
   }
 
   get previousSnapshotNode() {
-    return (
-      this.previousSnapshot && getTabStateSnapshotNode(this.previousSnapshot)
-    );
+    return this.previousSnapshot && getTabStateSnapshotNode(this.previousSnapshot);
   }
 
   get puzzle() {
@@ -137,49 +129,30 @@ export class TabState implements TabStateSnapshot {
 
   // region Changed flags
   get puzzleChanged() {
-    return (
-      this.previousSnapshot !== undefined &&
-      stringifyValue(this.previousPuzzle) !== stringifyValue(this.puzzle)
-    );
+    return this.previousSnapshot !== undefined && stringifyValue(this.previousPuzzle) !== stringifyValue(this.puzzle);
   }
 
   get puzzleIdChanged() {
-    return (
-      this.previousSnapshot !== undefined &&
-      this.previousPuzzle?.id !== this.puzzle.id
-    );
+    return this.previousSnapshot !== undefined && this.previousPuzzle?.id !== this.puzzle.id;
   }
 
   get undoLabelChanged() {
-    return (
-      this.previousSnapshot !== undefined &&
-      this.previousUndoLabel !== this.undoLabel
-    );
+    return this.previousSnapshot !== undefined && this.previousUndoLabel !== this.undoLabel;
   }
 
   get redoLabelChanged() {
-    return (
-      this.previousSnapshot !== undefined &&
-      this.previousRedoLabel !== this.redoLabel
-    );
+    return this.previousSnapshot !== undefined && this.previousRedoLabel !== this.redoLabel;
   }
 
   get solverLogsChanged() {
     return (
-      this.previousSnapshot !== undefined &&
-      stringifyValue(this.previousSolverLogs) !==
-        stringifyValue(this.solverLogs)
+      this.previousSnapshot !== undefined && stringifyValue(this.previousSolverLogs) !== stringifyValue(this.solverLogs)
     );
   }
 
   /** Whether any property of the snapshot changed */
   get changed() {
-    return (
-      this.puzzleChanged ||
-      this.undoLabelChanged ||
-      this.redoLabelChanged ||
-      this.solverLogsChanged
-    );
+    return this.puzzleChanged || this.undoLabelChanged || this.redoLabelChanged || this.solverLogsChanged;
   }
   // endregion
 
@@ -188,9 +161,7 @@ export class TabState implements TabStateSnapshot {
   }
 
   get formattedDiff() {
-    return this.changed
-      ? this.previousSnapshotNode?.diff(this.currentSnapshotNode)
-      : undefined;
+    return this.changed ? this.previousSnapshotNode?.diff(this.currentSnapshotNode) : undefined;
   }
 }
 

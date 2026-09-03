@@ -1,13 +1,6 @@
 import { type PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
-import {
-  type CellPublic,
-  parseCellNotation,
-} from "../../../SudokuMakerSchemas";
-import {
-  type ElementByType,
-  ElementType,
-  RegionsElement,
-} from "../../../SudokuMakerElement";
+import { type CellPublic, parseCellNotation } from "../../../SudokuMakerSchemas";
+import { type ElementByType, ElementType, RegionsElement } from "../../../SudokuMakerElement";
 import { NoSuchHandleError } from "../NoSuchHandleError";
 import type { FormatOpts } from "../FormatOpts";
 import { ObjectNode } from "../ObjectNode";
@@ -73,11 +66,7 @@ export const formatCellToken = (cell: CellPublic): string => {
     core = `*${cell.value}`;
   } else if (cell.value !== undefined) {
     core = `[${cell.value}]`;
-  } else if (
-    !cell.candidates.length &&
-    !cell.cornerPencilMarks.length &&
-    !cell.colors.length
-  ) {
+  } else if (!cell.candidates.length && !cell.cornerPencilMarks.length && !cell.colors.length) {
     core = ".";
   } else {
     const parts: string[] = [];
@@ -97,11 +86,7 @@ export const formatCellToken = (cell: CellPublic): string => {
 
 const colorLegend = (...cellsGrids: CellPublic[][][]): string | undefined => {
   const colors = [
-    ...new Set(
-      cellsGrids.flatMap((cellsGrid) =>
-        cellsGrid.flatMap((row) => row.flatMap((cell) => cell.colors)),
-      ),
-    ),
+    ...new Set(cellsGrids.flatMap((cellsGrid) => cellsGrid.flatMap((row) => row.flatMap((cell) => cell.colors)))),
   ].sort((a, b) => a - b);
   if (!colors.length) {
     return undefined;
@@ -112,17 +97,13 @@ const colorLegend = (...cellsGrids: CellPublic[][][]): string | undefined => {
 /** Reads the enabled `Regions` element off the whole puzzle (`root`), for separators. undefined if none/disabled. */
 const findRegionsGrid = (root: PuzzlePublic): number[][] | undefined => {
   const element = root.allElements.find(
-    (e): e is ElementByType<ElementType.Regions> =>
-      e.config.type === RegionsElement.typeName && e.enabled,
+    (e): e is ElementByType<ElementType.Regions> => e.config.type === RegionsElement.typeName && e.enabled,
   );
   return element ? element.config.regions : undefined;
 };
 
-const regionAt = (
-  regions: number[][] | undefined,
-  row: number,
-  column: number,
-): number => (regions ? (regions[row - 1]?.[column - 1] ?? 0) : 0);
+const regionAt = (regions: number[][] | undefined, row: number, column: number): number =>
+  regions ? (regions[row - 1]?.[column - 1] ?? 0) : 0;
 
 const columnWidths = (...cellsGrids: CellPublic[][][]): number[] => {
   const columnCount = cellsGrids[0]?.[0]?.length ?? 0;
@@ -130,10 +111,7 @@ const columnWidths = (...cellsGrids: CellPublic[][][]): number[] => {
   for (const cellsGrid of cellsGrids) {
     for (const row of cellsGrid) {
       row.forEach((cell, columnIndex) => {
-        widths[columnIndex] = Math.max(
-          widths[columnIndex],
-          formatCellToken(cell).length,
-        );
+        widths[columnIndex] = Math.max(widths[columnIndex], formatCellToken(cell).length);
       });
     }
   }
@@ -141,19 +119,13 @@ const columnWidths = (...cellsGrids: CellPublic[][][]): number[] => {
 };
 
 /** Renders one grid row, column-aligned, with `| ` separators wherever the region number differs across the boundary. */
-const formatRow = (
-  row: CellPublic[],
-  rowNumber: number,
-  regions: number[][] | undefined,
-  widths: number[],
-): string => {
+const formatRow = (row: CellPublic[], rowNumber: number, regions: number[][] | undefined, widths: number[]): string => {
   const parts: string[] = [];
   row.forEach((cell, columnIndex) => {
     parts.push(formatCellToken(cell).padEnd(widths[columnIndex]));
     if (columnIndex < row.length - 1) {
       const sameRegion =
-        regionAt(regions, rowNumber, columnIndex + 1) ===
-        regionAt(regions, rowNumber, columnIndex + 2);
+        regionAt(regions, rowNumber, columnIndex + 1) === regionAt(regions, rowNumber, columnIndex + 2);
       parts.push(sameRegion ? " " : "| ");
     }
   });
@@ -172,10 +144,7 @@ const horizontalSeparator = (
   const columnCount = cellsGrid[0].length;
   let differs = false;
   for (let column = 1; column <= columnCount; column++) {
-    if (
-      regionAt(regions, rowIndex + 1, column) !==
-      regionAt(regions, rowIndex + 2, column)
-    ) {
+    if (regionAt(regions, rowIndex + 1, column) !== regionAt(regions, rowIndex + 2, column)) {
       differs = true;
       break;
     }
@@ -188,10 +157,7 @@ const horizontalSeparator = (
 };
 
 /** Renders the whole grid (or a single-row slice): one line if `opts.collapse`, else windowed by the size floor. */
-const formatGridRows = (
-  node: ObjectNode<CellPublic[][], PuzzlePublic>,
-  opts: FormatOpts,
-): string => {
+const formatGridRows = (node: ObjectNode<CellPublic[][], PuzzlePublic>, opts: FormatOpts): string => {
   const cellsGrid = node.value;
 
   if (opts.collapse) {
@@ -223,31 +189,20 @@ const formatGridRows = (
   return indent(result.join("\n"));
 };
 
-const diffGridRows = (
-  fromGrid: CellPublic[][],
-  toGrid: CellPublic[][],
-  root: PuzzlePublic,
-): string => {
+const diffGridRows = (fromGrid: CellPublic[][], toGrid: CellPublic[][], root: PuzzlePublic): string => {
   const regions = findRegionsGrid(root);
   const widths = columnWidths(fromGrid, toGrid);
 
   const changedLines: string[] = [];
   toGrid.forEach((row, rowIndex) => {
     const fromRow = fromGrid[rowIndex];
-    const changed = row.some(
-      (cell, colIndex) =>
-        JSON.stringify(cell) !== JSON.stringify(fromRow[colIndex]),
-    );
+    const changed = row.some((cell, colIndex) => JSON.stringify(cell) !== JSON.stringify(fromRow[colIndex]));
     if (!changed) {
       return;
     }
     const rowNumber = rowIndex + 1;
-    changedLines.push(
-      `r${rowNumber} - ${formatRow(fromRow, rowNumber, regions, widths)}`,
-    );
-    changedLines.push(
-      `r${rowNumber} + ${formatRow(row, rowNumber, regions, widths)}`,
-    );
+    changedLines.push(`r${rowNumber} - ${formatRow(fromRow, rowNumber, regions, widths)}`);
+    changedLines.push(`r${rowNumber} + ${formatRow(row, rowNumber, regions, widths)}`);
   });
 
   const lines: string[] = [""];
@@ -274,10 +229,7 @@ const cellChild = (
     const rowIndex = Number(rowOnly[1]) - 1;
     const row = cellsGrid[rowIndex];
     if (!row) {
-      throw new NoSuchHandleError(
-        node.handle,
-        "cell notation, e.g. r2c3 or r2",
-      );
+      throw new NoSuchHandleError(node.handle, "cell notation, e.g. r2c3 or r2");
     }
     // Wrapped in a one-row grid, which is what `formatGridRows` and `cellRowDescriptor` take;
     // the setter unwraps it again so the write lands on the grid rather than on the wrapper.

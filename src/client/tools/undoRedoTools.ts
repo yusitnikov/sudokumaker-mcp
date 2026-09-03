@@ -27,9 +27,7 @@ export const undoTool = new ToolImplementation(
     const label = tabState.undoLabel;
     if (label === undefined) {
       return {
-        content: [
-          { type: "text", text: "Nothing to undo - there is no prior action." },
-        ],
+        content: [{ type: "text", text: "Nothing to undo - there is no prior action." }],
       };
     }
 

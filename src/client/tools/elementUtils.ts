@@ -1,29 +1,18 @@
-import {
-  type ElementPublic,
-  getElementByTypeName,
-  isElementWithClue,
-} from "../../SudokuMakerElement";
+import { type ElementPublic, getElementByTypeName, isElementWithClue } from "../../SudokuMakerElement";
 import { CellIdPublic } from "../../SudokuMakerSchemas";
 import { z } from "zod";
 import { elementTopicPrefix } from "./docs/topicNames";
 import { docsToolName } from "./toolNames";
 import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
 
-export const getElementFinalName = ({
-  name,
-  config: { type },
-  elementMetadata,
-}: ElementPublic) => name || elementMetadata?.defaultName || type;
+export const getElementFinalName = ({ name, config: { type }, elementMetadata }: ElementPublic) =>
+  name || elementMetadata?.defaultName || type;
 
 /**
  * Validates data whose shape depends on the element type, pointing at that type's docs topic on failure.
  * `shape` mirrors the tool's own schema, so error paths name the fields the caller passed.
  */
-export const parseElementSpecificData = <T extends z.ZodRawShape>(
-  typeName: string,
-  shape: T,
-  data: unknown,
-) => {
+export const parseElementSpecificData = <T extends z.ZodRawShape>(typeName: string, shape: T, data: unknown) => {
   try {
     z.object(shape).parse(data);
   } catch (error) {
@@ -37,18 +26,12 @@ export const parseElementSpecificData = <T extends z.ZodRawShape>(
   }
 };
 
-export const getElementById = (
-  { allElements: currentElements }: PuzzlePublic,
-  elementId: number,
-) => {
+export const getElementById = ({ allElements: currentElements }: PuzzlePublic, elementId: number) => {
   const targetElement = currentElements.find(({ id }) => id === elementId);
   if (!targetElement) {
     // The puzzle's actual elements travel with the error, so retrying costs no extra read.
     const available = currentElements
-      .map(
-        (element) =>
-          `${element.id} ("${getElementFinalName(element)}", type ${element.config.type})`,
-      )
+      .map((element) => `${element.id} ("${getElementFinalName(element)}", type ${element.config.type})`)
       .join(", ");
 
     throw new Error(
@@ -67,10 +50,7 @@ export const getElementById = (
  * Shared by every tool that targets an element's clues, since the element's real type (and whether it has clues)
  * is always known server-side, never supplied by the caller.
  */
-export const getElementWithClueById = (
-  puzzle: PuzzlePublic,
-  elementId: number,
-) => {
+export const getElementWithClueById = (puzzle: PuzzlePublic, elementId: number) => {
   const { index, targetElement } = getElementById(puzzle, elementId);
   const elementType = getElementByTypeName(targetElement.config.type);
 
@@ -96,9 +76,7 @@ Pass enough cells to identify one clue uniquely, or fewer to target several clue
 
 export const CluePositionsFilter = z
   .array(z.number().int().min(1))
-  .describe(
-    "1-based positions in the element's clue array, selecting exactly those clues.",
-  );
+  .describe("1-based positions in the element's clue array, selecting exactly those clues.");
 
 export const ClueMatch = z.union([
   z.object({ clueCells: ClueCellsGroupFilter }),

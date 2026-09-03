@@ -1,23 +1,10 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
-import {
-  getElementById,
-  getElementFinalName,
-  parseElementSpecificData,
-} from "./elementUtils";
-import {
-  elementIdNote,
-  operationDescriptionParam,
-  partialUpdateNote,
-} from "./descriptionSnippets";
+import { getElementById, getElementFinalName, parseElementSpecificData } from "./elementUtils";
+import { elementIdNote, operationDescriptionParam, partialUpdateNote } from "./descriptionSnippets";
 import { getElementByTypeName } from "../../SudokuMakerElement";
-import {
-  addElementToolName,
-  getPuzzleToolName,
-  updateCluesToolName,
-  updateElementToolName,
-} from "./toolNames";
+import { addElementToolName, getPuzzleToolName, updateCluesToolName, updateElementToolName } from "./toolNames";
 import { elementTopicPattern } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 
@@ -88,15 +75,7 @@ ${partialUpdateNote}
       `Enable or disable the element for the solver (logic only).`,
     ),
   }),
-  async function ({
-    elementId,
-    elementUpdates,
-    clueBatchUpdates,
-    name,
-    enabled,
-    solverIgnored,
-    operationDescription,
-  }) {
+  async function ({ elementId, elementUpdates, clueBatchUpdates, name, enabled, solverIgnored, operationDescription }) {
     const {
       tabState,
       result: { index },
@@ -133,9 +112,7 @@ ${partialUpdateNote}
               : {}),
             ...(elementType.clue
               ? {
-                  clueBatchUpdates: ZodDeepPartial(
-                    elementType.clue.schema as any,
-                  ).optional(),
+                  clueBatchUpdates: ZodDeepPartial(elementType.clue.schema as any).optional(),
                 }
               : {}),
           },
@@ -149,18 +126,13 @@ ${partialUpdateNote}
 
         const element = puzzle.allElements[index];
         if (elementUpdates) {
-          element.config = mergeDeepUpdates<typeof element.config>(
-            element.config,
-            elementUpdates,
-          );
+          element.config = mergeDeepUpdates<typeof element.config>(element.config, elementUpdates);
         }
         if (clueBatchUpdates && cluesKey) {
           const config = element.config as unknown as {
             [key in typeof cluesKey]: any[];
           };
-          config[cluesKey] = config[cluesKey].map((value) =>
-            mergeDeepUpdates(value, clueBatchUpdates),
-          );
+          config[cluesKey] = config[cluesKey].map((value) => mergeDeepUpdates(value, clueBatchUpdates));
         }
         if (name !== undefined) {
           element.name = name;

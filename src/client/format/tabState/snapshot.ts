@@ -5,10 +5,7 @@ import { solverLogsDescriptor } from "./solverLogs";
 import { puzzleDescriptor } from "../puzzle/puzzle";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 
-const tabStateSnapshotDescriptor = getPlainObjectDescriptor<
-  TabStateSnapshot,
-  PuzzlePublic
->({
+const tabStateSnapshotDescriptor = getPlainObjectDescriptor<TabStateSnapshot, PuzzlePublic>({
   childMap: {
     puzzle: puzzleDescriptor,
     solverLogs: solverLogsDescriptor,

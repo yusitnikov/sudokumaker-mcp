@@ -16,10 +16,7 @@ const summarize = <T>(
     : `${leadInText}\n${from.diff(to)}`;
 
 /** Diffs the whole puzzle between `before` and `after`, prefixed with `leadInText`. */
-export const puzzleDiffSummary = (
-  tabState: TabState,
-  leadInText = "This is what changed:",
-): string =>
+export const puzzleDiffSummary = (tabState: TabState, leadInText = "This is what changed:"): string =>
   summarize(
     tabState.previousPuzzle && puzzleNode(tabState.previousPuzzle),
     puzzleNode(tabState.puzzle),
@@ -28,10 +25,7 @@ export const puzzleDiffSummary = (
   );
 
 /** Diffs `allElements` between `before` and `after`. */
-export const elementsDiffSummary = ({
-  puzzle,
-  previousPuzzle,
-}: TabState): string =>
+export const elementsDiffSummary = ({ puzzle, previousPuzzle }: TabState): string =>
   summarize(
     previousPuzzle && puzzleNode(previousPuzzle).child("allElements"),
     puzzleNode(puzzle).child("allElements"),

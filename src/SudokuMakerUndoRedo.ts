@@ -23,9 +23,7 @@ interface VueComponentInstance {
  * "Undo: "/"Redo: " prefix stripped - or `undefined` if the button is disabled, i.e. nothing to
  * undo/redo.
  */
-export function readPendingActionLabel(
-  direction: "undo" | "redo",
-): string | undefined {
+export function readPendingActionLabel(direction: "undo" | "redo"): string | undefined {
   const iconClass = direction === "undo" ? "UndoIcon" : "RedoIcon";
   const prefix = direction === "undo" ? "Undo: " : "Redo: ";
   const button = document.querySelector(`.${iconClass}`)?.closest("button");
@@ -34,9 +32,7 @@ export function readPendingActionLabel(
   }
 
   const vueApp = (
-    document.querySelector("#app") as
-      | (Element & { __vue_app__?: { _container?: { _vnode?: VueVNode } } })
-      | null
+    document.querySelector("#app") as (Element & { __vue_app__?: { _container?: { _vnode?: VueVNode } } }) | null
   )?.__vue_app__;
   const root = vueApp?._container?._vnode?.component;
   let text: string | undefined;
@@ -57,10 +53,7 @@ export function readPendingActionLabel(
     }
   }
 
-  function walk(
-    inst: VueComponentInstance | null | undefined,
-    depth: number,
-  ): void {
+  function walk(inst: VueComponentInstance | null | undefined, depth: number): void {
     if (text !== undefined || !inst || depth > 100) {
       return;
     }

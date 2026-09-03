@@ -1,11 +1,7 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getElementById, getElementFinalName } from "./elementUtils";
-import {
-  addElementToolName,
-  getPuzzleToolName,
-  removeElementToolName,
-} from "./toolNames";
+import { addElementToolName, getPuzzleToolName, removeElementToolName } from "./toolNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { elementIdNote } from "./descriptionSnippets";
 
@@ -50,8 +46,7 @@ ${elementIdNote}
       (_from, to, { index }) => {
         to.allConstraints.splice(index, 1);
       },
-      (_puzzle, { targetElement }) =>
-        `Remove ${getElementFinalName(targetElement)}`,
+      (_puzzle, { targetElement }) => `Remove ${getElementFinalName(targetElement)}`,
     );
 
     return {

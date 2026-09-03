@@ -1,7 +1,4 @@
-import {
-  BrowserMcpServer,
-  type ExecuteJsError,
-} from "@sitnikov/browser-automation";
+import { BrowserMcpServer, type ExecuteJsError } from "@sitnikov/browser-automation";
 import { createHash } from "crypto";
 import { z } from "zod";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
@@ -23,10 +20,7 @@ const sudokuMakerHostname = "sudokumaker.app";
  * The bundle cannot know its own hash, so the server stamps it on after installing and probes for
  * it before each call. A rebuilt server produces a different hash and re-installs automatically.
  */
-const runtimeHash = createHash("sha256")
-  .update(runtimeCode)
-  .digest("hex")
-  .slice(0, 16);
+const runtimeHash = createHash("sha256").update(runtimeCode).digest("hex").slice(0, 16);
 
 const runtimeRef = `window.${runtimeGlobal}`;
 
@@ -87,8 +81,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
         this.server.registerTool(
           name,
           { title, description, inputSchema: registeredSchema },
-          (params): CallToolResult | Promise<CallToolResult> =>
-            tool.run(params, { tabId: 0 }),
+          (params): CallToolResult | Promise<CallToolResult> => tool.run(params, { tabId: 0 }),
         );
         continue;
       }
@@ -101,8 +94,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
           inputSchema: { ...sessionSchema.shape, ...registeredSchema },
         },
         async (args: Record<string, unknown>): Promise<CallToolResult> => {
-          const { sessionToken, extensionConnectionId, tabId } =
-            sessionSchema.parse(args);
+          const { sessionToken, extensionConnectionId, tabId } = sessionSchema.parse(args);
           const params = { ...args };
           delete params.sessionToken;
           delete params.extensionConnectionId;
@@ -113,22 +105,11 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
           // transport timeout instead of the page's own "still running" answer. Probe and install
           // are short calls either way, and stretching them would only delay reporting a dead tab.
           const run = (code: string, codeTimeout?: number) =>
-            this.client.executeJs(
-              sessionToken,
-              extensionConnectionId,
-              tabId,
-              code,
-              codeTimeout,
-            );
+            this.client.executeJs(sessionToken, extensionConnectionId, tabId, code, codeTimeout);
 
           const installed = await run(`${runtimeRef}?.h ?? null`);
-          if (
-            !installed.success ||
-            (JSON.parse(installed.result) as unknown) !== runtimeHash
-          ) {
-            const installation = await run(
-              `${runtimeCode};${runtimeRef}.h=${JSON.stringify(runtimeHash)}`,
-            );
+          if (!installed.success || (JSON.parse(installed.result) as unknown) !== runtimeHash) {
+            const installation = await run(`${runtimeCode};${runtimeRef}.h=${JSON.stringify(runtimeHash)}`);
             if (!installation.success) {
               return toErrorResult(installation, "install the page runtime");
             }
@@ -151,10 +132,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
   }
 }
 
-const toErrorResult = (
-  error: ExecuteJsError,
-  action: string,
-): CallToolResult => ({
+const toErrorResult = (error: ExecuteJsError, action: string): CallToolResult => ({
   content: [
     {
       type: "text",

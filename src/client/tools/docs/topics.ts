@@ -43,9 +43,7 @@ export const topics: DocsTopic[] = [
  * flood the response with everything.
  */
 export const renderIndex = (): string => {
-  const lines = topics.map(
-    (topic) => `- \`${topic.name}\`: ${topic.description}`,
-  );
+  const lines = topics.map((topic) => `- \`${topic.name}\`: ${topic.description}`);
 
   return [
     `Unknown docs topic. Available topics:`,

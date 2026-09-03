@@ -37,12 +37,7 @@ export const regionsDescriptor: ObjectDescriptor<number[][], PuzzlePublic> = {
       return `${width}×${height} regions${formatHandleMarker(node, opts)}`;
     }
 
-    return (
-      "\n" +
-      node.value
-        .map((row) => "  " + row.map((v) => (v === 0 ? "." : v)).join(" "))
-        .join("\n")
-    );
+    return "\n" + node.value.map((row) => "  " + row.map((v) => (v === 0 ? "." : v)).join(" ")).join("\n");
   },
 
   diff(from, to) {
@@ -53,12 +48,8 @@ export const regionsDescriptor: ObjectDescriptor<number[][], PuzzlePublic> = {
         return;
       }
       const rowNumber = rowIndex + 1;
-      lines.push(
-        `  r${rowNumber} - ${fromRow.map((v) => (v === 0 ? "." : String(v))).join(" ")}`,
-      );
-      lines.push(
-        `  r${rowNumber} + ${row.map((v) => (v === 0 ? "." : String(v))).join(" ")}`,
-      );
+      lines.push(`  r${rowNumber} - ${fromRow.map((v) => (v === 0 ? "." : String(v))).join(" ")}`);
+      lines.push(`  r${rowNumber} + ${row.map((v) => (v === 0 ? "." : String(v))).join(" ")}`);
     });
     return lines.join("\n");
   },

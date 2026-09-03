@@ -15,22 +15,15 @@ const descriptor = getArrayDescriptor<Clue, Clue[]>({
   countLabel: "clues",
 });
 
-const node = (value: Clue[]) =>
-  new ObjectNode(value, () => undefined, "clues", value, descriptor);
+const node = (value: Clue[]) => new ObjectNode(value, () => undefined, "clues", value, descriptor);
 
-const diff = (from: Clue[], to: Clue[]) =>
-  descriptor.diff!(node(from), node(to));
+const diff = (from: Clue[], to: Clue[]) => descriptor.diff!(node(from), node(to));
 
 const clue = (id: number, value: number): Clue => ({ id, value });
 
 describe("array diff, items that changed position", () => {
   test("names the new position instead of reprinting an item that only moved", () => {
-    expect(
-      diff(
-        [clue(1, 10), clue(2, 20), clue(3, 30)],
-        [clue(1, 10), clue(3, 30), clue(2, 20)],
-      ),
-    ).toBe(
+    expect(diff([clue(1, 10), clue(2, 20), clue(3, 30)], [clue(1, 10), clue(3, 30), clue(2, 20)])).toBe(
       [
         "3 clues [",
         "  { id: 1, value: 10 }",
@@ -43,12 +36,7 @@ describe("array diff, items that changed position", () => {
   });
 
   test("shows what changed on an item that moved and was edited", () => {
-    expect(
-      diff(
-        [clue(1, 10), clue(2, 20), clue(3, 30)],
-        [clue(1, 10), clue(3, 30), clue(2, 25)],
-      ),
-    ).toBe(
+    expect(diff([clue(1, 10), clue(2, 20), clue(3, 30)], [clue(1, 10), clue(3, 30), clue(2, 25)])).toBe(
       [
         "3 clues [",
         "  { id: 1, value: 10 }",
@@ -65,13 +53,7 @@ describe("array diff, items that changed position", () => {
 
   test("prints an item that genuinely appeared or disappeared in full", () => {
     expect(diff([clue(1, 10), clue(2, 20)], [clue(1, 10), clue(5, 50)])).toBe(
-      [
-        "2 clues [",
-        "  { id: 1, value: 10 }",
-        "- { id: 2, value: 20 }",
-        "+ { id: 5, value: 50 }",
-        "]",
-      ].join("\n"),
+      ["2 clues [", "  { id: 1, value: 10 }", "- { id: 2, value: 20 }", "+ { id: 5, value: 50 }", "]"].join("\n"),
     );
   });
 
@@ -82,9 +64,7 @@ describe("array diff, items that changed position", () => {
     const big: Clue = { id: 2, value: 20, note: "x".repeat(100) };
     const short = '{ id: 2, value: 20, note: "xxxxxxxxxxxxxxxxx…" }';
 
-    expect(
-      diff([clue(1, 10), big, clue(3, 30)], [clue(1, 10), clue(3, 30), big]),
-    ).toBe(
+    expect(diff([clue(1, 10), big, clue(3, 30)], [clue(1, 10), clue(3, 30), big])).toBe(
       [
         "3 clues [",
         "  { id: 1, value: 10 }",
@@ -101,26 +81,8 @@ describe("array diff, windowing unchanged runs", () => {
   test("keeps both ends of a long unchanged run as context and folds the middle", () => {
     expect(
       diff(
-        [
-          clue(0, 0),
-          clue(1, 10),
-          clue(2, 20),
-          clue(3, 30),
-          clue(4, 40),
-          clue(5, 50),
-          clue(6, 60),
-          clue(7, 70),
-        ],
-        [
-          clue(20, 0),
-          clue(1, 10),
-          clue(2, 20),
-          clue(3, 30),
-          clue(4, 40),
-          clue(5, 50),
-          clue(6, 60),
-          clue(21, 70),
-        ],
+        [clue(0, 0), clue(1, 10), clue(2, 20), clue(3, 30), clue(4, 40), clue(5, 50), clue(6, 60), clue(7, 70)],
+        [clue(20, 0), clue(1, 10), clue(2, 20), clue(3, 30), clue(4, 40), clue(5, 50), clue(6, 60), clue(21, 70)],
       ),
     ).toBe(
       [

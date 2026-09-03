@@ -9,11 +9,7 @@ const renderParams = (paramsSchema: z.ZodObject | undefined): string[] =>
     ? [
         "Creating this variant takes a `params` object:",
         "```json",
-        ...JSON.stringify(
-          z.toJSONSchema(paramsSchema, { io: "input" }),
-          null,
-          2,
-        ).split("\n"),
+        ...JSON.stringify(z.toJSONSchema(paramsSchema, { io: "input" }), null, 2).split("\n"),
         "```",
       ]
     : [];
@@ -35,18 +31,9 @@ export const getElementTopic = (name: string): string | undefined => {
 
   const { globalSchema, clue, main, options } = element;
 
-  const lines: string[] = [
-    `# Element type \`${typeName}\``,
-    "",
-    "## Variants",
-    "",
-  ];
+  const lines: string[] = [`# Element type \`${typeName}\``, "", "## Variants", ""];
 
-  lines.push(
-    `"${main.title}" — ${main.description}`,
-    ...renderParams(main.paramsSchema),
-    "",
-  );
+  lines.push(`"${main.title}" — ${main.description}`, ...renderParams(main.paramsSchema), "");
 
   if (options.length > 0) {
     lines.push(
@@ -99,15 +86,9 @@ export const getElementTopic = (name: string): string | undefined => {
      * Rather than guess and risk asserting "one clue" where it's false,
      * say only what's true of every case: the fields are set as a whole via `update_element`.
      */
-    lines.push(
-      `No separate clue array — the whole config above is set at once via \`${updateElementToolName}\`.`,
-      "",
-    );
+    lines.push(`No separate clue array — the whole config above is set at once via \`${updateElementToolName}\`.`, "");
   } else {
-    lines.push(
-      "No clues and no config — the element's mere presence in the puzzle is the whole clue.",
-      "",
-    );
+    lines.push("No clues and no config — the element's mere presence in the puzzle is the whole clue.", "");
   }
 
   return lines.join("\n").trim();
