@@ -3,6 +3,7 @@ import type { FormatOpts } from "./FormatOpts";
 import { childHandle } from "./childHandle";
 import { getUnknownDescriptor } from "./generic/unknownDescriptor";
 import { SUMMARY_BUDGET } from "./sizeLimits";
+import { truncate } from "./generic/truncate";
 
 export class ObjectNode<T, RootT> {
   constructor(
@@ -88,7 +89,9 @@ export class ObjectNode<T, RootT> {
     if (collapsed.length <= SUMMARY_BUDGET) {
       return collapsed;
     }
-    return this.descriptor.getSummary?.(this) ?? collapsed;
+    return (
+      this.descriptor.getSummary?.(this) ?? truncate(collapsed, SUMMARY_BUDGET)
+    );
   }
 
   /**
@@ -98,5 +101,23 @@ export class ObjectNode<T, RootT> {
    */
   diff(to: ObjectNode<T, RootT>): string {
     return this.descriptor.diff(this, to);
+  }
+}
+
+export class RootObjectNode<T> extends ObjectNode<T, T> {
+  constructor(node: T, descriptor: ObjectDescriptor<T, T>) {
+    super(
+      node,
+      () => {
+        throw new Error("This snapshot is read-only");
+      },
+      "",
+      node,
+      descriptor,
+    );
+  }
+
+  format(opts: FormatOpts = { collapse: false }): string {
+    return super.format(opts, true);
   }
 }

@@ -1,11 +1,6 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
-import { getPuzzle } from "../utils";
-import {
-  readNewSudokuMakerLogs,
-  readSudokuMakerLogs,
-} from "../../SudokuMakerLogs";
 import {
   bruteForceSolveToolName,
   checkValidityToolName,
@@ -26,21 +21,26 @@ import {
 } from "../../SudokuMakerElement";
 import { getElementFinalName } from "./elementUtils";
 import { solvingTopicName } from "./docs/topicNames";
+import { TabState } from "../tabState";
+import { RootObjectNode } from "../format/ObjectNode";
+import { solverLogsDescriptor } from "../format/tabState/solverLogs";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
 
 /** The text block for an append-style tool's response: the log entries this call itself appended, oldest first. */
-const appendedLogResultText = (
-  before: ReturnType<typeof readSudokuMakerLogs>,
-) => {
-  const newEntries = readNewSudokuMakerLogs(before);
-
-  return newEntries.length
-    ? "New solver logs:\n" +
-        newEntries.map((entry) => `- ${entry.formatted}`).join("\n")
+const appendedLogResultText = ({
+  solverLogsChanged,
+  solverLogs,
+  previousSolverLogs,
+}: TabState) =>
+  solverLogsChanged
+    ? "Solver logs changed:\n" +
+      new RootObjectNode(
+        previousSolverLogs!.filter((item) => !item.outOfDate),
+        solverLogsDescriptor,
+      ).diff(new RootObjectNode(solverLogs, solverLogsDescriptor))
     : `No new solver log entries - this run didn't add or change anything (e.g. a no-op on an already-solved grid). Use \`${getLogsToolName}\` to see the full log if needed.`;
-};
 
 /**
  * A solver/check response: status line, log,
@@ -51,12 +51,12 @@ const appendedLogResultText = (
  * It drops the closing notes: they all speak about an outcome that doesn't exist yet.
  */
 const solverResultText = (
-  { finished, message }: SolverWaitResult,
+  { finished, message, tabState }: SolverWaitResult,
   logText: string,
-  puzzleBefore: PuzzlePublic | undefined,
-  puzzleAfter: PuzzlePublic,
-) =>
-  [
+) => {
+  const { previousPuzzle: puzzleBefore, puzzle: puzzleAfter } = tabState;
+
+  return [
     `Puzzle "${puzzleAfter.name || "(untitled)"}" - ${message}`,
     "",
     logText,
@@ -64,8 +64,7 @@ const solverResultText = (
     ...(puzzleBefore
       ? [
           cellsDiffSummary(
-            puzzleBefore,
-            puzzleAfter,
+            tabState,
             finished
               ? undefined
               : "This is what the solver has written into the cells so far - it's still running, so this isn't the final state:",
@@ -84,13 +83,11 @@ const solverResultText = (
   ]
     .filter((line) => typeof line === "string")
     .join("\n");
+};
 
 /** The text block for a replace-style tool's response: the full current log, which this call itself just replaced. */
-const replacedLogResultText = () =>
-  "Solver logs:\n" +
-  readSudokuMakerLogs()
-    .map((entry) => `- ${entry.formatted}`)
-    .join("\n");
+const replacedLogResultText = ({ solverLogs }: TabState) =>
+  `Solver logs: ${new RootObjectNode(solverLogs, solverLogsDescriptor).format()}`;
 
 export const doLogicalStepTool = new ToolImplementation(
   {
@@ -111,12 +108,11 @@ ${reversibleActionNote}
     timeout: singleStepTimeout + 1000,
   },
   z.object({}),
-  async () => {
-    const beforePuzzle = getPuzzle();
-    const beforeLog = readSudokuMakerLogs();
+  async function () {
+    this.checkPrevTabState();
+
     window.Api.triggerAction("doSingleLogicalStep");
     const result = await waitForSolver(singleStepTimeout);
-    const afterPuzzle = getPuzzle();
 
     return {
       content: [
@@ -124,9 +120,7 @@ ${reversibleActionNote}
           type: "text",
           text: solverResultText(
             result,
-            appendedLogResultText(beforeLog),
-            beforePuzzle,
-            afterPuzzle,
+            appendedLogResultText(result.tabState),
           ),
         },
       ],
@@ -154,12 +148,11 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
     timeout: solverMaxTimeout + 1000,
   },
   z.object({}),
-  async () => {
-    const beforePuzzle = getPuzzle();
-    const beforeLog = readSudokuMakerLogs();
+  async function () {
+    this.checkPrevTabState();
+
     window.Api.triggerAction("doAllLogicalSteps");
     const result = await waitForSolver(solverMaxTimeout);
-    const afterPuzzle = getPuzzle();
 
     return {
       content: [
@@ -167,9 +160,7 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
           type: "text",
           text: solverResultText(
             result,
-            appendedLogResultText(beforeLog),
-            beforePuzzle,
-            afterPuzzle,
+            appendedLogResultText(result.tabState),
           ),
         },
       ],
@@ -202,11 +193,11 @@ ${reversibleActionNote}
     timeout: solverMaxTimeout + 1000,
   },
   z.object({}),
-  async () => {
-    const beforePuzzle = getPuzzle();
+  async function () {
+    this.checkPrevTabState();
+
     window.Api.triggerAction("findSolutions");
     const result = await waitForSolver(solverMaxTimeout);
-    const afterPuzzle = getPuzzle();
 
     return {
       content: [
@@ -214,9 +205,7 @@ ${reversibleActionNote}
           type: "text",
           text: solverResultText(
             result,
-            replacedLogResultText(),
-            beforePuzzle,
-            afterPuzzle,
+            replacedLogResultText(result.tabState),
           ),
         },
       ],
@@ -245,7 +234,9 @@ Blind to free-text rules and cosmetic-only elements.
     timeout: solverMaxTimeout + 1000,
   },
   z.object({}),
-  async () => {
+  async function () {
+    this.checkPrevTabState(true);
+
     window.Api.triggerAction("checkValidity");
     const result = await waitForSolver(solverMaxTimeout);
 
@@ -255,9 +246,7 @@ Blind to free-text rules and cosmetic-only elements.
           type: "text",
           text: solverResultText(
             result,
-            replacedLogResultText(),
-            undefined,
-            getPuzzle(),
+            replacedLogResultText(result.tabState),
           ),
         },
       ],
@@ -283,29 +272,19 @@ Use this if a previous solver call's response indicated the solve was still in p
   },
   z.object({}),
   async () => {
-    // TODO: "beforePuzzle" is stale since the previous tool errored
-    const beforePuzzle = getPuzzle();
-    const result = window.Api.busy
-      ? await waitForSolver(solverMaxTimeout)
-      : {
-          finished: true,
-          message: "The solver is not running - there's nothing to wait for.",
-        };
-    const afterPuzzle = getPuzzle();
+    const result = await waitForSolver(solverMaxTimeout);
 
     return {
       content: [
         {
           type: "text",
+          /*
+           * Whether the run being waited on writes to the grid isn't knowable here.
+           * Assume it does, since the three writing tools are the common case.
+           */
           text: solverResultText(
             result,
-            replacedLogResultText(),
-            /*
-             * Whether the run being waited on writes to the grid isn't knowable here.
-             * Assume it does, since the three writing tools are the common case.
-             */
-            beforePuzzle,
-            afterPuzzle,
+            replacedLogResultText(result.tabState),
           ),
         },
       ],
@@ -324,32 +303,30 @@ export const stopSolverTool = new ToolImplementation(
   },
   z.object({}),
   async () => {
-    const wasBusy = window.Api.busy;
-    if (wasBusy) {
+    if (window.Api.busy) {
       window.Api.triggerAction("stopSolver");
-      // Wait for SudokuMaker to actually stop the solver and update the logs
-      await waitForSolver(3000);
     }
+    // Wait for SudokuMaker to actually stop the solver and update the logs
+    const { tabState } = await waitForSolver(3000);
 
     return {
       content: [
         {
           type: "text",
           text: [
-            wasBusy
-              ? "The solver has been stopped."
-              : "The solver is not running - there's nothing to stop.",
+            "The solver has been stopped.",
             "",
-            replacedLogResultText(),
-            // TODO: show updated grid?
+            replacedLogResultText(tabState),
+            // TODO: show updated grid
             "",
             /*
              * How far the run got before stopping isn't knowable, hence "may have"
              * rather than the finished-run note's flat assertion.
              * No blind-spot warning: an aborted run has no verdict to qualify.
              */
-            ...(wasBusy
+            ...(tabState.puzzleChanged
               ? [
+                  // TODO: WTF is this message?
                   `The stopped run may have already replaced center marks in some cells - \`${undoToolName}\` reverts it if so.`,
                 ]
               : []),
@@ -366,6 +343,8 @@ interface SolverWaitResult {
   finished: boolean;
   /** The solver's state, worded for the response to print verbatim. */
   message: string;
+  /** Tab state captured after waiting for the solver results */
+  tabState: TabState;
 }
 
 /** Waits for the solver to go idle, up to `timeout` milliseconds. */
@@ -375,15 +354,15 @@ const waitForSolver = async (timeout: number): Promise<SolverWaitResult> => {
     await new Promise((resolve) => setTimeout(resolve, step));
   }
 
-  return window.Api.busy
-    ? {
-        finished: false,
-        message: `The solver is still running after ${timeout / 1000} seconds. Call \`${waitForSolverToolName}\` to wait for the outcome (repeat it while it keeps saying the solver is still running), or \`${stopSolverToolName}\` to abort the run.`,
-      }
-    : {
-        finished: true,
-        message: "The solver finished running.",
-      };
+  const finished = !window.Api.busy;
+
+  return {
+    finished,
+    message: finished
+      ? "The solver finished running."
+      : `The solver is still running after ${timeout / 1000} seconds. Call \`${waitForSolverToolName}\` to wait for the outcome (repeat it while it keeps saying the solver is still running), or \`${stopSolverToolName}\` to abort the run.`,
+    tabState: await TabState.waitAndRead(),
+  };
 };
 
 /** The reason the solver can't see a given element, or `undefined` when it can. */

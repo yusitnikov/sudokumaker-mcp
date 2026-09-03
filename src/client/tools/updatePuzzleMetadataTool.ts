@@ -1,9 +1,9 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updatePuzzleMetadataToolName } from "./toolNames";
+import { copyCells } from "../copyCells";
 
 export const updatePuzzleMetadataTool = new ToolImplementation(
   {
@@ -55,7 +55,7 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
         "Highest digit allowed in the grid (e.g. 9 for standard sudoku).",
       ),
   }),
-  ({
+  async function ({
     operationDescription,
     name,
     author,
@@ -63,30 +63,25 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
     completionMessage,
     minDigit,
     maxDigit,
-  }) => {
-    const before = getPuzzle();
-
-    const effectiveMinDigit = minDigit ?? before.spec.minDigit;
-    const effectiveMaxDigit = maxDigit ?? before.spec.maxDigit;
-    if (
-      (minDigit !== undefined || maxDigit !== undefined) &&
-      effectiveMinDigit > effectiveMaxDigit
-    ) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `minDigit must be not greater than maxDigit; the resulting range would be ${effectiveMinDigit}..${effectiveMaxDigit}.`,
-          },
-        ],
-        isError: true,
-      };
-    }
-
-    let clearedCellsCount = 0;
-
-    updatePuzzle(
+  }) {
+    const {
+      tabState,
+      result: { clearedCellsCount },
+    } = await this.updatePuzzle(
       (puzzle) => {
+        const effectiveMinDigit = minDigit ?? puzzle.spec.minDigit;
+        const effectiveMaxDigit = maxDigit ?? puzzle.spec.maxDigit;
+        if (
+          (minDigit !== undefined || maxDigit !== undefined) &&
+          effectiveMinDigit > effectiveMaxDigit
+        ) {
+          throw new Error(
+            `minDigit must be not greater than maxDigit; the resulting range would be ${effectiveMinDigit}..${effectiveMaxDigit}.`,
+          );
+        }
+
+        let clearedCellsCount = 0;
+
         if (name !== undefined) {
           puzzle.name = name;
         }
@@ -145,6 +140,8 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
             }
           }
         }
+
+        return { result: { clearedCellsCount } };
       },
       (from, to) => {
         to.name = from.name;
@@ -161,17 +158,15 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
       operationDescription,
     );
 
-    const after = getPuzzle();
-
     return {
       content: [
         {
           type: "text",
           text: [
-            `Updated metadata of puzzle "${after.name || "(untitled)"}".`,
+            `Updated metadata of puzzle "${tabState.puzzle.name || "(untitled)"}".`,
             clearedCellsCount > 0 &&
               `Cleared values/candidates/corner marks that fell outside the new digit range in ${clearedCellsCount} ${clearedCellsCount === 1 ? "cell" : "cells"} - check the diff below and undo if that wasn't intended.`,
-            puzzleDiffSummary(before, after),
+            puzzleDiffSummary(tabState),
           ]
             .filter(Boolean)
             .join("\n"),

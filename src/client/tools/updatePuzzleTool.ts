@@ -1,7 +1,6 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
-import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { puzzleNode } from "../format/puzzle/puzzle";
 import { operationDescriptionParam } from "./descriptionSnippets";
@@ -19,6 +18,7 @@ import {
   updatePuzzleMetadataToolName,
   updatePuzzleToolName,
 } from "./toolNames";
+import { copyCells } from "../copyCells";
 
 export const updatePuzzleTool = new ToolImplementation(
   {
@@ -97,10 +97,8 @@ the puzzle state after earlier ones already applied.
         `Array of operations to apply.`,
       ),
   }),
-  ({ updates, operationDescription }) => {
-    const before = getPuzzle();
-
-    updatePuzzle(
+  async function ({ updates, operationDescription }) {
+    const { tabState } = await this.updatePuzzle(
       (puzzle) => {
         for (const { path, update } of updates) {
           const node = puzzleNode(puzzle).resolveHandle(path);
@@ -138,7 +136,7 @@ the puzzle state after earlier ones already applied.
           }
         }
 
-        return puzzle;
+        return { puzzle };
       },
       ({ cells, ...from }, to) => {
         Object.assign(to, from);
@@ -147,15 +145,13 @@ the puzzle state after earlier ones already applied.
       operationDescription,
     );
 
-    const after = getPuzzle();
-
     return {
       content: [
         {
           type: "text",
           text: [
-            `Updated puzzle "${after.name || "(untitled)"}".`,
-            puzzleDiffSummary(before, after),
+            `Updated puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+            puzzleDiffSummary(tabState),
           ].join("\n"),
         },
       ],

@@ -4,15 +4,12 @@ import {
   ClueCellsGroupFilter,
   CluePositionsFilter,
   getElementFinalName,
-  updateCluesByCellGroups,
 } from "./elementUtils";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import {
   elementIdNote,
   operationDescriptionParam,
 } from "./descriptionSnippets";
 import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
-import { getPuzzle } from "../utils";
 import {
   addElementToolName,
   getPuzzleToolName,
@@ -61,11 +58,9 @@ one or more cell groups, each independently selecting the clue(s) it matches.
 `.trim(),
       ),
   }),
-  ({ elementId, match, operationDescription }): CallToolResult => {
-    const before = getPuzzle();
-
-    const { allMatchingIndexes, updatedElement, messages } =
-      updateCluesByCellGroups(
+  async function ({ elementId, match, operationDescription }) {
+    const { tabState, allMatchingIndexes, updatedElement, messages } =
+      await this.updateCluesByCellGroups(
         elementId,
         "positions" in match
           ? [{ positions: match.positions }]
@@ -75,18 +70,16 @@ one or more cell groups, each independently selecting the clue(s) it matches.
         operationDescription,
       );
 
-    const after = getPuzzle();
-
     return {
       content: [
         {
           type: "text",
           text: [
-            `Removed ${allMatchingIndexes.size} clues from "${getElementFinalName(updatedElement)}" in puzzle "${after.name || "(untitled)"}".`,
+            `Removed ${allMatchingIndexes.size} clues from "${getElementFinalName(updatedElement)}" in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
             "",
             ...messages,
             "",
-            elementsDiffSummary(before, after),
+            elementsDiffSummary(tabState),
           ].join("\n"),
         },
       ],

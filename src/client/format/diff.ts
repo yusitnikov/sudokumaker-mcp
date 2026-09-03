@@ -92,6 +92,7 @@ export const getArrayDiff = <T>(
   fromArray: T[],
   toArray: T[],
   key?: (item: T) => string,
+  canEditItems = true,
 ): DiffOperation<T>[] => {
   const [from, to] = [fromArray, toArray].map((array) =>
     array.map((value, index): ArrayItemInternal<T> => {
@@ -119,6 +120,7 @@ export const getArrayDiff = <T>(
     fromItem: ArrayItemInternal<T>,
     toItem: ArrayItemInternal<T>,
   ): boolean =>
+    canEditItems &&
     getType(fromItem.value) === getType(toItem.value) &&
     ["array", "object"].includes(getType(fromItem.value)) &&
     (key

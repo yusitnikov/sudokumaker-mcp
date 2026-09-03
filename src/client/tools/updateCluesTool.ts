@@ -5,10 +5,8 @@ import {
   getElementFinalName,
   getElementWithClueById,
   parseElementSpecificData,
-  updateCluesByCellGroups,
 } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
-import { getPuzzle } from "../utils";
 import {
   elementIdNote,
   operationDescriptionParam,
@@ -77,32 +75,33 @@ Example: \`[{"match": {"clueCells": ["r1c1"]}, "updates": {"value": 21}}]\`.
 `.trim(),
       ),
   }),
-  ({ elementId, updateGroups, operationDescription }) => {
-    const { elementType, clueType } = getElementWithClueById(elementId);
-
-    // Manually parse the type-specific data after knowing the type schema,
-    // only to validate the input and report the errors.
-    // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    parseElementSpecificData(
-      elementType.typeName,
-      {
-        updateGroups: z.array(
-          z.object({
-            match: ClueMatch,
-            updates: ZodDeepPartial(clueType.schema as any),
-          }),
-        ),
-      },
-      { updateGroups },
-    );
-
-    const before = getPuzzle();
-
-    const { allMatchingIndexes, updatedElement, messages } =
-      updateCluesByCellGroups(
+  async function ({ elementId, updateGroups, operationDescription }) {
+    const { tabState, allMatchingIndexes, updatedElement, messages } =
+      await this.updateCluesByCellGroups(
         elementId,
         updateGroups.map(({ match }) => match),
-        (clues, matchingIndexGroups) => {
+        (clues, matchingIndexGroups, _, puzzle) => {
+          const { elementType, clueType } = getElementWithClueById(
+            puzzle,
+            elementId,
+          );
+
+          // Manually parse the type-specific data after knowing the type schema,
+          // only to validate the input and report the errors.
+          // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
+          parseElementSpecificData(
+            elementType.typeName,
+            {
+              updateGroups: z.array(
+                z.object({
+                  match: ClueMatch,
+                  updates: ZodDeepPartial(clueType.schema as any),
+                }),
+              ),
+            },
+            { updateGroups },
+          );
+
           for (const [
             updateGroupIndex,
             { updates },
@@ -115,18 +114,16 @@ Example: \`[{"match": {"clueCells": ["r1c1"]}, "updates": {"value": 21}}]\`.
         operationDescription,
       );
 
-    const after = getPuzzle();
-
     return {
       content: [
         {
           type: "text",
           text: [
-            `Updated ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}" in puzzle "${after.name || "(untitled)"}".`,
+            `Updated ${allMatchingIndexes.size} clues of "${getElementFinalName(updatedElement)}" in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
             "",
             ...messages,
             "",
-            elementsDiffSummary(before, after),
+            elementsDiffSummary(tabState),
           ].join("\n"),
         },
       ],

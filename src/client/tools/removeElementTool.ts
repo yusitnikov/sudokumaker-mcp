@@ -1,7 +1,6 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getElementById, getElementFinalName } from "./elementUtils";
-import { getPuzzle, updatePuzzle } from "../utils";
 import {
   addElementToolName,
   getPuzzleToolName,
@@ -36,30 +35,32 @@ ${elementIdNote}
       `The element's display name - set it so the user sees which element they're deleting when reviewing this call, not just a bare ID.`,
     ),
   }),
-  ({ elementId }) => {
-    const { index, targetElement } = getElementById(elementId);
-
-    const before = getPuzzle();
-
-    updatePuzzle(
+  async function ({ elementId }) {
+    const {
+      tabState,
+      result: { index, targetElement },
+    } = await this.updatePuzzle(
       (puzzle) => {
+        const { index, targetElement } = getElementById(puzzle, elementId);
+
         puzzle.allElements.splice(index, 1);
+
+        return { result: { index, targetElement } };
       },
-      (_from, to) => {
+      (_from, to, { index }) => {
         to.allConstraints.splice(index, 1);
       },
-      `Remove ${getElementFinalName(targetElement)}`,
+      (_puzzle, { targetElement }) =>
+        `Remove ${getElementFinalName(targetElement)}`,
     );
-
-    const after = getPuzzle();
 
     return {
       content: [
         {
           type: "text",
           text: [
-            `Element "${getElementFinalName(targetElement)}" of type "${targetElement.config.type}" removed from position ${index + 1} in puzzle "${after.name || "(untitled)"}".`,
-            elementsDiffSummary(before, after),
+            `Element "${getElementFinalName(targetElement)}" of type "${targetElement.config.type}" removed from position ${index + 1} in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+            elementsDiffSummary(tabState),
           ].join("\n"),
         },
       ],

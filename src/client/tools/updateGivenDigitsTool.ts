@@ -1,9 +1,9 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { CellId, parseCellNotation } from "../../SudokuMakerSchemas";
-import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { updateGivenDigitsToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
+import { copyCells } from "../copyCells";
 
 export const updateGivenDigitsTool = new ToolImplementation(
   {
@@ -27,10 +27,10 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
       `The given digit to place in each target cell, or \`-1\` to remove the given digit from each target cell.`,
     ),
   }),
-  ({ cells, digit }) => {
-    const before = getPuzzle();
+  async function ({ cells, digit }) {
+    const cellsStr = cells.join(", ");
 
-    updatePuzzle(
+    const { tabState } = await this.updatePuzzle(
       (puzzle) => {
         for (const cellStr of cells) {
           const { row, column } = parseCellNotation(cellStr);
@@ -43,20 +43,18 @@ Marking a cell as given wipes any solver-entered value there and replaces it wit
         }
       },
       (from, to) => copyCells(from.cells, to.cells),
-      (digit === -1
-        ? "Remove given digits from "
-        : `Put given ${digit} into `) + cells.join(", "),
+      digit === -1
+        ? `Remove given digits from ${cellsStr}`
+        : `Put given ${digit} into ${cellsStr}`,
     );
-
-    const after = getPuzzle();
 
     return {
       content: [
         {
           type: "text",
           text: [
-            `Updated the given digits in puzzle "${after.name || "(untitled)"}".`,
-            cellsDiffSummary(before, after),
+            `Updated the given digits in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+            cellsDiffSummary(tabState),
           ].join("\n"),
         },
       ],

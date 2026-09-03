@@ -57,7 +57,7 @@ declare class DigitSet implements Iterable<number> {
   static from(digits: Iterable<number>): DigitSet;
 }
 
-type TriggerableAction =
+export type TriggerableAction =
   | "undo"
   | "redo"
   | "selectAll"

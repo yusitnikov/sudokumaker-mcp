@@ -2,8 +2,8 @@ import { ToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { clearGridToolName } from "./toolNames";
-import { getPuzzle } from "../utils";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
+import { TabState } from "../tabState";
 
 export const clearGridTool = new ToolImplementation(
   {
@@ -21,10 +21,12 @@ ${reversibleActionNote}
     },
   },
   z.object({}),
-  () => {
-    const before = getPuzzle();
+  async function () {
+    this.checkPrevTabState();
+
     window.Api.triggerAction("clearGrid");
-    const after = getPuzzle();
+
+    const tabState = await TabState.waitAndRead();
 
     // TODO: shorter representation for fully clearing the grid with no givens left
 
@@ -33,8 +35,8 @@ ${reversibleActionNote}
         {
           type: "text",
           text: [
-            `Cleared the grid in puzzle "${after.name || "(untitled)"}".`,
-            cellsDiffSummary(before, after),
+            `Cleared the grid in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+            cellsDiffSummary(tabState),
           ].join("\n"),
         },
       ],

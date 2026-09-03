@@ -78,16 +78,37 @@ The wire format is deliberately the format a puzzle setter speaks:
 - **Cells arrive as a 2-D array** (`CellsArray`), though the app stores them flat.
 - **Digit sets arrive as arrays** (`DigitSetSchema`), though the app stores them as bitmasks.
 
-`getPuzzle()` (`src/client/utils.ts`) encodes the app's puzzle into that public shape and injects a
+`getPuzzle()` (`src/client/tabState.ts`) encodes the app's puzzle into that public shape and injects a
 read-only `elementMetadata` per element (the app's own title/description for that exact config).
-`updatePuzzle()` encodes, hands the public object to a callback, decodes the result, and copies it
-back into the app's live object - the copy step is per-tool, because the app's object identity
-matters to its reactivity.
+`ToolImplementation.updatePuzzle()` encodes, hands the public object to a callback, decodes the
+result, and copies it back into the app's live object - the copy step is per-tool, because the app's
+object identity matters to its reactivity.
+
+## Tab state (`src/client/tabState.ts`)
+
+A tool never reads the tab twice to build a before/after pair. Instead `TabState.read()` takes one
+snapshot - the puzzle, the undo/redo labels, and the solver log - and pairs it with the snapshot the
+*previous* tool call left behind on `window.__smMcp.lastTabStateSnapshot`. Because that baseline
+outlives an `execute_js` call, "before" means *before this tool call*, and the user's own edits in the
+app's UI count as changes just as much as the server's do. `TabState` is that pair plus a `*Changed`
+flag per part, and it is what every diff summary and every response is written from.
+
+That makes a change detected under a tool an event to act on, not just something to print:
+`checkPrevTabState` rejects the call with a `TabStateChangedError` carrying the diff (`undo`/`redo`
+reject on *any* part changing, since a stale label would name the wrong action), a change that lands
+while the tool runs is folded into its result as a `[WARNING]`, and a different puzzle loaded into the
+tab always rejects and reports the whole new state, there being nothing meaningful to diff against.
+
+Reads and writes therefore live on `ToolImplementation`, not in free functions -
+`checkPrevTabState`, `updatePuzzle`, `updateCluesByCellGroups` - so **a tool body that touches the tab
+is a `function`, never an arrow**. `updatePuzzle` dry-runs its callback against a copy before letting
+it near `window.Api`, so a rejected write leaves no half-applied edit and no spurious undo entry;
+a tool signals any failure by throwing, and `run` renders it.
 
 ## The formatting layer (`src/client/format/`)
 
-Every human-readable rendering of puzzle data goes through one descriptor family. It runs page-side,
-always on encoded values.
+Every human-readable rendering of tab state goes through one descriptor family - the puzzle and the
+solver log alike. It runs page-side, always on encoded values.
 
 **`ObjectNode<T, RootT>`** wraps a value with the handle that reached it (`allElements.3.config.style`),
 the whole puzzle as `root` (so `cells` can read `allElements` for its region separators), and an
@@ -101,9 +122,11 @@ the whole puzzle as `root` (so `cells` can read `allElements` for its region sep
 - `diff(from, to)` - this node against an older version of itself.
 
 Descriptors are composed by hand along the known structure, never inferred from values or schemas:
-`puzzleDescriptor` → `cellsDescriptor` and an array descriptor of `elementDescriptor` → per-type clue
-descriptors looked up in the element registry. Anything unrecognized falls through to
-`getUnknownDescriptor()`, which dispatches on runtime shape.
+the snapshot descriptor (`format/tabState/`) → `puzzleDescriptor` → `cellsDescriptor` and an array
+descriptor of `elementDescriptor` → per-type clue descriptors looked up in the element registry.
+Anything unrecognized falls through to `getUnknownDescriptor()`, which dispatches on runtime shape.
+`RootObjectNode` is the entry point for a value nothing else contains, and is read-only, as every
+snapshot is.
 
 **Handles** are the only vocabulary for reaching collapsed data: dot-joined segments, except grid
 nodes, which take cell notation (`cells.r2c3`, and `cells.r2` for a whole row) and never row/column
@@ -116,26 +139,32 @@ and every grid rendering ends with a line pointing at it.
 
 **Diffs** omit what didn't change and print what did in place. `diff.ts` matches an array's items
 by an explicit key where one exists (`allElements` by element ID) and reports one that only changed
-position as a move rather than as a deletion plus an insertion.
+position as a move rather than as a deletion plus an insertion. An array whose items are opaque
+records rather than things that can be edited in place - the solver log - turns `canEditItems` off,
+so a changed item reads as a removal plus an addition instead of an edit.
 
 **No descriptor does its own no-diff check.** The three entry points in
 `src/client/format/puzzle/diffSummary.ts` - `puzzleDiffSummary`, `elementsDiffSummary`,
-`cellsDiffSummary` - compare the two snapshots first and return a scope-specific "Nothing changed in
-X." sentence instead of calling `diff()` at all. Nested `diff()` calls are already gated by
-`diffChild`, so a descriptor's `diff` may assume something actually changed.
+`cellsDiffSummary` - each take the `TabState` and return a scope-specific "Nothing changed in X."
+sentence, both when that scope is equal across the pair and when there is no previous snapshot at all,
+instead of calling `diff()`. Nested `diff()` calls are already gated by `diffChild`, so a descriptor's
+`diff` may assume something actually changed.
 
 ## Tool responses
 
-Every mutating tool snapshots the puzzle before and after the write and answers with:
+Every mutating tool answers from the `TabState` it took after the write:
 
 1. a sentence naming what happened **and the puzzle title** - a wrong-tab write is then visible
    immediately;
 2. one of the three diff summaries, always preceded by a sentence saying what the block below is.
 
-Solver tools additionally return the app's own log entries verbatim (`src/SudokuMakerLogs.ts` reads
-`.LogsView` from the DOM), because the diff alone cannot carry a verdict. `undo`/`redo` open with the
-app's own name for the action they reverted, read off the toolbar button's tooltip through Vue
-internals (`src/SudokuMakerUndoRedo.ts`), and end by naming what the next undo/redo would do.
+Solver tools additionally report the app's own log (`src/SudokuMakerLogs.ts` reads `.LogsView` from
+the DOM), because the diff alone cannot carry a verdict. Some solver actions append to that log and
+others replace it outright, so what a run did is read off the log's own diff rather than by comparing
+lengths; entries are paired by the app's markup, which is an entry's identity and folds in every
+other field it has. `undo`/`redo` open with the app's own name for the action they reverted, read off
+the toolbar button's tooltip through Vue internals (`src/SudokuMakerUndoRedo.ts`), and end by naming
+what the next undo/redo would do.
 
 Both DOM readers are keyed only on literal source strings (`.LogsView`, `.UndoIcon`/`.RedoIcon`, the
 `Tooltip` component's `text` prop) - never on `data-v-xxxxxxxx` scope-id hashes, which change every
@@ -147,7 +176,8 @@ carried only by the tools it applies to, and only once the run has actually fini
 
 `ToolImplementation.run` catches whatever a tool throws and returns it as an `isError: true` result,
 so a failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace
-through the minified bundle.
+through the minified bundle. That is the only way a tool reports a failure - no tool assembles an
+error result itself.
 
 ## Documentation (`src/client/tools/docs/`)
 
@@ -181,7 +211,7 @@ one up.
 
 `element.clue` is what makes a type multi-clue. It is the single source for: which config key holds
 the clues, that array's item schema, and which cells a given clue touches - the last drives clue
-targeting (`updateCluesByCellGroups` in `elementUtils.ts`), diff labels, and the `## Clues` section of
+targeting (`ToolImplementation.updateCluesByCellGroups`), diff labels, and the `## Clues` section of
 the generated topic. A type with no `clue` descriptor is set as a whole through `update_element`.
 
 `ElementConfigSchema` is a `SmartDiscriminatedUnion` over every type's schema

@@ -5,12 +5,12 @@ import {
   CellId,
   parseCellNotation,
 } from "../../SudokuMakerSchemas";
-import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import {
   updateCellValuesToolName,
   updateGivenDigitsToolName,
 } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
+import { copyCells } from "../copyCells";
 
 export const updateCellValuesTool = new ToolImplementation(
   {
@@ -36,14 +36,15 @@ Setting a value also clears any candidates/corner marks already in that cell.
       `The digit to place in each target cell, or \`-1\` to clear the cell's value.`,
     ),
   }),
-  ({ cells, digit }) => {
-    const updatedCells: CellNotation[] = [];
-    const skippedCells: CellNotation[] = [];
-
-    const before = getPuzzle();
-
-    updatePuzzle(
+  async function ({ cells, digit }) {
+    const {
+      tabState,
+      result: { updatedCells, skippedCells },
+    } = await this.updatePuzzle(
       (puzzle) => {
+        const updatedCells: CellNotation[] = [];
+        const skippedCells: CellNotation[] = [];
+
         for (const coords of cells) {
           const { row, column } = parseCellNotation(coords);
           const cell = puzzle.cells[row - 1][column - 1];
@@ -58,14 +59,15 @@ Setting a value also clears any candidates/corner marks already in that cell.
           cell.cornerPencilMarks = [];
           updatedCells.push(coords);
         }
+
+        return { result: { updatedCells, skippedCells } };
       },
       (from, to) => copyCells(from.cells, to.cells),
       (digit === -1 ? "Remove values from " : `Put value ${digit} into `) +
         cells.join(", "),
     );
 
-    const after = getPuzzle();
-    const diffText = cellsDiffSummary(before, after);
+    const diffText = cellsDiffSummary(tabState);
 
     if (skippedCells.length === 0) {
       return {
@@ -73,7 +75,7 @@ Setting a value also clears any candidates/corner marks already in that cell.
           {
             type: "text",
             text: [
-              `Updated cell values in puzzle "${after.name || "(untitled)"}".`,
+              `Updated cell values in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
               diffText,
             ].join("\n"),
           },
@@ -98,7 +100,7 @@ Setting a value also clears any candidates/corner marks already in that cell.
         {
           type: "text",
           text: [
-            `Updated cells ${updatedCells.join(", ")} in puzzle "${after.name || "(untitled)"}".`,
+            `Updated cells ${updatedCells.join(", ")} in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
             diffText,
             "",
             `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,

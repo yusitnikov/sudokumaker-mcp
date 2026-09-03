@@ -11,7 +11,6 @@ import {
   ThermometerElement,
 } from "../../SudokuMakerElement";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
-import { getPuzzle, updatePuzzle } from "../utils";
 import { getElementById } from "./elementUtils";
 import { elementIdNote, partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
@@ -138,63 +137,65 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
         `Where to insert the new element in the puzzle's ordered element list (order affects layering).`,
       ),
   }),
-  ({ name, enabled = true, solverIgnored = false, element, position }) => {
-    const before = getPuzzle();
-    const { spec, allElements: currentElements } = before;
-
-    let index: number;
-    if ("elementId" in position) {
-      index = getElementById(position.elementId).index;
-      if (position.position === "after") {
-        index++;
-      }
-    } else if (position.at === "end") {
-      index = currentElements.length;
-    } else {
-      index = position.at - 1;
-      if (index > currentElements.length) {
-        throw new Error(
-          `Cannot insert element at position ${position.at} - there are only ${currentElements.length} elements in the puzzle`,
-        );
-      }
-    }
-
-    // TODO: where's the validation of the advertised schema?
-
-    const elementType = getElementByTypeName(element.type);
-
-    const refuseReason = elementType.getRefuseAddReason?.(spec);
-    if (refuseReason) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `${refuseReason}\n\nSee docs topic \`${elementTopicPrefix}${elementType.typeName}\` for more.`,
-          },
-        ],
-        isError: true,
-      };
-    }
-
-    const elementSubType = [elementType.main, ...elementType.options].find(
-      ({ title }) => title === element.subType,
-    )!;
-    const config = mergeDeepUpdates<z.input<typeof ElementConfigSchema>>(
-      {
-        type: element.type,
-        ...(elementType.clue ? { [elementType.clue.key]: [] } : {}),
-        ...(typeof elementSubType.defaultConfig === "function"
-          ? (elementSubType.defaultConfig as any)(spec, element.params)
-          : (elementSubType.defaultConfig ?? element.params)),
-      },
-      element.overrides ?? {},
-    );
-    const id = currentElements.length
-      ? Math.max(...currentElements.map(({ id = 0 }) => id)) + 1
-      : 1;
-
-    updatePuzzle(
+  async function ({
+    name,
+    enabled = true,
+    solverIgnored = false,
+    element,
+    position,
+  }) {
+    const {
+      tabState,
+      result: { index, id },
+    } = await this.updatePuzzle(
       (puzzle) => {
+        const { spec, allElements: currentElements } = puzzle;
+
+        let index: number;
+        if ("elementId" in position) {
+          index = getElementById(puzzle, position.elementId).index;
+          if (position.position === "after") {
+            index++;
+          }
+        } else if (position.at === "end") {
+          index = currentElements.length;
+        } else {
+          index = position.at - 1;
+          if (index > currentElements.length) {
+            throw new Error(
+              `Cannot insert element at position ${position.at} - there are only ${currentElements.length} elements in the puzzle`,
+            );
+          }
+        }
+
+        // TODO: where's the validation of the advertised schema?
+
+        const elementType = getElementByTypeName(element.type);
+
+        const refuseReason = elementType.getRefuseAddReason?.(spec);
+        if (refuseReason) {
+          throw new Error(
+            `${refuseReason}\n\nSee docs topic \`${elementTopicPrefix}${elementType.typeName}\` for more.`,
+          );
+        }
+
+        const elementSubType = [elementType.main, ...elementType.options].find(
+          ({ title }) => title === element.subType,
+        )!;
+        const config = mergeDeepUpdates<z.input<typeof ElementConfigSchema>>(
+          {
+            type: element.type,
+            ...(elementType.clue ? { [elementType.clue.key]: [] } : {}),
+            ...(typeof elementSubType.defaultConfig === "function"
+              ? (elementSubType.defaultConfig as any)(spec, element.params)
+              : (elementSubType.defaultConfig ?? element.params)),
+          },
+          element.overrides ?? {},
+        );
+        const id = currentElements.length
+          ? Math.max(...currentElements.map(({ id = 0 }) => id)) + 1
+          : 1;
+
         puzzle.allElements.splice(index, 0, {
           id,
           name,
@@ -202,25 +203,20 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
           enabled,
           solverIgnored,
         });
+
+        return { result: { index, id, elementSubType } };
       },
-      (from, to) => {
+      (from, to, { index }) => {
         to.allConstraints.splice(index, 0, from.allConstraints[index]);
       },
-      `Add ${elementSubType.title}`,
+      (_puzzle, { elementSubType }) => `Add ${elementSubType.title}`,
     );
 
-    const after = getPuzzle();
-    const newElement = after.allElements[index];
+    const newElement = tabState.puzzle.allElements[index];
     if (newElement?.id !== id) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Something went wrong - failed to add the element. Please report the error to the SudokuMaker MCP server developer (Chameleon)",
-          },
-        ],
-        isError: true,
-      };
+      throw new Error(
+        "Something went wrong - failed to add the element. Please report the error to the SudokuMaker MCP server developer (Chameleon)",
+      );
     }
 
     return {
@@ -228,8 +224,8 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
         {
           type: "text",
           text: [
-            `New element added at position ${index + 1} in puzzle "${after.name || "(untitled)"}", with ID ${id}.`,
-            elementsDiffSummary(before, after),
+            `New element added at position ${index + 1} in puzzle "${tabState.puzzle.name || "(untitled)"}", with ID ${id}.`,
+            elementsDiffSummary(tabState),
           ].join("\n"),
         },
       ],

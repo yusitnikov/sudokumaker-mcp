@@ -1,9 +1,8 @@
 import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
-import { getPuzzle } from "../utils";
 import { redoToolName, undoToolName } from "./toolNames";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
-import { readPendingActionLabel } from "../../SudokuMakerUndoRedo";
+import { TabState, TabStateChangedError } from "../tabState";
 
 export const undoTool = new ToolImplementation(
   {
@@ -16,9 +15,16 @@ export const undoTool = new ToolImplementation(
     },
   },
   z.object({}),
-  async () => {
+  async function () {
+    let tabState = this.checkPrevTabState();
+    // checkPrevTabState() checks only for puzzle changes.
+    // We want to reject ANY change
+    if (tabState.changed) {
+      throw new TabStateChangedError(tabState);
+    }
+
     // Read before triggering: the tooltip names the action about to be undone, not the one just undone.
-    const label = readPendingActionLabel("undo");
+    const label = tabState.undoLabel;
     if (label === undefined) {
       return {
         content: [
@@ -27,25 +33,19 @@ export const undoTool = new ToolImplementation(
       };
     }
 
-    const before = getPuzzle();
     window.Api.triggerAction("undo");
-    const after = getPuzzle();
 
-    await waitForFrontendUpdate();
-    const nextLabel = readPendingActionLabel("undo");
+    tabState = await TabState.waitAndRead();
+    const nextLabel = tabState.undoLabel;
 
     return {
       content: [
         {
           type: "text",
           text: [
-            `Reverted "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to undo, REDO IT IMMEDIATELY!`,
+            `Reverted "${label}" in puzzle "${tabState.puzzle.name || "(untitled)"}". If it's not the action that you expected to undo, REDO IT IMMEDIATELY!`,
             "",
-            puzzleDiffSummary(
-              before,
-              after,
-              "This is what the revert changed:",
-            ),
+            puzzleDiffSummary(tabState, "This is what the revert changed:"),
             "",
             nextLabel
               ? `Undoing again would revert "${nextLabel}".`
@@ -68,8 +68,15 @@ export const redoTool = new ToolImplementation(
     },
   },
   z.object({}),
-  async () => {
-    const label = readPendingActionLabel("redo");
+  async function () {
+    let tabState = this.checkPrevTabState();
+    // checkPrevTabState() checks only for puzzle changes.
+    // We want to reject ANY change
+    if (tabState.changed) {
+      throw new TabStateChangedError(tabState);
+    }
+
+    const label = tabState.redoLabel;
     if (label === undefined) {
       return {
         content: [
@@ -81,21 +88,19 @@ export const redoTool = new ToolImplementation(
       };
     }
 
-    const before = getPuzzle();
     window.Api.triggerAction("redo");
-    const after = getPuzzle();
 
-    await waitForFrontendUpdate();
-    const nextLabel = readPendingActionLabel("redo");
+    tabState = await TabState.waitAndRead();
+    const nextLabel = tabState.redoLabel;
 
     return {
       content: [
         {
           type: "text",
           text: [
-            `Reapplied "${label}" in puzzle "${after.name || "(untitled)"}". If it's not the action that you expected to redo, UNDO IT IMMEDIATELY!`,
+            `Reapplied "${label}" in puzzle "${tabState.puzzle.name || "(untitled)"}". If it's not the action that you expected to redo, UNDO IT IMMEDIATELY!`,
             "",
-            puzzleDiffSummary(before, after, "This is what the redo changed:"),
+            puzzleDiffSummary(tabState, "This is what the redo changed:"),
             "",
             nextLabel
               ? `Redoing again would reapply "${nextLabel}".`
@@ -106,6 +111,3 @@ export const redoTool = new ToolImplementation(
     };
   },
 );
-
-const waitForFrontendUpdate = () =>
-  new Promise((resolve) => setTimeout(resolve, 200));

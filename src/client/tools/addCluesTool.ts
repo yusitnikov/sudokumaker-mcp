@@ -6,7 +6,6 @@ import {
   getElementWithClueById,
   parseElementSpecificData,
 } from "./elementUtils";
-import { getPuzzle, updatePuzzle } from "../utils";
 import {
   elementIdNote,
   operationDescriptionParam,
@@ -60,28 +59,31 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
 `.trim(),
     ),
   }),
-  ({ elementId, operationDescription, clues }) => {
-    const { index, targetElement, elementType, clueType } =
-      getElementWithClueById(elementId);
-
-    // Manually parse the type-specific data after knowing the type schema,
-    // only to validate the input and report the errors.
-    // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    parseElementSpecificData(
-      elementType.typeName,
-      { clues: z.array(clueType.schema) },
-      { clues },
-    );
-
-    const cluesKey = clueType.key;
-
-    const before = getPuzzle();
-
-    updatePuzzle(
+  async function ({ elementId, operationDescription, clues }) {
+    const {
+      tabState,
+      result: { index, cluesKey, targetElement },
+    } = await this.updatePuzzle(
       (puzzle) => {
+        const { index, targetElement, elementType, clueType } =
+          getElementWithClueById(puzzle, elementId);
+
+        // Manually parse the type-specific data after knowing the type schema,
+        // only to validate the input and report the errors.
+        // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
+        parseElementSpecificData(
+          elementType.typeName,
+          { clues: z.array(clueType.schema) },
+          { clues },
+        );
+
+        const cluesKey = clueType.key;
+
         (puzzle.allElements[index].config as any)[cluesKey].push(...clues);
+
+        return { result: { index, cluesKey, targetElement } };
       },
-      (from, to) => {
+      (from, to, { index, cluesKey }) => {
         (to.allConstraints[index].config as any)[cluesKey] = (
           from.allConstraints[index].config as any
         )[cluesKey];
@@ -89,16 +91,15 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
       operationDescription,
     );
 
-    const after = getPuzzle();
-    const updatedElement = after.allElements[index];
+    const updatedElement = tabState.puzzle.allElements[index];
 
     return {
       content: [
         {
           type: "text",
           text: [
-            `Added ${clues.length} clues to "${getElementFinalName(targetElement)}" in puzzle "${after.name || "(untitled)"}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
-            elementsDiffSummary(before, after),
+            `Added ${clues.length} clues to "${getElementFinalName(targetElement)}" in puzzle "${tabState.puzzle.name || "(untitled)"}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
+            elementsDiffSummary(tabState),
           ].join("\n"),
         },
       ],

@@ -6,7 +6,6 @@ import {
   getElementFinalName,
   parseElementSpecificData,
 } from "./elementUtils";
-import { getPuzzle, updatePuzzle } from "../utils";
 import {
   elementIdNote,
   operationDescriptionParam,
@@ -89,7 +88,7 @@ ${partialUpdateNote}
       `Enable or disable the element for the solver (logic only).`,
     ),
   }),
-  ({
+  async function ({
     elementId,
     elementUpdates,
     clueBatchUpdates,
@@ -97,56 +96,57 @@ ${partialUpdateNote}
     enabled,
     solverIgnored,
     operationDescription,
-  }) => {
-    const { index, targetElement } = getElementById(elementId);
-    const elementType = getElementByTypeName(targetElement.config.type);
-
-    if (elementUpdates !== undefined && !elementType.globalSchema) {
-      throw new Error(
-        `Element type "${targetElement.config.type}" has no config to update - "elementUpdates" is not accepted for it.`,
-      );
-    }
-    if (clueBatchUpdates !== undefined && !elementType.clue) {
-      throw new Error(
-        `Element type "${targetElement.config.type}" has no clues - "clueBatchUpdates" is not accepted for it.`,
-      );
-    }
-
-    // Manually parse the type-specific data after knowing the type schema,
-    // only to validate the input and report the errors.
-    // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
-    parseElementSpecificData(
-      elementType.typeName,
-      {
-        ...(elementType.globalSchema
-          ? {
-              elementUpdates: ZodDeepPartial(
-                elementType.globalSchema instanceof z.ZodCodec
-                  ? elementType.globalSchema.def.in
-                  : elementType.globalSchema,
-              ).optional(),
-            }
-          : {}),
-        ...(elementType.clue
-          ? {
-              clueBatchUpdates: ZodDeepPartial(
-                elementType.clue.schema as any,
-              ).optional(),
-            }
-          : {}),
-      },
-      {
-        elementUpdates,
-        clueBatchUpdates,
-      },
-    );
-
-    const cluesKey = elementType.clue?.key;
-
-    const before = getPuzzle();
-
-    updatePuzzle(
+  }) {
+    const {
+      tabState,
+      result: { index },
+    } = await this.updatePuzzle(
       (puzzle) => {
+        const { index, targetElement } = getElementById(puzzle, elementId);
+        const elementType = getElementByTypeName(targetElement.config.type);
+
+        if (elementUpdates !== undefined && !elementType.globalSchema) {
+          throw new Error(
+            `Element type "${targetElement.config.type}" has no config to update - "elementUpdates" is not accepted for it.`,
+          );
+        }
+        if (clueBatchUpdates !== undefined && !elementType.clue) {
+          throw new Error(
+            `Element type "${targetElement.config.type}" has no clues - "clueBatchUpdates" is not accepted for it.`,
+          );
+        }
+
+        // Manually parse the type-specific data after knowing the type schema,
+        // only to validate the input and report the errors.
+        // Intentionally mimic the original tool schema, to get the same field paths in the error messages.
+        parseElementSpecificData(
+          elementType.typeName,
+          {
+            ...(elementType.globalSchema
+              ? {
+                  elementUpdates: ZodDeepPartial(
+                    elementType.globalSchema instanceof z.ZodCodec
+                      ? elementType.globalSchema.def.in
+                      : elementType.globalSchema,
+                  ).optional(),
+                }
+              : {}),
+            ...(elementType.clue
+              ? {
+                  clueBatchUpdates: ZodDeepPartial(
+                    elementType.clue.schema as any,
+                  ).optional(),
+                }
+              : {}),
+          },
+          {
+            elementUpdates,
+            clueBatchUpdates,
+          },
+        );
+
+        const cluesKey = elementType.clue?.key;
+
         const element = puzzle.allElements[index];
         if (elementUpdates) {
           element.config = mergeDeepUpdates<typeof element.config>(
@@ -171,24 +171,24 @@ ${partialUpdateNote}
         if (solverIgnored !== undefined) {
           element.solverIgnored = solverIgnored;
         }
+
+        return { result: { index } };
       },
-      (from, to) => {
+      (from, to, { index }) => {
         to.allConstraints[index] = from.allConstraints[index];
       },
       operationDescription,
     );
 
-    const after = getPuzzle();
-
-    const updatedElement = after.allElements[index];
+    const updatedElement = tabState.puzzle.allElements[index];
 
     return {
       content: [
         {
           type: "text",
           text: [
-            `Element "${getElementFinalName(updatedElement)}" updated successfully in puzzle "${after.name || "(untitled)"}".`,
-            elementsDiffSummary(before, after),
+            `Element "${getElementFinalName(updatedElement)}" updated successfully in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+            elementsDiffSummary(tabState),
           ].join("\n"),
         },
       ],

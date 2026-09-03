@@ -1,4 +1,4 @@
-import { ObjectNode } from "../ObjectNode";
+import { RootObjectNode } from "../ObjectNode";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { cellsDescriptor } from "./cells";
 import { stringDescriptor } from "../generic/stringDescriptor";
@@ -7,18 +7,8 @@ import { getArrayDescriptor } from "../generic/arrayDescriptor";
 import { elementDescriptor } from "./element";
 
 /** Object node for a puzzle object. */
-export const puzzleNode = (
-  value: PuzzlePublic,
-): ObjectNode<PuzzlePublic, PuzzlePublic> =>
-  new ObjectNode(
-    value,
-    () => {
-      throw new Error("This puzzle snapshot is read-only");
-    },
-    "",
-    value,
-    puzzleDescriptor,
-  );
+export const puzzleNode = (value: PuzzlePublic) =>
+  new RootObjectNode(value, puzzleDescriptor);
 
 /** Puzzle - the header lines, then cells and each element, in printing order. */
 export const puzzleDescriptor = getPlainObjectDescriptor<

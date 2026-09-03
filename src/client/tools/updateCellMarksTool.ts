@@ -6,10 +6,10 @@ import {
   CellSchemaNoId,
   parseCellNotation,
 } from "../../SudokuMakerSchemas";
-import { copyCells, getPuzzle, updatePuzzle } from "../utils";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updateCellMarksToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
+import { copyCells } from "../copyCells";
 
 export const updateCellMarksTool = new ToolImplementation(
   {
@@ -66,21 +66,22 @@ How to combine the given values with each cell's existing marks:
       `.trim(),
     ),
   }),
-  ({
+  async function ({
     operationDescription,
     cells,
     operation,
     candidates,
     cornerPencilMarks,
     colors,
-  }) => {
-    const updatedCells: CellNotation[] = [];
-    const skippedCells: CellNotation[] = [];
-
-    const before = getPuzzle();
-
-    updatePuzzle(
+  }) {
+    const {
+      tabState,
+      result: { updatedCells, skippedCells },
+    } = await this.updatePuzzle(
       (puzzle) => {
+        const updatedCells: CellNotation[] = [];
+        const skippedCells: CellNotation[] = [];
+
         for (const coords of cells) {
           const { row, column } = parseCellNotation(coords);
           const cell = puzzle.cells[row - 1][column - 1];
@@ -116,13 +117,14 @@ How to combine the given values with each cell's existing marks:
 
           updatedCells.push(coords);
         }
+
+        return { result: { updatedCells, skippedCells } };
       },
       (from, to) => copyCells(from.cells, to.cells),
       operationDescription,
     );
 
-    const after = getPuzzle();
-    const diffText = cellsDiffSummary(before, after);
+    const diffText = cellsDiffSummary(tabState);
 
     if (skippedCells.length === 0) {
       return {
@@ -130,7 +132,7 @@ How to combine the given values with each cell's existing marks:
           {
             type: "text",
             text: [
-              `Updated cell marks in puzzle "${after.name || "(untitled)"}".`,
+              `Updated cell marks in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
               diffText,
             ].join("\n"),
           },
@@ -155,7 +157,7 @@ How to combine the given values with each cell's existing marks:
         {
           type: "text",
           text: [
-            `Updated cells ${updatedCells.join(", ")} in puzzle "${after.name || "(untitled)"}".`,
+            `Updated cells ${updatedCells.join(", ")} in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
             diffText,
             "",
             `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,

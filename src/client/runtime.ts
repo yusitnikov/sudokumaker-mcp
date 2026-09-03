@@ -2,6 +2,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { tools } from "./tools";
 import { runtimeGlobal } from "./runtimeGlobal";
 import type { ToolContext } from "./tools/ToolImplementation";
+import type { TabStateSnapshot } from "./tabState";
 
 /**
  * The page-side entry point. This module is bundled by the `injected` plugin (see vite.config.ts)
@@ -25,6 +26,8 @@ interface Runtime {
     params: unknown,
     context: ToolContext,
   ) => Promise<CallToolResult>;
+  /** The tab state as of the last `getTabState` call - see tabState.ts. */
+  lastTabStateSnapshot?: TabStateSnapshot;
 }
 
 declare global {

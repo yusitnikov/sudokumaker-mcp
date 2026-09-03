@@ -8,7 +8,10 @@ import {
   getLogsToolName,
 } from "./toolNames";
 import { readSudokuMakerLogs } from "../../SudokuMakerLogs";
+import { RootObjectNode } from "../format/ObjectNode";
+import { solverLogsDescriptor } from "../format/tabState/solverLogs";
 
+// TODO: remove after finishing working on the MCP
 export const getLogsTool = new ToolImplementation(
   {
     definition: {
@@ -41,7 +44,7 @@ was triggered outside this session.
               ? "The solver log is empty - no solving/checking action has been run yet."
               : json
                 ? JSON.stringify(logEntries, null, 2)
-                : logEntries.map((entry) => entry.formatted).join("\n"),
+                : new RootObjectNode(logEntries, solverLogsDescriptor).format(),
         },
       ],
     };

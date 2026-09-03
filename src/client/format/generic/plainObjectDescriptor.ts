@@ -15,10 +15,7 @@ export type ObjectDescriptorsMap<T, RootT> = {
 };
 
 /** A plain object, printed and diffed key by key. */
-export const getPlainObjectDescriptor = <
-  T extends Record<string, unknown>,
-  RootT,
->({
+export const getPlainObjectDescriptor = <T extends Record<string, any>, RootT>({
   childMap,
   allowOtherKeys = true,
   ignoredKeys,

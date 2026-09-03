@@ -16,6 +16,8 @@ interface ArrayDescriptorOptions<ItemT, RootT> {
   countLabel?: string;
   /** Truncate the output that exceeds the length below (in characters) */
   sizeLimit?: number;
+  /** Are edit operations allowed for the items (defaults to true) */
+  canEditItems?: boolean;
 }
 
 /**
@@ -28,6 +30,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
   key,
   countLabel = "items",
   sizeLimit = SIZE_FLOOR,
+  canEditItems = true,
 }: ArrayDescriptorOptions<ItemT, RootT>): ObjectDescriptor<ItemT[], RootT> => ({
   child(node, segment) {
     const position = Number(segment);
@@ -131,7 +134,7 @@ export const getArrayDescriptor = <ItemT, RootT>({
   },
 
   diff(from, to) {
-    const ops = getArrayDiff(from.value, to.value, key);
+    const ops = getArrayDiff(from.value, to.value, key, canEditItems);
 
     return renderArrayDiff(ops, from.value.length, to.value.length, {
       formatAdded: (toItem) =>

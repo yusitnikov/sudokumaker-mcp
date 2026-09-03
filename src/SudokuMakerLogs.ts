@@ -49,32 +49,7 @@ export interface SudokuMakerLogEntry {
   // implies it (icon character kept inline, duration in parens, an "[outdated]" prefix when stale,
   // an "[in progress] " prefix while solving). This is what callers should show verbatim; the other
   // fields are for callers that want to branch on the entry's properties.
-  formatted: string;
-}
-
-/**
- * Entries added or changed by one solver/check action, given the log snapshot from just before it ran.
- *
- * Some actions append to the log, others replace it outright, so a plain
- * length comparison isn't enough - it also has to catch an entry rewritten in place at an unchanged position
- * (e.g. "No logical steps found." self-replacing rather than stacking). This walks the longest matching prefix
- * between before/after and returns everything past the first mismatch, which handles all three cases at once.
- */
-export function readNewSudokuMakerLogs(
-  before: SudokuMakerLogEntry[],
-): SudokuMakerLogEntry[] {
-  const after = readSudokuMakerLogs();
-
-  let commonPrefixLength = 0;
-  while (
-    commonPrefixLength < before.length &&
-    commonPrefixLength < after.length &&
-    before[commonPrefixLength].html === after[commonPrefixLength].html
-  ) {
-    commonPrefixLength++;
-  }
-
-  return after.slice(commonPrefixLength);
+  formatted?: string;
 }
 
 export function readSudokuMakerLogs(): SudokuMakerLogEntry[] {
@@ -97,7 +72,6 @@ export function readSudokuMakerLogs(): SudokuMakerLogEntry[] {
           outOfDate,
           inProgress: true,
           html,
-          formatted: `[in progress] ${text}`,
         };
       }
 
@@ -127,24 +101,16 @@ export function readSudokuMakerLogs(): SudokuMakerLogEntry[] {
         )
         .map((cls) => cls.replace(/Icon$/, ""));
 
-      const duration = li.querySelector(":scope > .duration");
-      const durationText = duration?.textContent?.trim() || undefined;
-
-      const text = (content.textContent || "").replace(/\s+/g, " ").trim();
-
       return {
         kind,
-        text,
+        text: (content.textContent || "").replace(/\s+/g, " ").trim(),
         iconClasses,
-        duration: durationText,
+        duration:
+          li.querySelector(":scope > .duration")?.textContent?.trim() ||
+          undefined,
         outOfDate,
         inProgress: false,
         html,
-        formatted:
-          (outOfDate ? "[Outdated] " : "") +
-          iconClasses.map((cls) => `[${cls}] `).join("") +
-          text +
-          (durationText ? ` (${durationText})` : ""),
       };
     })
     .filter(
