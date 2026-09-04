@@ -1,6 +1,5 @@
 import { type PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { type CellPublic, parseCellNotation } from "../../../SudokuMakerSchemas";
-import { type ElementByType, ElementType, RegionsElement } from "../../../SudokuMakerElement";
 import { NoSuchHandleError } from "../NoSuchHandleError";
 import type { FormatOpts } from "../FormatOpts";
 import { ObjectNode } from "../ObjectNode";
@@ -10,6 +9,9 @@ import { leafNode } from "../generic/leafNode";
 import { gridNotationTopicName } from "../../tools/docs/topicNames";
 import { indent } from "../generic/indent";
 import { formatHandleMarker } from "../formatHandleMarker";
+import { ElementType } from "../../../elements/ElementType";
+import type { ElementByType } from "../../../elements/types";
+import { RegionsElement } from "../../../elements/singleClueElements";
 
 /** Points the reader at the `grid-notation` docs topic - appended once, after any grid rendering. */
 const gridNotationFooterLine = `Read \`${gridNotationTopicName}\` topic for how to read this, DO NOT GUESS!`;

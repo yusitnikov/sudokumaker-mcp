@@ -201,7 +201,7 @@ never explain how it works.
 
 An unknown topic name is not an error - it returns the compact index as a normal response.
 
-## The element registry (`src/SudokuMakerElement.ts`)
+## The element registry (`src/elements`)
 
 One `SudokuMakerElement` instance per type (~50 of them), each carrying: its `ElementType` id and
 `typeName`, a config `schema`, an optional `clue` descriptor (`{key, schema, getAffectedCells}`), a

@@ -3,11 +3,11 @@ import { z } from "zod";
 import { ClueMatch, getElementFinalName, getElementWithClueById, parseElementSpecificData } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { elementIdNote, operationDescriptionParam, partialUpdateNote } from "./descriptionSnippets";
-import { KillerCagesElement } from "../../SudokuMakerElement";
 import { addElementToolName, getPuzzleToolName, updateCluesToolName } from "./toolNames";
 import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { jsonValue } from "../../jsonValue";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
+import { KillerCagesElement } from "../../elements/cageElements";
 
 export const updateCluesTool = new ToolImplementation(
   {

@@ -1,8 +1,8 @@
 // noinspection JSUnusedGlobalSymbols
 
-import type { ElementType } from "./SudokuMakerElement";
 import { z } from "zod";
 import { PuzzleSchema } from "./SudokuMakerPuzzleSchema";
+import { ElementType } from "./elements/ElementType";
 
 type CellId = number;
 interface Coords {

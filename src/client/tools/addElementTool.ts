@@ -1,21 +1,17 @@
 import { ToolImplementation, withAdvertisedSchema } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
-import {
-  AllElements,
-  CosmeticSymbolElement,
-  ElementConfigSchema,
-  ElementMainSchema,
-  getElementByTypeName,
-  KillerCagesElement,
-  ThermometerElement,
-} from "../../SudokuMakerElement";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getElementById } from "./elementUtils";
 import { elementIdNote, partialUpdateNote } from "./descriptionSnippets";
 import { addCluesToolName, addElementToolName } from "./toolNames";
 import { elementsTopicName, elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
+import { ElementConfigSchema, ElementMainSchema } from "../../elements/schemas";
+import { AllElements, getElementByTypeName } from "../../elements/AllElements";
+import { KillerCagesElement } from "../../elements/cageElements";
+import { ThermometerElement } from "../../elements/lineElements";
+import { CosmeticSymbolElement } from "../../elements/cosmeticElements";
 
 export const addElementTool = new ToolImplementation(
   {

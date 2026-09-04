@@ -2,9 +2,10 @@ import { ToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { ClueCellsGroupFilter, CluePositionsFilter, getElementFinalName } from "./elementUtils";
 import { elementIdNote, operationDescriptionParam } from "./descriptionSnippets";
-import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
 import { addElementToolName, getPuzzleToolName, removeCluesToolName } from "./toolNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
+import { ThermometerElement } from "../../elements/lineElements";
+import { ArrowElement } from "../../elements/miscElements";
 
 export const removeCluesTool = new ToolImplementation(
   {

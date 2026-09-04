@@ -1,14 +1,5 @@
 import type { DocsTopic } from "./topics";
 import {
-  AllElements,
-  AntikingElement,
-  ArrowElement,
-  DiagonalPlusElement,
-  KillerCagesElement,
-  SudokuRulesElement,
-  ThermometerElement,
-} from "../../../SudokuMakerElement";
-import {
   addCluesToolName,
   removeCluesToolName,
   updateCluesToolName,
@@ -16,6 +7,11 @@ import {
   updateGivenDigitsToolName,
 } from "../toolNames";
 import { cosmeticsTopicName, customConstraintsTopicName, elementsTopicName, elementTopicPattern } from "./topicNames";
+import { AllElements } from "../../../elements/AllElements";
+import { KillerCagesElement } from "../../../elements/cageElements";
+import { AntikingElement, DiagonalPlusElement, SudokuRulesElement } from "../../../elements/singleClueElements";
+import { ThermometerElement } from "../../../elements/lineElements";
+import { ArrowElement } from "../../../elements/miscElements";
 
 const renderCatalog = (): string =>
   AllElements.flatMap(({ typeName, main: { title, description }, options, extraDocs }) => {

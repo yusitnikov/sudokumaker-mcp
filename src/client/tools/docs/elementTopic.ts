@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { AllElements } from "../../../SudokuMakerElement";
 import { updateElementToolName } from "../toolNames";
 import { elementsTopicName, elementTopicPrefix } from "./topicNames";
+import { AllElements } from "../../../elements/AllElements";
 
 /** Renders the `params` schema of one main/option variant, when it declares one, as an inline JSON block. */
 const renderParams = (paramsSchema: z.ZodObject | undefined): string[] =>

@@ -3,7 +3,6 @@ import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
 import { getElementFinalName, getElementWithClueById, parseElementSpecificData } from "./elementUtils";
 import { elementIdNote, operationDescriptionParam } from "./descriptionSnippets";
-import { ArrowElement, ThermometerElement } from "../../SudokuMakerElement";
 import {
   addCluesToolName,
   addElementToolName,
@@ -13,6 +12,8 @@ import {
 } from "./toolNames";
 import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
+import { ThermometerElement } from "../../elements/lineElements";
+import { ArrowElement } from "../../elements/miscElements";
 
 export const addCluesTool = new ToolImplementation(
   {

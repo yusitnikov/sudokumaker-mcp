@@ -1,5 +1,4 @@
 import type { DocsTopic } from "./topics";
-import { ArrowElement, RegionsElement } from "../../../SudokuMakerElement";
 import {
   undoToolName,
   updateCellMarksToolName,
@@ -14,6 +13,8 @@ import {
   introTopicName,
   solvingTopicName,
 } from "./topicNames";
+import { RegionsElement } from "../../../elements/singleClueElements";
+import { ArrowElement } from "../../../elements/miscElements";
 
 /**
  * The site's own description, lifted from its `<meta>` tag.

@@ -3,7 +3,8 @@ import { cellsDescriptor } from "./cells";
 import { ObjectNode } from "../ObjectNode";
 import { PuzzleTypeNative, type CellPublic } from "../../../SudokuMakerSchemas";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
-import { type ElementPublic, RegionsElement } from "../../../SudokuMakerElement";
+import type { ElementPublic } from "../../../elements/types";
+import { RegionsElement } from "../../../elements/singleClueElements";
 
 const cell = (overrides: Partial<CellPublic> = {}): CellPublic => ({
   coords: "r1c1",

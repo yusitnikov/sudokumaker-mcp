@@ -3,7 +3,8 @@ import { readSudokuMakerLogs, type SudokuMakerLogEntry } from "../SudokuMakerLog
 import { readPendingActionLabel } from "../SudokuMakerUndoRedo";
 import { stringifyValue } from "./format/generic/stringifyValue";
 import { getTabStateSnapshotNode } from "./format/tabState/snapshot";
-import { getElementByConfig } from "../SudokuMakerElement";
+
+import { getElementByConfig } from "../elements/AllElements";
 
 /** Everything about a tab that a tool response may need to report on. */
 export interface TabStateSnapshot {

@@ -1,10 +1,10 @@
-import { type ElementWithClue } from "../../../SudokuMakerElement";
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { getUnknownDescriptor } from "../generic/unknownDescriptor";
 import { isPlainObject } from "../generic/isPlainObject";
 import { formatCellNotation } from "../../../SudokuMakerSchemas";
 import { formatHandleMarker } from "../formatHandleMarker";
+import type { ElementWithClue } from "../../../elements/types";
 
 /** Labels a clue by the cells it touches, falling back to no label. */
 const clueLabel = (clue: unknown, elementType: ElementWithClue): string => {

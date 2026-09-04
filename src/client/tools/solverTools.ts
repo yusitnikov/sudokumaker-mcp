@@ -14,12 +14,14 @@ import {
 } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
-import { type ElementPublic, ElementType, getElementByTypeName } from "../../SudokuMakerElement";
 import { getElementFinalName } from "./elementUtils";
 import { solvingTopicName } from "./docs/topicNames";
 import { TabState } from "../tabState";
 import { RootObjectNode } from "../format/ObjectNode";
 import { solverLogsDescriptor } from "../format/tabState/solverLogs";
+import { ElementType } from "../../elements/ElementType";
+import type { ElementPublic } from "../../elements/types";
+import { getElementByTypeName } from "../../elements/AllElements";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;

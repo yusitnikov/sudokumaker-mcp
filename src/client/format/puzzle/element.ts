@@ -1,4 +1,3 @@
-import { type ElementPublic, getElementByTypeName, isElementWithClue } from "../../../SudokuMakerElement";
 import type { ObjectDescriptor } from "../ObjectDescriptor";
 import type { PuzzlePublic } from "../../../SudokuMakerPuzzleSchema";
 import { indent } from "../generic/indent";
@@ -12,6 +11,8 @@ import { getElementFinalName } from "../../tools/elementUtils";
 import { formatHandleMarker } from "../formatHandleMarker";
 import { SUMMARY_BUDGET } from "../sizeLimits";
 import { truncate } from "../generic/truncate";
+import { type ElementPublic, isElementWithClue } from "../../../elements/types";
+import { getElementByTypeName } from "../../../elements/AllElements";
 
 const elementBaseDescriptor = getPlainObjectDescriptor<ElementPublic, PuzzlePublic>({
   childMap: {

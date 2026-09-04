@@ -1,9 +1,10 @@
-import { type ElementPublic, getElementByTypeName, isElementWithClue } from "../../SudokuMakerElement";
 import { CellIdPublic } from "../../SudokuMakerSchemas";
 import { z } from "zod";
 import { elementTopicPrefix } from "./docs/topicNames";
 import { docsToolName } from "./toolNames";
 import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
+import { type ElementPublic, isElementWithClue } from "../../elements/types";
+import { getElementByTypeName } from "../../elements/AllElements";
 
 export const getElementFinalName = ({ name, config: { type }, elementMetadata }: ElementPublic) =>
   name || elementMetadata?.defaultName || type;

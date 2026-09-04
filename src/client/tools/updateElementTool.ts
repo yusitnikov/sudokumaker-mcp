@@ -3,10 +3,10 @@ import { z } from "zod";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getElementById, getElementFinalName, parseElementSpecificData } from "./elementUtils";
 import { elementIdNote, operationDescriptionParam, partialUpdateNote } from "./descriptionSnippets";
-import { getElementByTypeName } from "../../SudokuMakerElement";
 import { addElementToolName, getPuzzleToolName, updateCluesToolName, updateElementToolName } from "./toolNames";
 import { elementTopicPattern } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
+import { getElementByTypeName } from "../../elements/AllElements";
 
 export const updateElementTool = new ToolImplementation(
   {

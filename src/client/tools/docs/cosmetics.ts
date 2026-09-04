@@ -1,7 +1,8 @@
 import type { DocsTopic } from "./topics";
-import { CosmeticCageElement, CosmeticLineElement, CosmeticSymbolElement } from "../../../SudokuMakerElement";
 import { addCluesToolName, addElementToolName } from "../toolNames";
 import { cosmeticsTopicName, customConstraintsTopicName, elementTopicPattern, introTopicName } from "./topicNames";
+import { CosmeticCageElement } from "../../../elements/cageElements";
+import { CosmeticLineElement, CosmeticSymbolElement } from "../../../elements/cosmeticElements";
 
 export const cosmeticsTopic: DocsTopic = {
   name: cosmeticsTopicName,
