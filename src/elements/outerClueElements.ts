@@ -3,20 +3,19 @@ import { DiagonalType, OuterCellId } from "../SudokuMakerSchemas";
 import type { ClueDescriptor } from "./ClueDescriptor";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
+import { CssHexColor } from "./CssHexColor";
 
-const OuterClueStyle = z
-  .object({
-    color: z.string().describe(""),
-  })
-  .meta({
-    description: "",
-  });
+const OuterClueStyle = z.object({
+  color: CssHexColor,
+});
 
 const OuterClue = <ValueT extends z.ZodType>(ValueType: ValueT) => {
   const schema = z.object({
-    value: ValueType.describe(""),
-    outerCell: OuterCellId.describe(""),
-    diagonal: DiagonalType.optional(),
+    value: ValueType,
+    outerCell: OuterCellId,
+    diagonal: DiagonalType.optional().describe(
+      "If set, the clue applies to the diagonal starting at outerCell instead of its row or column.",
+    ),
   });
 
   return {
@@ -48,7 +47,7 @@ export const XSumsElement = new SudokuMakerElement({
   schema: z.object({
     style: OuterClueStyle,
   }),
-  clue: OuterClue(z.number().optional().describe("")),
+  clue: OuterClue(z.number().optional().describe("the sum")),
   main: {
     title: "X-sums",
     description: "Clues at the edge of the grid show the sum of the first X digits, where X is the first seen digit.",
@@ -65,7 +64,7 @@ export const SkyscrapersElement = new SudokuMakerElement({
   schema: z.object({
     style: OuterClueStyle,
   }),
-  clue: OuterClue(z.number().optional().describe("")),
+  clue: OuterClue(z.number().optional().describe("the skyscraper clue")),
   main: {
     title: "Skyscrapers",
     description:
@@ -83,7 +82,7 @@ export const NumberedRoomsElement = new SudokuMakerElement({
   schema: z.object({
     style: OuterClueStyle,
   }),
-  clue: OuterClue(z.number().optional().describe("")),
+  clue: OuterClue(z.number().optional().describe("the numbered room clue")),
   main: {
     title: "Numbered rooms",
     description:

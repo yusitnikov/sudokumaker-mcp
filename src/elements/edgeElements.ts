@@ -5,12 +5,10 @@ import { ElementType } from "./ElementType";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 
 const EdgeClue = <ValueT extends z.ZodType>(ValueType: ValueT) => {
-  const schema = z
-    .object({
-      value: ValueType,
-      edge: EdgeId,
-    })
-    .describe("");
+  const schema = z.object({
+    value: ValueType,
+    edge: EdgeId,
+  });
 
   return {
     key: "clues",
@@ -22,10 +20,16 @@ const EdgeClue = <ValueT extends z.ZodType>(ValueType: ValueT) => {
 export const DifferenceElement = new SudokuMakerElement({
   type: ElementType.Difference,
   schema: z.object({
-    negative: z.array(z.number()).describe(""),
-    overrideNegativeRatios: z.boolean().describe(""),
+    negative: z
+      .array(z.number())
+      .describe(
+        "Differences that are forbidden between any two orthogonally adjacent cells not joined by a difference dot.",
+      ),
+    overrideNegativeRatios: z
+      .boolean()
+      .describe("Whether this element's negative constraint also excludes the ratio element's negative ratios."),
   }),
-  clue: EdgeClue(z.number().describe("")),
+  clue: EdgeClue(z.number().describe("The required difference between the two cells; defaults to 1 if omitted.")),
   main: {
     title: "Difference Kropki dots",
     description:
@@ -40,10 +44,16 @@ export const DifferenceElement = new SudokuMakerElement({
 export const RatioElement = new SudokuMakerElement({
   type: ElementType.Ratio,
   schema: z.object({
-    negative: z.array(z.number()).describe(""),
-    overrideNegativeDifferences: z.boolean().describe(""),
+    negative: z
+      .array(z.number())
+      .describe("Ratios that are forbidden between any two orthogonally adjacent cells not joined by a ratio dot."),
+    overrideNegativeDifferences: z
+      .boolean()
+      .describe(
+        "Whether this element's negative constraint also excludes the difference element's negative differences.",
+      ),
   }),
-  clue: EdgeClue(z.number().describe("")),
+  clue: EdgeClue(z.number().describe("The required ratio between the two cells; defaults to 2 if omitted.")),
   main: {
     title: "Ratio Kropki dots",
     description:
@@ -58,9 +68,11 @@ export const RatioElement = new SudokuMakerElement({
 export const XVElement = new SudokuMakerElement({
   type: ElementType.XV,
   schema: z.object({
-    negative: z.array(z.number()).describe(""),
+    negative: z
+      .array(z.number())
+      .describe("Sums that are forbidden between any two orthogonally adjacent cells not marked with X or V."),
   }),
-  clue: EdgeClue(z.number().describe("")),
+  clue: EdgeClue(z.number().describe("The required sum: 10 for X, 5 for V.")),
   main: {
     title: "XV",
     description: "Cells joined by an X or V must sum to 10 (X) or 5 (V).",

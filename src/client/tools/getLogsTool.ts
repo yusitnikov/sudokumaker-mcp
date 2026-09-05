@@ -30,7 +30,7 @@ was triggered outside this session.
   },
   z.object({
     // TODO: remove after finishing working on the MCP
-    json: z.boolean().default(false),
+    json: z.boolean().default(false).describe("Return the raw log entries as JSON instead of the formatted text."),
   }),
   ({ json }) => {
     const logEntries = readSudokuMakerLogs();

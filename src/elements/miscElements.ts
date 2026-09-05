@@ -12,17 +12,17 @@ import { BasicShapeStyle } from "./BasicShapeStyle";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
 import { areSameDigitGroups, describeDigitGroups, getEntropicGroups, getModuloGroups } from "./digitGroups";
+import { CssHexColor } from "./CssHexColor";
+import { LineStyle } from "./LineStyle";
 
 export const CloneElement = new SudokuMakerElement({
   type: ElementType.Clone,
   schema: z.object({
     // TODO: how does it work?
-    groups: z.array(z.array(CellId)).describe(""),
-    style: z
-      .object({
-        color: z.string().describe(""),
-      })
-      .describe(""),
+    groups: z.array(z.array(CellId)),
+    style: z.object({
+      color: CssHexColor,
+    }),
   }),
   main: {
     title: "Clones",
@@ -39,11 +39,11 @@ export const CloneElement = new SudokuMakerElement({
 export const QuadrupleElement = new SudokuMakerElement({
   type: ElementType.Quadruple,
   schema: z.object({
-    style: z
-      .object({
-        singleLine: z.boolean().describe(""),
-      })
-      .describe(""),
+    style: z.object({
+      singleLine: z
+        .boolean()
+        .describe("Whether to render the quadruple's digits on a single line instead of wrapping them."),
+    }),
   }),
   clue: {
     key: "clues",
@@ -80,13 +80,13 @@ export const QuadrupleElement = new SudokuMakerElement({
 export const DifferentValuesElement = new SudokuMakerElement({
   type: ElementType.DifferentValues,
   schema: z.object({
-    cells: z.array(CellId).describe(""),
-    style: z
-      .object({
-        color: z.string().describe(""),
-        offset: z.number().describe(""),
-      })
-      .describe(""),
+    cells: z.array(CellId),
+    style: z.object({
+      color: CssHexColor,
+      offset: z
+        .number()
+        .describe("Fraction of the cell's size by which the region border is inset from the cell edges."),
+    }),
   }),
   main: {
     title: "Extra region/different values",
@@ -104,18 +104,13 @@ export const DifferentValuesElement = new SudokuMakerElement({
 export const ArrowElement = new SudokuMakerElement({
   type: ElementType.Arrow,
   schema: z.object({
-    style: z
-      .object({
-        arrow: z
-          .object({
-            color: z.string().describe(""),
-            thickness: z.number().describe(""),
-            headSize: z.number().describe(""),
-          })
-          .describe(""),
-        bulb: BasicShapeStyle,
-      })
-      .describe(""),
+    style: z.object({
+      arrow: z.object({
+        ...LineStyle.shape,
+        headSize: z.number().describe("Length of each of the arrowhead's two diagonal strokes, in cell-size units."),
+      }),
+      bulb: BasicShapeStyle,
+    }),
   }),
   clue: {
     key: "bulbsWithArrows",
@@ -165,30 +160,22 @@ export const ArrowElement = new SudokuMakerElement({
 export const LittleKillersElement = new SudokuMakerElement({
   type: ElementType.LittleKillers,
   schema: z.object({
-    style: z
-      .object({
-        text: z
-          .object({
-            color: z.string().describe(""),
-          })
-          .describe(""),
-        arrow: z
-          .object({
-            color: z.string().describe(""),
-          })
-          .describe(""),
-      })
-      .describe(""),
+    style: z.object({
+      text: z.object({
+        color: CssHexColor,
+      }),
+      arrow: z.object({
+        color: CssHexColor,
+      }),
+    }),
   }),
   clue: {
     key: "clues",
-    schema: z
-      .object({
-        value: z.number().optional().describe(""),
-        outerCell: OuterCellId,
-        diagonal: DiagonalType,
-      })
-      .describe(""),
+    schema: z.object({
+      value: z.number().optional().describe("The sum of the digits along the diagonal."),
+      outerCell: OuterCellId,
+      diagonal: DiagonalType,
+    }),
     getAffectedCells: ({ outerCell }) => [outerCell],
   },
   main: {
@@ -208,7 +195,9 @@ export const LittleKillersElement = new SudokuMakerElement({
 });
 
 const GlobalEntropyParamsSchema = z.object({
-  groups: z.array(DigitSetSchema).describe("digit groups"),
+  groups: z
+    .array(DigitSetSchema)
+    .describe("Digit groups; every 2x2 square must contain at least one digit from each group."),
 });
 export const GlobalEntropyElement = new SudokuMakerElement({
   type: ElementType.GlobalEntropy,
@@ -251,6 +240,7 @@ enum CustomFogClearingPatternNative {
   column,
 }
 
+// TODO: proper descriptions
 const CustomFogClearingPattern = z.enum(CustomFogClearingPatternNative).describe("");
 
 export const FogTriggersElement = new SudokuMakerElement({

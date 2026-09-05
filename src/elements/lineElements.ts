@@ -7,14 +7,10 @@ import { type SpecGetter, SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
 import { areSameDigitGroups, describeDigitGroups, getEntropicGroups, getModuloGroups } from "./digitGroups";
 
-const LineWithEndPointsStyle = z
-  .object({
-    lines: LineStyle,
-    endPoints: BasicShapeStyle,
-  })
-  .meta({
-    description: "",
-  });
+const LineWithEndPointsStyle = z.object({
+  lines: LineStyle,
+  endPoints: BasicShapeStyle,
+});
 
 const LineClueSchema = z.array(CellId).meta({
   description: "The list of all cells that lines goes through",
@@ -28,25 +24,17 @@ const getLineClue = <KeyT extends string>(key: KeyT): ClueDescriptor<KeyT, typeo
 
 const LineClue = getLineClue("lines");
 
-const LineElementConfigBase = z
-  .object({
-    style: LineStyle,
-  })
-  .meta({
-    description: "",
-  });
+const LineElementConfig = z.object({
+  style: LineStyle,
+});
 
-const LineWithEndPointsConfigBase = z
-  .object({
-    style: LineWithEndPointsStyle,
-  })
-  .meta({
-    description: "",
-  });
+const LineWithEndPointsConfig = z.object({
+  style: LineWithEndPointsStyle,
+});
 
 export const RenbanElement = new SudokuMakerElement({
   type: ElementType.Renban,
-  schema: LineElementConfigBase,
+  schema: LineElementConfig,
   clue: LineClue,
   main: {
     title: "Renban lines",
@@ -62,7 +50,7 @@ export const RenbanElement = new SudokuMakerElement({
 
 export const PalindromeElement = new SudokuMakerElement({
   type: ElementType.Palindrome,
-  schema: LineElementConfigBase,
+  schema: LineElementConfig,
   clue: LineClue,
   main: {
     title: "Palindromes",
@@ -78,7 +66,7 @@ export const PalindromeElement = new SudokuMakerElement({
 
 export const BetweenLinesElement = new SudokuMakerElement({
   type: ElementType.BetweenLines,
-  schema: LineWithEndPointsConfigBase,
+  schema: LineWithEndPointsConfig,
   clue: LineClue,
   main: {
     title: "Between lines",
@@ -104,12 +92,16 @@ export const BetweenLinesElement = new SudokuMakerElement({
 
 export const RegionSumLineElement = new SudokuMakerElement({
   type: ElementType.RegionSumLine,
-  schema: z.intersection(
-    LineElementConfigBase,
-    z.object({
-      singleRegionTotals: z.boolean().describe(""),
-    }),
-  ),
+  schema: z.object({
+    style: LineStyle,
+    singleRegionTotals: z.boolean().describe(
+      `
+Every time the line re-visits a region it already passed through:
+- if true, that visit counts towards the same running total for that region;
+- if false, it counts to a new total instead.
+      `.trim(),
+    ),
+  }),
   clue: LineClue,
   main: {
     title: "Region sum lines",
@@ -126,7 +118,7 @@ export const RegionSumLineElement = new SudokuMakerElement({
 
 export const SequenceElement = new SudokuMakerElement({
   type: ElementType.Sequence,
-  schema: LineElementConfigBase,
+  schema: LineElementConfig,
   clue: LineClue,
   main: {
     title: "Sequence lines",
@@ -143,7 +135,7 @@ export const SequenceElement = new SudokuMakerElement({
 
 export const LockoutLinesElement = new SudokuMakerElement({
   type: ElementType.LockoutLines,
-  schema: LineWithEndPointsConfigBase,
+  schema: LineWithEndPointsConfig,
   clue: LineClue,
   main: {
     title: "Lockout lines",
@@ -170,7 +162,7 @@ export const LockoutLinesElement = new SudokuMakerElement({
 
 export const DoubleArrowElement = new SudokuMakerElement({
   type: ElementType.DoubleArrow,
-  schema: LineWithEndPointsConfigBase,
+  schema: LineWithEndPointsConfig,
   clue: LineClue,
   main: {
     title: "Double arrows",
@@ -205,7 +197,7 @@ const WhisperParamsSchema = z.object({
 
 export const WhisperElement = new SudokuMakerElement({
   type: ElementType.Whisper,
-  schema: z.intersection(LineElementConfigBase, WhisperParamsSchema),
+  schema: z.object({ ...LineElementConfig.shape, ...WhisperParamsSchema.shape }),
   clue: LineClue,
   main: {
     title: "Whisper lines",
@@ -255,12 +247,14 @@ export const WhisperElement = new SudokuMakerElement({
 });
 
 const EntropyLinesParamsSchema = z.object({
-  groups: z.array(DigitSetSchema).describe("digit groups"),
+  groups: z
+    .array(DigitSetSchema)
+    .describe("Every span of consecutive line cells the size of this array must contain one digit from each group."),
 });
 
 export const EntropyLinesElement = new SudokuMakerElement({
   type: ElementType.EntropyLines,
-  schema: z.intersection(LineElementConfigBase, EntropyLinesParamsSchema),
+  schema: z.object({ ...LineElementConfig.shape, ...EntropyLinesParamsSchema.shape }),
   clue: LineClue,
   main: {
     title: "Digit group lines",
@@ -321,15 +315,11 @@ export const EntropyLinesElement = new SudokuMakerElement({
 export const ThermometerElement = new SudokuMakerElement({
   type: ElementType.Thermometer,
   schema: z.object({
-    thermometers: z.array(z.array(CellId)).describe(""),
-    slow: z.boolean().describe(""),
-    style: z
-      .object({
-        color: z.string().describe(""),
-        thickness: z.number().describe(""),
-        bulbRadius: z.number().describe(""),
-      })
-      .describe(""),
+    slow: z.boolean().describe("If true, digits may repeat between consecutive cells instead of strictly increasing."),
+    style: z.object({
+      ...LineStyle.shape,
+      bulbRadius: z.number().describe("Radius of the thermometer's bulb, in cell-size units."),
+    }),
   }),
   clue: getLineClue("thermometers"),
   main: {

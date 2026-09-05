@@ -3,37 +3,32 @@ import { CellId } from "../SudokuMakerSchemas";
 import type { ClueDescriptor } from "./ClueDescriptor";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
+import { CssHexColor } from "./CssHexColor";
 
-const CageStyle = z
-  .object({
-    cage: z
-      .object({
-        color: z.string().describe(""),
-      })
-      .describe(""),
-    text: z
-      .object({
-        color: z.string().describe(""),
-      })
-      .describe(""),
-  })
-  .meta({
-    description: "",
-  });
+const CageStyle = z.object({
+  cage: z
+    .object({
+      color: CssHexColor,
+    })
+    .describe("Style of the cage's dashed outline"),
+  text: z
+    .object({
+      color: CssHexColor,
+    })
+    .describe("Style of the cage's clue text"),
+});
 
 const Cage = <ValueT extends z.ZodType>(ValueType: ValueT) => {
-  const schema = z
-    .object({
-      value: ValueType,
-      cells: z.array(CellId).describe("Cage cells"),
-    })
-    .describe("");
+  const schema = z.object({
+    value: ValueType,
+    cells: z.array(CellId).describe("Cage cells"),
+  });
 
   return {
     key: "cages",
     schema,
     getAffectedCells: ({ cells }) => cells,
-  } as ClueDescriptor<"cages", typeof schema>;
+  } satisfies ClueDescriptor<"cages", typeof schema>;
 };
 
 export const KillerCagesElement = new SudokuMakerElement({
@@ -41,7 +36,7 @@ export const KillerCagesElement = new SudokuMakerElement({
   schema: z.object({
     style: CageStyle,
   }),
-  clue: Cage(z.number().describe("")),
+  clue: Cage(z.number().describe("Sum the cage's digits must add up to")),
   main: {
     title: "Killer cages",
     description: "Digits in cages must sum to the number in the top-left corner and cannot repeat",
@@ -63,7 +58,7 @@ export const LookAndSayCagesElement = new SudokuMakerElement({
   schema: z.object({
     style: CageStyle,
   }),
-  clue: Cage(z.string().describe("")),
+  clue: Cage(z.string().describe('Look-and-say reading of the cage\'s digits, e.g. "1522"')),
   main: {
     title: "Look-and-say cages",
     description:
@@ -86,7 +81,7 @@ export const CosmeticCageElement = new SudokuMakerElement({
   schema: z.object({
     style: CageStyle,
   }),
-  clue: Cage(z.string().describe("")),
+  clue: Cage(z.string().describe("Text shown in the cage's corner")),
   main: {
     title: "Cosmetic cages",
     description: "Place cages without any (programmed) logic associated with them.",

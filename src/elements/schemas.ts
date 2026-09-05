@@ -33,31 +33,29 @@ export const ElementMainSchema = z.object({
   config: ElementConfigSchema,
 });
 
-export const ElementSchema = z
-  .intersection(
-    ElementMainSchema,
-    z.codec(
-      z.object({
-        elementMetadata: z
-          .object({
-            defaultName: z
-              .string()
-              .describe(
-                'Element name, adjusted to the specific element\'s config - this value would be displayed if the "name" field omitted',
-              ),
-            description: z.string().describe("Element description, adjusted to the specific element's config"),
-          })
-          .optional()
-          .readonly()
-          .describe(
-            "Element metadata adjusted to the specific element's config (more accurate than the general element info from the schema)",
-          ),
-      }),
-      z.object({}),
-      {
-        encode: () => ({}),
-        decode: () => ({}),
-      },
-    ),
-  )
-  .describe("");
+export const ElementSchema = z.intersection(
+  ElementMainSchema,
+  z.codec(
+    z.object({
+      elementMetadata: z
+        .object({
+          defaultName: z
+            .string()
+            .describe(
+              'Element name, adjusted to the specific element\'s config - this value would be displayed if the "name" field omitted',
+            ),
+          description: z.string().describe("Element description, adjusted to the specific element's config"),
+        })
+        .optional()
+        .readonly()
+        .describe(
+          "Element metadata adjusted to the specific element's config (more accurate than the general element info from the schema)",
+        ),
+    }),
+    z.object({}),
+    {
+      encode: () => ({}),
+      decode: () => ({}),
+    },
+  ),
+);

@@ -3,6 +3,7 @@ import type { ClueDescriptor } from "./ClueDescriptor";
 import { CellId } from "../SudokuMakerSchemas";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
+import { CssHexColor } from "./CssHexColor";
 
 const getSingleCellClue = <KeyT extends string>(key: KeyT): ClueDescriptor<KeyT, typeof CellId> => ({
   key,
@@ -15,12 +16,10 @@ const SingleCellClue = getSingleCellClue("cells");
 export const EvenElement = new SudokuMakerElement({
   type: ElementType.Even,
   schema: z.object({
-    style: z
-      .object({
-        color: z.string().describe(""),
-        size: z.number().describe(""),
-      })
-      .describe(""),
+    style: z.object({
+      color: CssHexColor,
+      size: z.number().describe("Side length of the square, in cell-size units."),
+    }),
   }),
   clue: SingleCellClue,
   main: {
@@ -38,12 +37,10 @@ export const EvenElement = new SudokuMakerElement({
 export const OddElement = new SudokuMakerElement({
   type: ElementType.Odd,
   schema: z.object({
-    style: z
-      .object({
-        color: z.string().describe(""),
-        size: z.number().describe(""),
-      })
-      .describe(""),
+    style: z.object({
+      color: CssHexColor,
+      size: z.number().describe("Diameter of the circle, in cell-size units."),
+    }),
   }),
   clue: SingleCellClue,
   main: {
@@ -61,11 +58,9 @@ export const OddElement = new SudokuMakerElement({
 export const MaximumElement = new SudokuMakerElement({
   type: ElementType.Maximum,
   schema: z.object({
-    style: z
-      .object({
-        color: z.string().describe(""),
-      })
-      .describe(""),
+    style: z.object({
+      color: CssHexColor,
+    }),
   }),
   clue: SingleCellClue,
   main: {
@@ -82,11 +77,9 @@ export const MaximumElement = new SudokuMakerElement({
 export const MinimumElement = new SudokuMakerElement({
   type: ElementType.Minimum,
   schema: z.object({
-    style: z
-      .object({
-        color: z.string().describe(""),
-      })
-      .describe(""),
+    style: z.object({
+      color: CssHexColor,
+    }),
   }),
   clue: SingleCellClue,
   main: {
@@ -103,11 +96,9 @@ export const MinimumElement = new SudokuMakerElement({
 export const RowIndexerElement = new SudokuMakerElement({
   type: ElementType.RowIndexer,
   schema: z.object({
-    style: z
-      .object({
-        color: z.string().describe(""),
-      })
-      .describe(""),
+    style: z.object({
+      color: CssHexColor,
+    }),
   }),
   clue: SingleCellClue,
   main: {
@@ -124,11 +115,9 @@ export const RowIndexerElement = new SudokuMakerElement({
 export const ColumnIndexerElement = new SudokuMakerElement({
   type: ElementType.ColumnIndexer,
   schema: z.object({
-    style: z
-      .object({
-        color: z.string().describe(""),
-      })
-      .describe(""),
+    style: z.object({
+      color: CssHexColor,
+    }),
   }),
   clue: SingleCellClue,
   main: {

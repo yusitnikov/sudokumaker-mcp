@@ -34,15 +34,14 @@ export const PuzzleSchema = z
         .object({
           sudokuPad: z
             .object({
-              showColorMarks: z.boolean().describe(""),
-              showDigits: z.boolean().describe(""),
-              solution: z
-                .object({
-                  // TODO: it's usually "grid", what else could be here?
-                  type: z.string().describe(""),
-                })
-                .describe(""),
-              useIncompleteGridAsSolution: z.boolean().describe(""),
+              // TODO: add descriptions
+              showColorMarks: z.boolean(),
+              showDigits: z.boolean(),
+              solution: z.object({
+                // TODO: it's usually "grid", what else could be here?
+                type: z.string(),
+              }),
+              useIncompleteGridAsSolution: z.boolean(),
             })
             .describe("Settings that control how the puzzle will be exported from SudokuMaker to SudokuPad"),
         })

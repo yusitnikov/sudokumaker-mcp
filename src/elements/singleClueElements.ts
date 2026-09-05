@@ -14,7 +14,10 @@ where nothing about rows or columns is implicit.
 export const SudokuRulesElement = new SudokuMakerElement({
   type: ElementType.SudokuRules,
   schema: z.object({
-    areas: z.array(CellsRectangle).optional().describe(""),
+    areas: z
+      .array(CellsRectangle)
+      .optional()
+      .describe("Rectangles the rule is restricted to. If omitted, the rule applies to the whole grid."),
   }),
   main: {
     title: "Rows and columns",

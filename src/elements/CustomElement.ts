@@ -2,14 +2,21 @@ import { CellId } from "../SudokuMakerSchemas";
 import { ElementType } from "./ElementType";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
+import { customComponentsTopicName, customConstraintsTopicName } from "../client/tools/docs/topicNames";
 
 const CustomComponentSchema = z
   .object({
     type: z.literal("code"),
-    name: z.string(),
-    code: z.string(),
+    name: z.string().describe("The component instance's name, as passed to the component's constructor."),
+    code: z
+      .string()
+      .describe(
+        `The component's JavaScript implementation; read the \`${customComponentsTopicName}\` docs topic first, its API cannot be guessed.`,
+      ),
   })
-  .describe("");
+  .describe(
+    `A custom component: a reusable piece of constraint logic; read the \`${customComponentsTopicName}\` docs topic before writing or editing one.`,
+  );
 
 export const CustomElement = new SudokuMakerElement({
   type: ElementType.Custom,
@@ -23,8 +30,14 @@ export const CustomElement = new SudokuMakerElement({
             "Global constraints don't have input groups, they iterate over the cells in the initialization code instead. " +
             "Local constraints use input groups to define which cells they apply to.",
         ),
-      initializationCode: z.string(),
-      customComponents: z.array(CustomComponentSchema),
+      initializationCode: z
+        .string()
+        .describe(
+          `JavaScript code that adds components to the puzzle; read the \`${customConstraintsTopicName}\` docs topic first, its API and conventions cannot be guessed.`,
+        ),
+      customComponents: z
+        .array(CustomComponentSchema)
+        .describe("Custom components used by the initialization code, beyond the standard ones."),
     }),
     z.object({
       definition: z.object({
@@ -85,7 +98,11 @@ export const CustomElement = new SudokuMakerElement({
     internalPath: ["input", "groups"] as const,
     schema: z.object({
       cells: z.array(CellId),
-      value: z.string(),
+      value: z
+        .string()
+        .describe(
+          "Free-form parameter string, interpreted by the initialization code according to its own convention. May be empty if the constraint needs no parameter.",
+        ),
     }),
     getAffectedCells: ({ cells }) => cells,
   },

@@ -50,10 +50,9 @@ export const IVector2 = z
     x: z.number().describe("Horizontal coordinate"),
     y: z.number().describe("Vertical coordinate"),
   })
-  .meta({
-    description:
-      "Coordinates of one point in the grid. The coordinate system starts in the top left corner of the grid and go right and down from there. Each grid cell is 1x1, so the cell size is the unit of the coordinate system.",
-  });
+  .describe(
+    "Coordinates of one point in the grid. The coordinate system starts in the top left corner of the grid and go right and down from there. Each grid cell is 1x1, so the cell size is the unit of the coordinate system.",
+  );
 
 const CellIdInternal = z.number().meta({
   description:
@@ -143,9 +142,7 @@ export const CellId: z.ZodCodec<typeof CellIdPublic, typeof CellIdInternal> = z.
   },
 });
 
-const CornerIdInternal = z.number().meta({
-  description: "",
-});
+const CornerIdInternal = z.number();
 export const CornerId: z.ZodCodec<typeof CellIdPublic, typeof CornerIdInternal> = z.codec(
   CellIdPublic.describe(
     'A cell coordinate string in "rXcY" notation, but naming the cell\'s top-left corner rather than the cell itself ' +
@@ -163,9 +160,7 @@ export const CornerId: z.ZodCodec<typeof CellIdPublic, typeof CornerIdInternal> 
   }),
 );
 
-const EdgeIdInternal = z.number().meta({
-  description: "",
-});
+const EdgeIdInternal = z.number();
 const EdgeIdPublic = z.tuple([CellIdPublic, CellIdPublic]).meta({
   description:
     "Coordinates of one cell grid edge, defined by coordinates of 2 cells that share the edge. One of the cells might be outside the grid.",
@@ -207,9 +202,7 @@ export const EdgeId: z.ZodCodec<typeof EdgeIdPublic, typeof EdgeIdInternal> = z.
   },
 });
 
-const OuterCellIdInternal = z.number().meta({
-  description: "",
-});
+const OuterCellIdInternal = z.number();
 export const OuterCellId: z.ZodCodec<typeof CellIdPublic, typeof OuterCellIdInternal> = z.codec(
   CellIdPublic.describe(
     "Coordinates of a cell outside the grid (row/column would be 0 for top/left cells, or greater than grid height/width for bottom/right cells)",
@@ -236,7 +229,7 @@ export enum SudokuLayerNative {
   Grid = "grid",
 }
 export const SudokuLayer = z.enum(SudokuLayerNative).meta({
-  description: "",
+  description: "Drawing/stacking layer a cosmetic element is placed on, relative to the grid lines.",
 });
 
 export enum PuzzleTypeNative {
@@ -298,7 +291,8 @@ export const CellSchemaNoId = z.object({
       "Mixing a color together with white usually means that whatever is associated with the non-white color " +
       "could go in one of the cells marked with this color and white.",
   ),
-  valid: z.boolean().describe(""),
+  // TODO: proper description
+  valid: z.boolean(),
 });
 
 export const CellSchema = z
@@ -360,16 +354,14 @@ export const CellsArray = <ItemT extends z.ZodType>(itemSchema: ItemT) =>
 
 export const Spec = z
   .object({
-    type: PuzzleType.describe(""),
-    minDigit: z.number().describe(""),
-    maxDigit: z.number().describe(""),
-    digitCount: z.number().readonly().describe(""),
-    size: z
-      .object({
-        width: z.number().describe(""),
-        height: z.number().describe(""),
-      })
-      .describe(""),
+    type: PuzzleType,
+    minDigit: z.number().describe("The lowest digit allowed in a cell."),
+    maxDigit: z.number().describe("The highest digit allowed in a cell."),
+    digitCount: z.number().readonly().describe("Number of distinct digits allowed, i.e. maxDigit - minDigit + 1."),
+    size: z.object({
+      width: z.number().describe("Number of columns in the grid."),
+      height: z.number().describe("Number of rows in the grid."),
+    }),
   })
   .meta({
     description: "Puzzle specification - essential information about puzzle type and dimensions",

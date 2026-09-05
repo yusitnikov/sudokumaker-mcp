@@ -79,7 +79,6 @@ export const CluePositionsFilter = z
   .array(z.number().int().min(1))
   .describe("1-based positions in the element's clue array, selecting exactly those clues.");
 
-export const ClueMatch = z.union([
-  z.object({ clueCells: ClueCellsGroupFilter }),
-  z.object({ positions: CluePositionsFilter }),
-]);
+export const ClueMatch = z
+  .union([z.object({ clueCells: ClueCellsGroupFilter }), z.object({ positions: CluePositionsFilter })])
+  .describe("Selects which clue(s) of an element to target, by cell group or by position.");

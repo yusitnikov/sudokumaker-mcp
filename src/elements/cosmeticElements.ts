@@ -3,6 +3,7 @@ import { LineStyle } from "./LineStyle";
 import { formatCellNotation, IVector2, SudokuLayer } from "../SudokuMakerSchemas";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
+import { CssHexColor } from "./CssHexColor";
 
 /**
  * Cells touched by one point.
@@ -20,18 +21,16 @@ const getCellsTouchingPoint = ({ x, y }: z.input<typeof IVector2>) => {
 export const CosmeticLineElement = new SudokuMakerElement({
   type: ElementType.CosmeticLine,
   schema: z.object({
-    style: z
-      .intersection(
-        LineStyle,
-        z.object({
-          layer: SudokuLayer.optional(), // Undefined means it's automatic - "on top" if edges are overlaying edges of the grid.
-        }),
-      )
-      .describe(""),
+    style: z.object({
+      ...LineStyle.shape,
+      layer: SudokuLayer.optional().describe(
+        `${SudokuLayer.description} Omit for automatic placement: "foreground" if the line overlays grid lines, "default" otherwise.`,
+      ),
+    }),
   }),
   clue: {
     key: "lines",
-    schema: z.array(IVector2).describe(""),
+    schema: z.array(IVector2).describe("Points the line passes through, in order."),
     // Naive: only looks at each segment's two endpoints, not the segment's actual path.
     getAffectedCells: (points) => [...new Set(points.flatMap(getCellsTouchingPoint))],
   },
@@ -54,73 +53,57 @@ enum SymbolType {
   Arrow = "arrow",
 }
 
-const SymbolCommonParams = z
-  .object({
-    angle: z.number().describe(""),
-    fill: z.string().describe(""),
-    stroke: z.string().describe(""),
-    strokeWidth: z.number().describe(""),
-  })
-  .meta({
-    description: "",
-  });
+const SymbolCommonParams = z.object({
+  angle: z.number().describe("Rotation in degrees, clockwise."),
+  fill: CssHexColor,
+  stroke: CssHexColor,
+  strokeWidth: z.number().describe("Stroke thickness, in cell-size units."),
+});
 
-const RectangleSymbolParams = z
-  .intersection(
-    SymbolCommonParams,
-    z.object({
-      type: z.literal(SymbolType.Rectangle).describe("Rectangle"),
-      width: z.number().describe(""),
-      height: z.number().describe(""),
-      fill: z.string().describe(""),
-    }),
-  )
-  .describe("");
+const RectangleSymbolParams = z.intersection(
+  SymbolCommonParams,
+  z.object({
+    type: z.literal(SymbolType.Rectangle).describe("Rectangle"),
+    width: z.number().describe("Width, in cell-size units."),
+    height: z.number().describe("Height, in cell-size units."),
+    fill: CssHexColor,
+  }),
+);
 
-const EllipseSymbolParams = z
-  .intersection(
-    SymbolCommonParams,
-    z.object({
-      type: z.literal(SymbolType.Ellipse).describe("Ellipse"),
-      rx: z.number().describe(""),
-      ry: z.number().describe(""),
-    }),
-  )
-  .describe("");
+const EllipseSymbolParams = z.intersection(
+  SymbolCommonParams,
+  z.object({
+    type: z.literal(SymbolType.Ellipse).describe("Ellipse"),
+    rx: z.number().describe("Horizontal radius, in cell-size units."),
+    ry: z.number().describe("Vertical radius, in cell-size units."),
+  }),
+);
 
-const TextSymbolParams = z
-  .intersection(
-    SymbolCommonParams,
-    z.object({
-      type: z.literal(SymbolType.Text).describe("Text"),
-      text: z.string().describe(""),
-      size: z.number().describe(""),
-    }),
-  )
-  .describe("");
+const TextSymbolParams = z.intersection(
+  SymbolCommonParams,
+  z.object({
+    type: z.literal(SymbolType.Text).describe("Text"),
+    text: z.string(),
+    size: z.number().describe("Font size, in cell-size units."),
+  }),
+);
 
-const ArrowSymbolParams = z
-  .intersection(
-    SymbolCommonParams,
-    z.object({
-      type: z.literal(SymbolType.Arrow).describe("Arrow"),
-      length: z.number().describe(""),
-      headSize: z.number().describe(""),
-    }),
-  )
-  .describe("");
+const ArrowSymbolParams = z.intersection(
+  SymbolCommonParams,
+  z.object({
+    type: z.literal(SymbolType.Arrow).describe("Arrow"),
+    length: z.number().describe("Arrow length, in cell-size units."),
+    headSize: z.number().describe("Length of each of the arrowhead's two diagonal strokes, in cell-size units."),
+  }),
+);
 
-const SymbolParams = z
-  .union([RectangleSymbolParams, EllipseSymbolParams, TextSymbolParams, ArrowSymbolParams])
-  .describe("");
+const SymbolParams = z.union([RectangleSymbolParams, EllipseSymbolParams, TextSymbolParams, ArrowSymbolParams]);
 
-export const CosmeticSymbol = z
-  .object({
-    position: IVector2,
-    layer: SudokuLayer,
-    params: SymbolParams,
-  })
-  .describe("");
+export const CosmeticSymbol = z.object({
+  position: IVector2.describe(`The symbol's center point - ${IVector2.description}`),
+  layer: SudokuLayer,
+  params: SymbolParams,
+});
 
 export const CosmeticSymbolElement = new SudokuMakerElement({
   type: ElementType.CosmeticSymbol,
