@@ -24,5 +24,4 @@ export const updateCellValuesToolName = "update_cell_values";
 export const updateCluesToolName = "update_clues";
 export const updateElementToolName = "update_element";
 export const updateGivenDigitsToolName = "update_given_digits";
-export const updatePuzzleToolName = "update_puzzle";
 export const updatePuzzleMetadataToolName = "update_puzzle_metadata";
