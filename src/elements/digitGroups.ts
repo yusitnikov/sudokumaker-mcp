@@ -23,8 +23,8 @@ const getDigitGroups: SpecGetter<number[][], [number, (digit: number) => number]
 export const getEntropicGroups: SpecGetter<number[][]> = (spec) => {
   const { minDigit, digitCount } = spec;
 
-  const limit1 = minDigit + Math.round(digitCount / 3);
-  const limit2 = minDigit + Math.round((digitCount * 2) / 3);
+  const limit1 = minDigit + Math.round(digitCount / 3) - 1;
+  const limit2 = minDigit + Math.round((digitCount * 2) / 3) - 1;
 
   return getDigitGroups(spec, 3, (digit) => (digit <= limit1 ? 0 : digit <= limit2 ? 1 : 2));
 };
