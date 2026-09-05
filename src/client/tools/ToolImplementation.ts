@@ -61,18 +61,19 @@ const stripNonShapeWrappers = (schema: z.core.$ZodType): z.ZodType => {
   return current;
 };
 
-export class ToolImplementation<SchemaT extends z.ZodSchema> {
-  constructor(
+export abstract class ToolImplementation<SchemaT extends z.ZodSchema> {
+  protected constructor(
     private readonly tool: Omit<Tool, "definition"> & {
       definition: Omit<Tool["definition"], "inputSchema">;
     },
     private readonly inputSchema: SchemaT,
-    private readonly _run: (
-      this: ToolImplementation<SchemaT>,
-      params: z.input<SchemaT>,
-      context: ToolContext,
-    ) => CallToolResult | Promise<CallToolResult>,
   ) {}
+
+  /**
+   * Carries out the call, on parameters already validated and encoded against `inputSchema`.
+   * Throwing rejects the call: `run` renders the error as the tool's result.
+   */
+  protected abstract _run(params: z.input<SchemaT>, context: ToolContext): CallToolResult | Promise<CallToolResult>;
 
   get name() {
     return this.tool.definition.name;
@@ -361,5 +362,29 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
       updatedElement,
       messages,
     };
+  }
+}
+
+/**
+ * A tool whose body is supplied as a callback rather than by subclassing -
+ * what a tool that needs nothing beyond the base helpers uses.
+ */
+export class CallbackToolImplementation<SchemaT extends z.ZodSchema> extends ToolImplementation<SchemaT> {
+  constructor(
+    tool: Omit<Tool, "definition"> & {
+      definition: Omit<Tool["definition"], "inputSchema">;
+    },
+    inputSchema: SchemaT,
+    private readonly _runCallback: (
+      this: CallbackToolImplementation<SchemaT>,
+      params: z.input<SchemaT>,
+      context: ToolContext,
+    ) => CallToolResult | Promise<CallToolResult>,
+  ) {
+    super(tool, inputSchema);
+  }
+
+  protected _run(params: z.input<SchemaT>, context: ToolContext) {
+    return this._runCallback(params, context);
   }
 }

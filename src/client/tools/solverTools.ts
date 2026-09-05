@@ -1,4 +1,4 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import {
@@ -80,7 +80,7 @@ const solverResultText = ({ finished, message, tabState }: SolverWaitResult, log
 const replacedLogResultText = ({ solverLogs }: TabState) =>
   `Solver logs: ${new RootObjectNode(solverLogs, solverLogsDescriptor).format()}`;
 
-export const doLogicalStepTool = new ToolImplementation(
+export const doLogicalStepTool = new CallbackToolImplementation(
   {
     definition: {
       name: doLogicalStepToolName,
@@ -116,7 +116,7 @@ ${reversibleActionNote}
   },
 );
 
-export const doAllLogicalStepsTool = new ToolImplementation(
+export const doAllLogicalStepsTool = new CallbackToolImplementation(
   {
     definition: {
       name: doAllLogicalStepsToolName,
@@ -153,7 +153,7 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
   },
 );
 
-export const bruteForceSolveTool = new ToolImplementation(
+export const bruteForceSolveTool = new CallbackToolImplementation(
   {
     definition: {
       name: bruteForceSolveToolName,
@@ -195,7 +195,7 @@ ${reversibleActionNote}
   },
 );
 
-export const checkValidityTool = new ToolImplementation(
+export const checkValidityTool = new CallbackToolImplementation(
   {
     definition: {
       name: checkValidityToolName,
@@ -233,7 +233,7 @@ Blind to free-text rules and cosmetic-only elements.
   },
 );
 
-export const waitForSolverTool = new ToolImplementation(
+export const waitForSolverTool = new CallbackToolImplementation(
   {
     definition: {
       name: waitForSolverToolName,
@@ -268,7 +268,7 @@ Use this if a previous solver call's response indicated the solve was still in p
   },
 );
 
-export const stopSolverTool = new ToolImplementation(
+export const stopSolverTool = new CallbackToolImplementation(
   {
     definition: {
       name: stopSolverToolName,

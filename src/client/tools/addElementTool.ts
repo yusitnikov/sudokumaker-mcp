@@ -1,4 +1,4 @@
-import { ToolImplementation, withAdvertisedSchema } from "./ToolImplementation";
+import { CallbackToolImplementation, withAdvertisedSchema } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
@@ -13,7 +13,7 @@ import { KillerCagesElement } from "../../elements/cageElements";
 import { ThermometerElement } from "../../elements/lineElements";
 import { CosmeticSymbolElement } from "../../elements/cosmeticElements";
 
-export const addElementTool = new ToolImplementation(
+export const addElementTool = new CallbackToolImplementation(
   {
     definition: {
       name: addElementToolName,

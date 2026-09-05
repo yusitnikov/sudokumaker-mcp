@@ -1,4 +1,4 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { operationDescriptionParam } from "./descriptionSnippets";
@@ -6,7 +6,7 @@ import { updatePuzzleMetadataToolName } from "./toolNames";
 import { copyCells } from "../copyCells";
 import { editText, editTextOperation } from "./editText";
 
-export const updatePuzzleMetadataTool = new ToolImplementation(
+export const updatePuzzleMetadataTool = new CallbackToolImplementation(
   {
     definition: {
       name: updatePuzzleMetadataToolName,

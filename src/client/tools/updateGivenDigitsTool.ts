@@ -1,11 +1,11 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { CellId, parseCellNotation } from "../../SudokuMakerSchemas";
 import { updateGivenDigitsToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 import { copyCells } from "../copyCells";
 
-export const updateGivenDigitsTool = new ToolImplementation(
+export const updateGivenDigitsTool = new CallbackToolImplementation(
   {
     definition: {
       name: updateGivenDigitsToolName,

@@ -1,4 +1,4 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { type CellNotation, CellId, CellSchemaNoId, parseCellNotation } from "../../SudokuMakerSchemas";
 import { operationDescriptionParam } from "./descriptionSnippets";
@@ -6,7 +6,7 @@ import { updateCellMarksToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 import { copyCells } from "../copyCells";
 
-export const updateCellMarksTool = new ToolImplementation(
+export const updateCellMarksTool = new CallbackToolImplementation(
   {
     definition: {
       name: updateCellMarksToolName,

@@ -1,10 +1,10 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getPuzzleToolName } from "./toolNames";
 import { NoSuchHandleError } from "../format/NoSuchHandleError";
 import { puzzleNode } from "../format/puzzle/puzzle";
 
-export const getPuzzleTool = new ToolImplementation(
+export const getPuzzleTool = new CallbackToolImplementation(
   {
     definition: {
       name: getPuzzleToolName,

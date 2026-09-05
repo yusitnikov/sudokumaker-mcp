@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { renderIndex, topics } from "./docs/topics";
 import { getElementTopic } from "./docs/elementTopic";
 import { docsToolName } from "./toolNames";
 import { introTopicName } from "./docs/topicNames";
 
-export const docsTool = new ToolImplementation(
+export const docsTool = new CallbackToolImplementation(
   {
     definition: {
       name: docsToolName,

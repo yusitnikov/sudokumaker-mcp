@@ -1,10 +1,10 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { redoToolName, undoToolName } from "./toolNames";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { TabState, TabStateChangedError } from "../tabState";
 
-export const undoTool = new ToolImplementation(
+export const undoTool = new CallbackToolImplementation(
   {
     definition: {
       name: undoToolName,
@@ -55,7 +55,7 @@ export const undoTool = new ToolImplementation(
   },
 );
 
-export const redoTool = new ToolImplementation(
+export const redoTool = new CallbackToolImplementation(
   {
     definition: {
       name: redoToolName,

@@ -1,4 +1,4 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { ClueMatch, getElementFinalName, getElementWithClueById, parseElementSpecificData } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
@@ -9,7 +9,7 @@ import { jsonValue } from "../../jsonValue";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { KillerCagesElement } from "../../elements/cageElements";
 
-export const updateCluesTool = new ToolImplementation(
+export const updateCluesTool = new CallbackToolImplementation(
   {
     definition: {
       name: updateCluesToolName,

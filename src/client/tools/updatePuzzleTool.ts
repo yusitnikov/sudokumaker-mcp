@@ -1,4 +1,4 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
@@ -20,7 +20,7 @@ import {
 } from "./toolNames";
 import { copyCells } from "../copyCells";
 
-export const updatePuzzleTool = new ToolImplementation(
+export const updatePuzzleTool = new CallbackToolImplementation(
   {
     definition: {
       name: updatePuzzleToolName,

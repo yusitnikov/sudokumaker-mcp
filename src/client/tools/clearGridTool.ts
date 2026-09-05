@@ -1,11 +1,11 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import { clearGridToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 import { TabState } from "../tabState";
 
-export const clearGridTool = new ToolImplementation(
+export const clearGridTool = new CallbackToolImplementation(
   {
     definition: {
       name: clearGridToolName,

@@ -1,4 +1,4 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import {
   bruteForceSolveToolName,
@@ -12,7 +12,7 @@ import { RootObjectNode } from "../format/ObjectNode";
 import { solverLogsDescriptor } from "../format/tabState/solverLogs";
 
 // TODO: remove after finishing working on the MCP
-export const getLogsTool = new ToolImplementation(
+export const getLogsTool = new CallbackToolImplementation(
   {
     definition: {
       name: getLogsToolName,

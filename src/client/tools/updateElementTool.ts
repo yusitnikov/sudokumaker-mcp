@@ -1,4 +1,4 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getElementById, getElementFinalName, parseElementSpecificData } from "./elementUtils";
@@ -8,7 +8,7 @@ import { elementTopicPattern } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { getElementByTypeName } from "../../elements/AllElements";
 
-export const updateElementTool = new ToolImplementation(
+export const updateElementTool = new CallbackToolImplementation(
   {
     definition: {
       name: updateElementToolName,

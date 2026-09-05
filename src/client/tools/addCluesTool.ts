@@ -1,4 +1,4 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
 import { getElementFinalName, getElementWithClueById, parseElementSpecificData } from "./elementUtils";
@@ -16,7 +16,7 @@ import { ThermometerElement } from "../../elements/lineElements";
 import { ArrowElement } from "../../elements/miscElements";
 import { getByPath, setByPath } from "../../PathToObject";
 
-export const addCluesTool = new ToolImplementation(
+export const addCluesTool = new CallbackToolImplementation(
   {
     definition: {
       name: addCluesToolName,

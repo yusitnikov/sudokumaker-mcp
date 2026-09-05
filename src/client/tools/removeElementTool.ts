@@ -1,11 +1,11 @@
-import { ToolImplementation } from "./ToolImplementation";
+import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { getElementById, getElementFinalName } from "./elementUtils";
 import { addElementToolName, getPuzzleToolName, removeElementToolName } from "./toolNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { elementIdNote } from "./descriptionSnippets";
 
-export const removeElementTool = new ToolImplementation(
+export const removeElementTool = new CallbackToolImplementation(
   {
     definition: {
       name: removeElementToolName,
