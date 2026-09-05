@@ -5,20 +5,6 @@ import { z } from "zod";
 import { customComponentsTopicName, customConstraintsTopicName } from "../client/tools/docs/topicNames";
 import { editInitializationCodeToolName } from "../client/tools/toolNames";
 
-const CustomComponentSchema = z
-  .object({
-    type: z.literal("code"),
-    name: z.string().describe("The component instance's name, as passed to the component's constructor."),
-    code: z
-      .string()
-      .describe(
-        `The component's JavaScript implementation; read the \`${customComponentsTopicName}\` docs topic first, its API cannot be guessed.`,
-      ),
-  })
-  .describe(
-    `A custom component: a reusable piece of constraint logic; read the \`${customComponentsTopicName}\` docs topic before writing or editing one.`,
-  );
-
 export const CustomElement = new SudokuMakerElement({
   type: ElementType.Custom,
   schema: z.codec(
@@ -37,9 +23,27 @@ export const CustomElement = new SudokuMakerElement({
           `JavaScript code that adds components to the puzzle; read the \`${customConstraintsTopicName}\` docs topic first, its API and conventions cannot be guessed. ` +
             `To change part of it without resending the whole body, use \`${editInitializationCodeToolName}\` instead of resending this field.`,
         ),
+      /*
+       * TODO: keying the components by name makes a rename diff as one component removed and another added,
+       *       since the diff matches record entries by key.
+       *       Teach the formatting layer to recognize an entry whose code stayed the same
+       *       under a new key as a rename, and render it as one.
+       */
       customComponents: z
-        .array(CustomComponentSchema)
-        .describe("Custom components used by the initialization code, beyond the standard ones."),
+        .record(
+          z.string().describe("The component's name, as passed to its constructor in the initialization code."),
+          z
+            .string()
+            .describe(
+              `The component's JavaScript implementation; read the \`${customComponentsTopicName}\` docs topic first, its API cannot be guessed.`,
+            ),
+        )
+        .describe(
+          `
+Custom components used by the initialization code, beyond the standard ones, keyed by the component's name.
+Read the \`${customComponentsTopicName}\` docs topic before writing or editing one.
+          `.trim(),
+        ),
     }),
     z.object({
       definition: z.object({
@@ -55,7 +59,13 @@ export const CustomElement = new SudokuMakerElement({
           type: z.literal("code"),
           code: z.string(),
         }),
-        components: z.array(CustomComponentSchema),
+        components: z.array(
+          z.object({
+            type: z.literal("code"),
+            name: z.string(),
+            code: z.string(),
+          }),
+        ),
       }),
       style: z.record(z.string(), z.any()),
     }),
@@ -67,12 +77,19 @@ export const CustomElement = new SudokuMakerElement({
           backend: { code },
           components,
         },
-      }) => ({
-        name,
-        isGlobal: !input.some(({ id }) => id === "groups"),
-        initializationCode: code,
-        customComponents: components,
-      }),
+      }) => {
+        const customComponents: Record<string, string> = {};
+        for (const component of components) {
+          customComponents[component.name] = component.code;
+        }
+
+        return {
+          name,
+          isGlobal: !input.some(({ id }) => id === "groups"),
+          initializationCode: code,
+          customComponents,
+        };
+      },
       decode: ({ name, isGlobal, initializationCode, customComponents }) => ({
         definition: {
           name,
@@ -89,7 +106,11 @@ export const CustomElement = new SudokuMakerElement({
             type: "code" as const,
             code: initializationCode,
           },
-          components: customComponents,
+          components: Object.entries(customComponents).map(([name, code]) => ({
+            type: "code" as const,
+            name,
+            code,
+          })),
         },
         style: {},
       }),
@@ -116,7 +137,7 @@ export const CustomElement = new SudokuMakerElement({
       name: "New constraint",
       isGlobal: true,
       initializationCode: "",
-      customComponents: [],
+      customComponents: {},
     },
   },
   extraDocs: [
