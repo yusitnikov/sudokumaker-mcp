@@ -63,6 +63,10 @@ union, replaced by a small `{type, subType, params, overrides}` object that poin
 `element:<TypeName>` docs topics for the actual shapes. The override lives in a private zod registry,
 not in `.meta()`, so `tool.definition`'s JSON Schema still reflects the true shape.
 
+Free-form JSON fields use `jsonValue` (`src/jsonValue.ts`) instead of `z.any()`/`z.unknown()`: those
+two emit a typeless JSON-Schema node, which makes at least one real MCP client stringify the value
+before sending it.
+
 ## Public formats
 
 Where a schema is a codec, it is written `z.codec(<X>Public, <X>Internal)`: **input is the public
@@ -70,7 +74,9 @@ format, output is the app's internal one**, so `.decode()` goes public→interna
 internal→public. Internal values enter only through `window.Api.getPuzzle()` and the `updatePuzzle`
 updater, and only two places use them: the copy step below, and the codecs in
 `src/SudokuMakerSchemas.ts` that read grid geometry off the live puzzle. Everything else - tools,
-formatting, docs - is public format.
+formatting, docs - is public format. `window.Api` itself is typed only by hand-written ambient
+declarations (`src/SudokuMakerApi.ts`), which the compiler cannot check against the real app -
+a green build proves nothing about the page API.
 
 The wire format is deliberately the format a puzzle setter speaks:
 
@@ -84,6 +90,9 @@ The wire format is deliberately the format a puzzle setter speaks:
   top-left *corner*, offset by one from the cell numbering.
 - **Cells arrive as a 2-D array** (`CellsArray`), though the app stores them flat.
 - **Digit sets arrive as arrays** (`DigitSetSchema`), though the app stores them as bitmasks.
+- **Long text arrives as an edit operation**, not as the whole new text: the `editTextOperation`
+  union in `src/client/tools/editText.ts` (write/edit/appendLines/prependLines) is shared by every
+  tool that edits a free-text field, such as the rules text or a `Custom` element's code.
 
 `getPuzzle()` (`src/client/tabState.ts`) encodes the app's puzzle into that public shape and injects a
 read-only `elementMetadata` per element (the app's own title/description for that exact config).
@@ -207,6 +216,9 @@ exception, and only in one direction: it may *name* a capability in a line so th
 never explain how it works.
 
 An unknown topic name is not an error - it returns the compact index as a normal response.
+
+The guidance surface is tested end to end by `utils/coldStartClaude.ts`, which launches a fresh,
+uncoached `claude` CLI session against the server and renders its stream-json transcript readable.
 
 ## The element registry (`src/elements`)
 
