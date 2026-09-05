@@ -1,8 +1,12 @@
 import { ElementType } from "./ElementType";
-import { CellsArray, CellsRectangle, PuzzleTypeNative } from "../SudokuMakerSchemas";
+import { CellsArray, CellsRectangle, parseCellNotation, PuzzleTypeNative } from "../SudokuMakerSchemas";
 import { LineStyle } from "./LineStyle";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
+import { NoSuchHandleError } from "../client/format/NoSuchHandleError";
+import { leafNode } from "../client/format/generic/leafNode";
+import { childHandle } from "../client/format/childHandle";
+import { formatHandleMarker } from "../client/format/formatHandleMarker";
 
 const sudokuRulesRedundantOnSudokuTypeReason = `
 A puzzle whose type is "${PuzzleTypeNative.Sudoku}" already implies row/column uniqueness
@@ -60,6 +64,55 @@ export const RegionsElement = new SudokuMakerElement({
         ),
     ),
   }),
+  configFormat: {
+    regions: {
+      child(node, segment) {
+        let coords;
+        try {
+          coords = parseCellNotation(segment);
+        } catch {
+          throw new NoSuchHandleError(node.handle, "cell notation, e.g. r2c3");
+        }
+        const row = node.value[coords.row - 1];
+        const columnIndex = coords.column - 1;
+        if (row?.[columnIndex] === undefined) {
+          throw new NoSuchHandleError(node.handle, "cell notation, e.g. r2c3");
+        }
+        return leafNode(
+          row[columnIndex],
+          (value) => {
+            row[columnIndex] = value;
+          },
+          childHandle(node.handle, segment),
+          node.root,
+        );
+      },
+
+      format(node, opts) {
+        if (opts.collapse) {
+          const height = node.value.length;
+          const width = node.value[0]?.length ?? 0;
+          return `${width}×${height} regions${formatHandleMarker(node, opts)}`;
+        }
+
+        return "\n" + node.value.map((row) => "  " + row.map((v) => (v === 0 ? "." : v)).join(" ")).join("\n");
+      },
+
+      diff(from, to) {
+        const lines: string[] = [""];
+        to.value.forEach((row, rowIndex) => {
+          const fromRow = from.value[rowIndex];
+          if (JSON.stringify(row) === JSON.stringify(fromRow)) {
+            return;
+          }
+          const rowNumber = rowIndex + 1;
+          lines.push(`  r${rowNumber} - ${fromRow.map((v) => (v === 0 ? "." : String(v))).join(" ")}`);
+          lines.push(`  r${rowNumber} + ${row.map((v) => (v === 0 ? "." : String(v))).join(" ")}`);
+        });
+        return lines.join("\n");
+      },
+    },
+  },
   main: {
     title: "Regions",
     description: "Digits cannot repeat in marked regions.",

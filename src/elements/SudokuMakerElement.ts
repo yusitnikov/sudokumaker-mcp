@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ElementType } from "./ElementType";
 import type { ClueDescriptor } from "./ClueDescriptor";
 import { createByPath, getByPath, type PathToObject, pathToObjectSchema } from "../PathToObject";
+import type { ObjectDescriptor } from "../client/format/ObjectDescriptor";
 
 type PublicConfigT<
   TypeT extends ElementType,
@@ -55,6 +56,10 @@ export class SudokuMakerElement<
   >;
   public readonly globalSchema?: ConfigSchemaT;
   public readonly clue?: ClueDescriptor<ClueKeyT, ClueConfigSchemaT, InternalPathT>;
+  /** Formatting descriptors for this type's config keys, used when rendering the element. */
+  public readonly configFormat?: ConfigFormatDescriptors<
+    PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>
+  >;
   public readonly main: SudokuMakerElementOption<
     PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
     ClueKeyT,
@@ -73,6 +78,7 @@ export class SudokuMakerElement<
     type,
     schema,
     clue,
+    configFormat,
     main,
     options = [],
     getRefuseAddReason,
@@ -81,6 +87,7 @@ export class SudokuMakerElement<
     type: TypeT;
     schema?: ConfigSchemaT;
     clue?: ClueDescriptor<ClueKeyT, ClueConfigSchemaT, InternalPathT>;
+    configFormat?: ConfigFormatDescriptors<PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>>;
     main: SudokuMakerElementOption<
       PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
       ClueKeyT,
@@ -132,6 +139,7 @@ export class SudokuMakerElement<
       }) as any;
     this.globalSchema = schema;
     this.clue = clue;
+    this.configFormat = configFormat;
     this.main = main;
     this.options = options;
     this.extraDocs = extraDocs;
@@ -187,3 +195,11 @@ export interface SecondarySudokuMakerElementOption<
 export type SpecGetter<ResultT, ArgsT extends any[] = []> = (spec: z.input<typeof Spec>, ...args: ArgsT) => ResultT;
 
 export type ConfigGetter<ConfigT, ResultT> = (config: ConfigT, spec: z.input<typeof Spec>) => ResultT;
+
+/**
+ * Formatting descriptors for an element's own config keys, keyed by public config key.
+ * A key that the element's config doesn't have is a compile error at the declaration site.
+ */
+export type ConfigFormatDescriptors<ConfigT> = {
+  [K in keyof ConfigT]?: ObjectDescriptor<Exclude<ConfigT[K], undefined>, any>;
+};
