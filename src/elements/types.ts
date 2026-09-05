@@ -14,7 +14,11 @@ export type ElementByType<TypeT extends ElementType> = Omit<ElementPublic, "conf
 
 type AnyElement = (typeof AllElements)[number];
 
-type WithClue<T> = T extends { clue?: ClueDescriptor<infer K, infer _S> } ? ([K] extends [never] ? never : T) : never;
+type WithClue<T> = T extends { clue?: ClueDescriptor<infer K, infer _S, infer _P> }
+  ? [K] extends [never]
+    ? never
+    : T
+  : never;
 
 export type ElementWithClue = WithClue<AnyElement>;
 

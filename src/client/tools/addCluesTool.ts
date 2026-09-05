@@ -14,6 +14,7 @@ import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { ThermometerElement } from "../../elements/lineElements";
 import { ArrowElement } from "../../elements/miscElements";
+import { getByPath, setByPath } from "../../PathToObject";
 
 export const addCluesTool = new ToolImplementation(
   {
@@ -70,10 +71,16 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
 
         (puzzle.allElements[index].config as any)[cluesKey].push(...clues);
 
-        return { result: { index, cluesKey, targetElement } };
+        return {
+          result: { index, cluesKey, cluesInternalPath: clueType.internalPath ?? [cluesKey], targetElement },
+        };
       },
-      (from, to, { index, cluesKey }) => {
-        (to.allConstraints[index].config as any)[cluesKey] = (from.allConstraints[index].config as any)[cluesKey];
+      (from, to, { index, cluesInternalPath }) => {
+        setByPath(
+          to.allConstraints[index].config as any,
+          cluesInternalPath,
+          getByPath(from.allConstraints[index].config as any, cluesInternalPath),
+        );
       },
       operationDescription,
     );

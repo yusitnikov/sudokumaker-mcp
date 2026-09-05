@@ -4,7 +4,10 @@ import {
   customComponentsTopicName,
   customConstraintsTopicName,
   digitSetTopicName,
+  elementTopicPrefix,
 } from "./topicNames";
+import { addCluesToolName, removeCluesToolName, updateCluesToolName } from "../toolNames";
+import { CustomElement } from "../../../elements/CustomElement";
 
 export const customConstraintsTopic: DocsTopic = {
   name: customConstraintsTopicName,
@@ -170,7 +173,9 @@ for (const { cells, value } of input.groups) {
 \`\`\`
 
 The example above uses *input groups* to define where to apply the custom constraint and with which parameters.
-Input groups are objects defined by the puzzle constructor in the UI to specify where to apply the constraint.
+Input groups are objects that specify where to apply the constraint - the user defines them in the UI,
+and you edit them as the element's clues with \`${addCluesToolName}\`, \`${updateCluesToolName}\` and \`${removeCluesToolName}\`
+(topic \`${elementTopicPrefix}${CustomElement.typeName}\` gives their exact shape).
 Each input group consists of an array of \`cells\` in the grid and optional string \`value\` that describes the constraint's parameters in a user-defined way.
 The initialization code should go over all input groups (they are available as \`input.groups\` global variable),
 interpret them according to the pre-defined convention, and add components to the grid accordingly.
@@ -210,7 +215,7 @@ for (const { cells, value } of input.groups) {
 }
 \`\`\`
 
-However, using input groups in not a must - the constraint could just hardcode where and how to define the components in the initialization code.
+However, using input groups is not a must - the constraint could just hardcode where and how to define the components in the initialization code.
 Constraints that have no input groups are called *global constraints*.
 The common use-case for that is when the constraint is applied to all cells of the grid according to certain pattern,
 e.g. to every row or column, to every diagonal, to every pair of orthogonally adjacent cells,

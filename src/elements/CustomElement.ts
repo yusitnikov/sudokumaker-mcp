@@ -3,14 +3,7 @@ import { ElementType } from "./ElementType";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
 
-export const CustomConstraintInputGroupsSchema = z.array(
-  z.object({
-    cells: z.array(CellId),
-    value: z.string(),
-  }),
-);
-
-export const CustomComponentSchema = z
+const CustomComponentSchema = z
   .object({
     type: z.literal("code"),
     name: z.string(),
@@ -30,7 +23,6 @@ export const CustomElement = new SudokuMakerElement({
             "Global constraints don't have input groups, they iterate over the cells in the initialization code instead. " +
             "Local constraints use input groups to define which cells they apply to.",
         ),
-      inputGroups: CustomConstraintInputGroupsSchema,
       initializationCode: z.string(),
       customComponents: z.array(CustomComponentSchema),
     }),
@@ -50,9 +42,6 @@ export const CustomElement = new SudokuMakerElement({
         }),
         components: z.array(CustomComponentSchema),
       }),
-      input: z.object({
-        groups: CustomConstraintInputGroupsSchema.optional(),
-      }),
       style: z.record(z.string(), z.any()),
     }),
     {
@@ -63,15 +52,13 @@ export const CustomElement = new SudokuMakerElement({
           backend: { code },
           components,
         },
-        input: { groups = [] },
       }) => ({
         name,
         isGlobal: !input.some(({ id }) => id === "groups"),
-        inputGroups: CustomConstraintInputGroupsSchema.decode(groups),
         initializationCode: code,
         customComponents: components,
       }),
-      decode: ({ name, isGlobal, inputGroups, initializationCode, customComponents }) => ({
+      decode: ({ name, isGlobal, initializationCode, customComponents }) => ({
         definition: {
           name,
           input: isGlobal
@@ -89,11 +76,19 @@ export const CustomElement = new SudokuMakerElement({
           },
           components: customComponents,
         },
-        input: isGlobal ? {} : { groups: CustomConstraintInputGroupsSchema.encode(inputGroups) },
         style: {},
       }),
     },
   ),
+  clue: {
+    key: "inputGroups",
+    internalPath: ["input", "groups"] as const,
+    schema: z.object({
+      cells: z.array(CellId),
+      value: z.string(),
+    }),
+    getAffectedCells: ({ cells }) => cells,
+  },
   main: {
     title: "Custom constraint",
     getTitle: (config) => config.name || "Custom constraint",
@@ -101,7 +96,6 @@ export const CustomElement = new SudokuMakerElement({
     defaultConfig: {
       name: "New constraint",
       isGlobal: true,
-      inputGroups: [],
       initializationCode: "",
       customComponents: [],
     },

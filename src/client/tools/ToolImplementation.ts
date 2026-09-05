@@ -3,6 +3,7 @@ import type { CallToolResult, Tool as SdkTool } from "@modelcontextprotocol/sdk/
 import { TabState, TabStateChangedError } from "../tabState";
 import { type PuzzlePublic, PuzzleSchema } from "../../SudokuMakerPuzzleSchema";
 import { ClueMatch, getElementWithClueById } from "./elementUtils";
+import { getByPath, setByPath } from "../../PathToObject";
 
 export interface Tool {
   definition: SdkTool;
@@ -321,11 +322,20 @@ export class ToolImplementation<SchemaT extends z.ZodSchema> {
         }
 
         return {
-          result: { index, cluesKey, matchingClues, allMatchingIndexes },
+          result: {
+            index,
+            cluesInternalPath: clueType.internalPath ?? [cluesKey],
+            matchingClues,
+            allMatchingIndexes,
+          },
         };
       },
-      (from, to, { index, cluesKey }) => {
-        (to.allConstraints[index].config as any)[cluesKey] = (from.allConstraints[index].config as any)[cluesKey];
+      (from, to, { index, cluesInternalPath }) => {
+        setByPath(
+          to.allConstraints[index].config as any,
+          cluesInternalPath,
+          getByPath(from.allConstraints[index].config as any, cluesInternalPath),
+        );
       },
       operationDescription,
     );

@@ -2,6 +2,7 @@ import { Spec } from "../SudokuMakerSchemas";
 import { z } from "zod";
 import { ElementType } from "./ElementType";
 import type { ClueDescriptor } from "./ClueDescriptor";
+import { createByPath, getByPath, type PathToObject, pathToObjectSchema } from "../PathToObject";
 
 type PublicConfigT<
   TypeT extends ElementType,
@@ -24,14 +25,17 @@ type InternalConfigT<
   TypeT extends ElementType,
   ConfigSchemaT extends z.ZodType,
   ClueKeyT extends string | never,
+  InternalPathT extends readonly string[],
   ClueConfigSchemaT extends z.ZodType | never,
 > = z.output<ConfigSchemaT> & { type: TypeT } &
-  // Clues array as in `PublicConfigT`, on the decoded side.
+  // Clues array as in `PublicConfigT`, on the decoded side - but nested along the clue's internal path.
+  // The keys are required at every level: decoding always writes the whole path,
+  // even though the schema accepts an internal config that lacks it.
   ([ClueKeyT] extends [never]
     ? {}
     : [ClueConfigSchemaT] extends [never]
       ? {}
-      : { [K in ClueKeyT]: z.output<ClueConfigSchemaT>[] });
+      : PathToObject<InternalPathT, z.output<ClueConfigSchemaT>[]>);
 
 export class SudokuMakerElement<
   TypeT extends ElementType,
@@ -39,15 +43,18 @@ export class SudokuMakerElement<
   ParamsSchemaT extends z.ZodObject,
   ClueKeyT extends string | never = never,
   ClueConfigSchemaT extends z.ZodType | never = never,
+  // `const` keeps a path written as an array literal a tuple of literal keys:
+  // widening it to `string[]` would collapse `PathToObject` and drop the nesting from the config type.
+  InternalPathT extends readonly string[] = [ClueKeyT],
 > {
   public readonly typeId: TypeT;
   public readonly typeName: (typeof ElementType)[TypeT];
   public readonly schema: z.ZodType<
-    InternalConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
+    InternalConfigT<TypeT, ConfigSchemaT, ClueKeyT, InternalPathT, ClueConfigSchemaT>,
     PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>
   >;
   public readonly globalSchema?: ConfigSchemaT;
-  public readonly clue?: ClueDescriptor<ClueKeyT, ClueConfigSchemaT>;
+  public readonly clue?: ClueDescriptor<ClueKeyT, ClueConfigSchemaT, InternalPathT>;
   public readonly main: SudokuMakerElementOption<
     PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
     ClueKeyT,
@@ -73,7 +80,7 @@ export class SudokuMakerElement<
   }: {
     type: TypeT;
     schema?: ConfigSchemaT;
-    clue?: ClueDescriptor<ClueKeyT, ClueConfigSchemaT>;
+    clue?: ClueDescriptor<ClueKeyT, ClueConfigSchemaT, InternalPathT>;
     main: SudokuMakerElementOption<
       PublicConfigT<TypeT, ConfigSchemaT, ClueKeyT, ClueConfigSchemaT>,
       ClueKeyT,
@@ -86,25 +93,39 @@ export class SudokuMakerElement<
     extraDocs?: { header: string; contents: string }[];
     getRefuseAddReason?: SpecGetter<string | undefined>;
   }) {
-    const cluesKey = clue?.key;
-    const clueSchema = clue?.schema;
-
     this.typeId = type;
     this.typeName = ElementType[type];
+
+    let cluesSchema: z.ZodType = z.object({});
+    if (clue) {
+      const cluesKey = clue.key;
+      const cluesPublicPath = [cluesKey] as const;
+      const cluesInternalPath = (clue.internalPath ?? cluesPublicPath) as InternalPathT;
+      const cluesArraySchema = z.array(clue.schema).describe("Array of element's clues");
+
+      cluesSchema = z.codec(
+        pathToObjectSchema(cluesPublicPath, cluesArraySchema),
+        pathToObjectSchema(cluesInternalPath, cluesArraySchema.optional()),
+        {
+          encode: (internalConfig) =>
+            createByPath(cluesPublicPath, cluesArraySchema.decode(getByPath(internalConfig, cluesInternalPath) ?? [])),
+          decode: (publicConfig) => createByPath(cluesInternalPath, cluesArraySchema.encode(publicConfig[cluesKey])),
+        },
+      );
+    }
+
     this.schema = z
       .intersection(
         schema ?? (z.object({}) as unknown as ConfigSchemaT),
-        z.object({
-          type: z.codec(z.literal(this.typeName), z.literal(type), {
-            encode: () => this.typeName,
-            decode: () => type,
+        z.intersection(
+          z.object({
+            type: z.codec(z.literal(this.typeName), z.literal(type), {
+              encode: () => this.typeName,
+              decode: () => type,
+            }),
           }),
-          ...(cluesKey && clueSchema
-            ? {
-                [cluesKey]: z.array(clueSchema).describe("Array of element's clues"),
-              }
-            : {}),
-        }),
+          cluesSchema,
+        ),
       )
       .meta({
         description: `"${main.title}" element config. Element description: ${main.description}`,
