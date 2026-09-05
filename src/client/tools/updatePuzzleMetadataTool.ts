@@ -4,6 +4,7 @@ import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updatePuzzleMetadataToolName } from "./toolNames";
 import { copyCells } from "../copyCells";
+import { editText, editTextOperation } from "./editText";
 
 export const updatePuzzleMetadataTool = new ToolImplementation(
   {
@@ -24,8 +25,7 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
     operationDescription: operationDescriptionParam,
     name: z.string().optional().describe("Puzzle title, shown to the solver."),
     author: z.string().optional().describe("Puzzle author/setter name, shown to the solver."),
-    comment: z
-      .string()
+    comment: editTextOperation
       .optional()
       .describe("Rules text, shown to the solver. Usually describes the puzzle's rules, but can hold any text."),
     completionMessage: z
@@ -65,7 +65,7 @@ This tool does not cover the puzzle's grid dimensions - resizing is not supporte
           puzzle.author = author;
         }
         if (comment !== undefined) {
-          puzzle.comment = comment;
+          puzzle.comment = editText(puzzle.comment, comment);
         }
         if (completionMessage !== undefined) {
           puzzle.messages.completion = completionMessage || undefined;
