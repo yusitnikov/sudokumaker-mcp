@@ -3,7 +3,7 @@ import { ElementType } from "./ElementType";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
 import { customComponentsTopicName, customConstraintsTopicName } from "../client/tools/docs/topicNames";
-import { editInitializationCodeToolName } from "../client/tools/toolNames";
+import { editInitializationCodeToolName, updateElementToolName } from "../client/tools/toolNames";
 
 export const CustomElement = new SudokuMakerElement({
   type: ElementType.Custom,
@@ -17,6 +17,7 @@ export const CustomElement = new SudokuMakerElement({
             "Global constraints don't have input groups, they iterate over the cells in the initialization code instead. " +
             "Local constraints use input groups to define which cells they apply to.",
         ),
+      // TODO: don't allow editing `initializationCode` and `customComponents` via `update_element`
       initializationCode: z
         .string()
         .describe(
@@ -42,6 +43,7 @@ export const CustomElement = new SudokuMakerElement({
           `
 Custom components used by the initialization code, beyond the standard ones, keyed by the component's name.
 Read the \`${customComponentsTopicName}\` docs topic before writing or editing one.
+Use dedicated tools to modify the custom components, NOT the \`${updateElementToolName}\` tool.
           `.trim(),
         ),
     }),
@@ -140,10 +142,4 @@ Read the \`${customComponentsTopicName}\` docs topic before writing or editing o
       customComponents: {},
     },
   },
-  extraDocs: [
-    {
-      header: "Editing `initializationCode`",
-      contents: `Use \`${editInitializationCodeToolName}\` to change part of the code without resending the whole body.`,
-    },
-  ],
 });

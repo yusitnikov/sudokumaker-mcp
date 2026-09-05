@@ -21,9 +21,9 @@ its API and conventions cannot be guessed.
     },
   },
   { operation: editTextOperation },
-  function (targetElement, { operation }) {
+  function (targetElement, { operation }, elementName, puzzleName) {
     targetElement.config.initializationCode = editText(targetElement.config.initializationCode, operation);
 
-    return (elementName, puzzleName) => `Updated "${elementName}"'s initialization code in puzzle "${puzzleName}".`;
+    return `Updated "${elementName}"'s initialization code in puzzle "${puzzleName}".`;
   },
 );

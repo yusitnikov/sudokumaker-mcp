@@ -27,6 +27,21 @@ ${elementIdNote}
   operationDescription: operationDescriptionParam,
 };
 
+/**
+ * Matches `name` only where it stands alone rather than sitting inside a longer identifier,
+ * so renaming `Sum` never touches `SumOfPairs`.
+ *
+ * The code is not parsed: an occurrence in a string literal or a comment matches too.
+ */
+const wholeWordRegExp = (name: string) => new RegExp(`\\b${RegExp.escape(name)}\\b`, "g");
+
+/** Counts the whole-word occurrences of `name` in `code`. */
+export const countWholeWordOccurrences = (code: string, name: string) => code.match(wholeWordRegExp(name))?.length ?? 0;
+
+/** Replaces every whole-word occurrence of `name` in `code` with `newName`. */
+export const replaceWholeWord = (code: string, name: string, newName: string) =>
+  code.replaceAll(wholeWordRegExp(name), newName);
+
 type BaseShape = typeof customElementBaseShape;
 
 /** A tool's own parameters, plus the ones every `Custom` element tool takes. */
@@ -49,7 +64,9 @@ export class CustomElementToolImplementation<ExtraShapeT extends z.ZodRawShape> 
       this: CustomElementToolImplementation<ExtraShapeT>,
       targetElement: CustomElementPublic,
       params: CustomElementToolParams<ExtraShapeT>,
-    ) => (elementName: string, puzzleName: string) => string,
+      elementName: string,
+      puzzleName: string,
+    ) => string,
   ) {
     super(tool, z.object({ ...extraShape, ...customElementBaseShape }));
   }
@@ -119,14 +136,19 @@ export class CustomElementToolImplementation<ExtraShapeT extends z.ZodRawShape> 
 
     const {
       tabState,
-      result: { index, getSummary },
+      result: { summary },
     } = await this.updatePuzzle(
       (puzzle) => {
         const { index, targetElement } = this.getCustomElement(puzzle, elementId);
 
-        const getSummary = this._applyUpdate(targetElement, params);
+        const summary = this._applyUpdate(
+          targetElement,
+          params,
+          getElementFinalName(targetElement),
+          puzzle.name || "(untitled)",
+        );
 
-        return { result: { index, getSummary } };
+        return { result: { index, summary } };
       },
       (from, to, { index }) => {
         to.allConstraints[index] = from.allConstraints[index];
@@ -134,16 +156,11 @@ export class CustomElementToolImplementation<ExtraShapeT extends z.ZodRawShape> 
       operationDescription,
     );
 
-    const updatedElement = tabState.puzzle.allElements[index];
-
     return {
       content: [
         {
           type: "text",
-          text: [
-            getSummary(getElementFinalName(updatedElement), tabState.puzzle.name || "(untitled)"),
-            elementsDiffSummary(tabState),
-          ].join("\n"),
+          text: [summary, elementsDiffSummary(tabState)].join("\n"),
         },
       ],
     };

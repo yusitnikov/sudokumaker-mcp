@@ -1,8 +1,12 @@
 export const addCluesToolName = "add_clues";
+export const addCustomComponentToolName = "add_custom_component";
 export const addElementToolName = "add_element";
 export const clearGridToolName = "clear_grid";
 export const docsToolName = "docs";
+export const editCustomComponentCodeToolName = "edit_custom_component_code";
 export const editInitializationCodeToolName = "edit_initialization_code";
+export const removeCustomComponentToolName = "remove_custom_component";
+export const renameCustomComponentToolName = "rename_custom_component";
 export const getLogsToolName = "get_logs";
 export const getPuzzleToolName = "get_puzzle";
 export const removeCluesToolName = "remove_clues";
