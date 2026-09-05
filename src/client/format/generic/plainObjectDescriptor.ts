@@ -28,6 +28,16 @@ export const getPlainObjectDescriptor = <T extends Record<string, any>, RootT>({
     return Object.keys(allowOtherKeys ? value : (childMap ?? value)).filter((key) => !ignoredKeysCalc?.includes(key));
   };
 
+  const getChildNoCheck = (node: ObjectNode<T, RootT>, segment: string) => {
+    const descriptor = childMap?.[segment];
+    return node._child(
+      segment,
+      (typeof descriptor === "function" ? descriptor(node) : descriptor) as
+        | ObjectDescriptor<T[typeof segment], RootT>
+        | undefined,
+    );
+  };
+
   return {
     child(node, segment) {
       const keys = getKeys(node.value);
@@ -36,13 +46,7 @@ export const getPlainObjectDescriptor = <T extends Record<string, any>, RootT>({
         throw new NoSuchHandleError(node.handle, keys.join(", ") || "(no children)");
       }
 
-      const descriptor = childMap?.[segment];
-      return node._child(
-        segment,
-        (typeof descriptor === "function" ? descriptor(node) : descriptor) as
-          | ObjectDescriptor<T[typeof segment], RootT>
-          | undefined,
-      );
+      return getChildNoCheck(node, segment);
     },
 
     format(node, opts) {
@@ -76,7 +80,7 @@ export const getPlainObjectDescriptor = <T extends Record<string, any>, RootT>({
 
     diff(from, to) {
       const keys = [...new Set([...getKeys(from.value), ...getKeys(to.value)])];
-      const lines = keys.flatMap((key) => diffChild(key, from.child(key), to.child(key)));
+      const lines = keys.flatMap((key) => diffChild(key, getChildNoCheck(from, key), getChildNoCheck(to, key)));
       return `{\n${lines.join("\n")}\n}`;
     },
   };
