@@ -22,6 +22,7 @@ import { addCluesTool } from "./addCluesTool";
 import { updateCluesTool } from "./updateCluesTool";
 import { removeCluesTool } from "./removeCluesTool";
 import { docsTool } from "./docsTool";
+import { editInitializationCodeTool } from "./editInitializationCodeTool";
 
 export const tools = [
   getPuzzleTool,
@@ -37,6 +38,7 @@ export const tools = [
   addCluesTool,
   updateCluesTool,
   removeCluesTool,
+  editInitializationCodeTool,
   docsTool,
   undoTool,
   redoTool,

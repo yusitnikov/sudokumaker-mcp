@@ -3,6 +3,7 @@ import { ElementType } from "./ElementType";
 import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
 import { customComponentsTopicName, customConstraintsTopicName } from "../client/tools/docs/topicNames";
+import { editInitializationCodeToolName } from "../client/tools/toolNames";
 
 const CustomComponentSchema = z
   .object({
@@ -33,7 +34,8 @@ export const CustomElement = new SudokuMakerElement({
       initializationCode: z
         .string()
         .describe(
-          `JavaScript code that adds components to the puzzle; read the \`${customConstraintsTopicName}\` docs topic first, its API and conventions cannot be guessed.`,
+          `JavaScript code that adds components to the puzzle; read the \`${customConstraintsTopicName}\` docs topic first, its API and conventions cannot be guessed. ` +
+            `To change part of it without resending the whole body, use \`${editInitializationCodeToolName}\` instead of resending this field.`,
         ),
       customComponents: z
         .array(CustomComponentSchema)
@@ -117,4 +119,10 @@ export const CustomElement = new SudokuMakerElement({
       customComponents: [],
     },
   },
+  extraDocs: [
+    {
+      header: "Editing `initializationCode`",
+      contents: `Use \`${editInitializationCodeToolName}\` to change part of the code without resending the whole body.`,
+    },
+  ],
 });

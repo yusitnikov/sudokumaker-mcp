@@ -2,6 +2,7 @@ export const addCluesToolName = "add_clues";
 export const addElementToolName = "add_element";
 export const clearGridToolName = "clear_grid";
 export const docsToolName = "docs";
+export const editInitializationCodeToolName = "edit_initialization_code";
 export const getLogsToolName = "get_logs";
 export const getPuzzleToolName = "get_puzzle";
 export const removeCluesToolName = "remove_clues";
