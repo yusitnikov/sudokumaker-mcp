@@ -65,6 +65,13 @@ not in `.meta()`, so `tool.definition`'s JSON Schema still reflects the true sha
 
 ## Public formats
 
+Where a schema is a codec, it is written `z.codec(<X>Public, <X>Internal)`: **input is the public
+format, output is the app's internal one**, so `.decode()` goes public→internal and `.encode()`
+internal→public. Internal values enter only through `window.Api.getPuzzle()` and the `updatePuzzle`
+updater, and only two places use them: the copy step below, and the codecs in
+`src/SudokuMakerSchemas.ts` that read grid geometry off the live puzzle. Everything else - tools,
+formatting, docs - is public format.
+
 The wire format is deliberately the format a puzzle setter speaks:
 
 - **Cells are `"rXcY"` strings** (`CellIdPublic` in `src/SudokuMakerSchemas.ts`) - 1-based, counted
