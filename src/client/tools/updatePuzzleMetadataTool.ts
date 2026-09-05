@@ -17,7 +17,7 @@ export const updatePuzzleMetadataTool = new CallbackToolImplementation(
 Change the puzzle's title, author, rules text, completion message, or digit range.
 Every field is optional - skip whatever you're not changing.
 
-This tool does not cover the puzzle's grid dimensions - resizing is not supported by any tool by design.
+This tool does not cover the puzzle's grid dimensions or its type (sudoku/custom) - changing either is not supported by any tool by design.
 `.trim(),
     },
   },
