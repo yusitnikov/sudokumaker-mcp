@@ -103,11 +103,7 @@ ${partialUpdateNote}
           {
             ...(elementType.globalSchema
               ? {
-                  elementUpdates: ZodDeepPartial(
-                    elementType.globalSchema instanceof z.ZodCodec
-                      ? elementType.globalSchema.def.in
-                      : elementType.globalSchema,
-                  ).optional(),
+                  elementUpdates: ZodDeepPartial(elementType.globalSchema).optional(),
                 }
               : {}),
             ...(elementType.clue

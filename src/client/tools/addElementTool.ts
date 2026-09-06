@@ -41,9 +41,7 @@ into the element list at a chosen position.
                 ...(option.paramsSchema ? { params: option.paramsSchema } : {}),
                 ...(element.globalSchema
                   ? {
-                      overrides: ZodDeepPartial(
-                        element.globalSchema instanceof z.ZodCodec ? element.globalSchema.def.in : element.globalSchema,
-                      ).optional(),
+                      overrides: ZodDeepPartial(element.globalSchema).optional(),
                     }
                   : {}),
               })

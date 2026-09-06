@@ -11,6 +11,7 @@ export const mergeDeepUpdates = <T>(object: T, updates: DeepPartial<T>) =>
   });
 
 const cache = new Map<z.core.$ZodType, z.ZodType>();
+/** The result is only ever used to validate incoming update payloads, never to encode or decode. */
 export const ZodDeepPartial = <OutputT, InputT>(
   schema: z.core.$ZodType<OutputT, InputT>,
 ): z.ZodType<DeepPartial<OutputT>, DeepPartial<InputT>> => {
@@ -39,8 +40,7 @@ const ZodDeepPartialInner = <OutputT, InputT>(
   schema: z.core.$ZodType<OutputT, InputT>,
 ): z.ZodType<DeepPartial<OutputT>, DeepPartial<InputT>> => {
   if (schema instanceof z.ZodCodec) {
-    // codecs can't be partials - no transformation will fit
-    return schema as any;
+    return ZodDeepPartial(schema.def.in) as any;
   }
 
   if (schema instanceof z.ZodObject) {
