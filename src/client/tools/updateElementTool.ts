@@ -2,7 +2,7 @@ import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getElementById, getElementFinalName, parseElementSpecificData } from "./elementUtils";
-import { elementIdNote, operationDescriptionParam, partialUpdateNote } from "./descriptionSnippets";
+import { elementIdNote, operationDescriptionParam, partialUpdateNote, unsetFieldNote } from "./descriptionSnippets";
 import { addElementToolName, getPuzzleToolName, updateCluesToolName, updateElementToolName } from "./toolNames";
 import { elementTopicPattern } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
@@ -47,6 +47,7 @@ thermometer) - only accepted for element types that have config beyond their clu
 \`${elementTopicPattern}\`'s \`## Config\` section shows the full config JSON schema.
 
 ${partialUpdateNote}
+${unsetFieldNote}
 `.trim(),
       ),
     clueBatchUpdates: z
@@ -60,6 +61,7 @@ zero every cage's total) - only accepted for multi-clue element types; docs topi
 \`${elementTopicPattern}\`'s \`## Clues\` section shows the exact clue JSON schema.
 
 ${partialUpdateNote}
+${unsetFieldNote}
 `.trim(),
       ),
     name: z.string().optional().describe(
@@ -103,12 +105,12 @@ ${partialUpdateNote}
           {
             ...(elementType.globalSchema
               ? {
-                  elementUpdates: ZodDeepPartial(elementType.globalSchema).optional(),
+                  elementUpdates: ZodDeepPartial(elementType.globalSchema, true).optional(),
                 }
               : {}),
             ...(elementType.clue
               ? {
-                  clueBatchUpdates: ZodDeepPartial(elementType.clue.schema as any).optional(),
+                  clueBatchUpdates: ZodDeepPartial(elementType.clue.schema as any, true).optional(),
                 }
               : {}),
           },

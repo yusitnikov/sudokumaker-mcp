@@ -2,7 +2,7 @@ import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { ClueMatch, getElementFinalName, getElementWithClueById, parseElementSpecificData } from "./elementUtils";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
-import { elementIdNote, operationDescriptionParam, partialUpdateNote } from "./descriptionSnippets";
+import { elementIdNote, operationDescriptionParam, partialUpdateNote, unsetFieldNote } from "./descriptionSnippets";
 import { addElementToolName, getPuzzleToolName, updateCluesToolName } from "./toolNames";
 import { elementTopicPattern, elementTopicPrefix } from "./docs/topicNames";
 import { jsonValue } from "../../jsonValue";
@@ -49,6 +49,7 @@ e.g. \`${elementTopicPrefix}${KillerCagesElement.typeName}\`)'s \`## Clues\` sec
 clue JSON schema.
 
 ${partialUpdateNote}
+${unsetFieldNote}
 `.trim(),
           ),
         }),
@@ -78,7 +79,7 @@ Example: \`[{"match": {"clueCells": ["r1c1"]}, "updates": {"value": 21}}]\`.
             updateGroups: z.array(
               z.object({
                 match: ClueMatch,
-                updates: ZodDeepPartial(clueType.schema as any),
+                updates: ZodDeepPartial(clueType.schema as any, true),
               }),
             ),
           },
