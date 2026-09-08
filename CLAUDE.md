@@ -7,20 +7,19 @@ and no database - the only channel into a tab is `execute_js`, provided by the
 
 ## How a tool call reaches the puzzle
 
-`SudokuMakerMcpServer` (`src/SudokuMakerMcpServer.ts`) extends `BrowserMcpServer`. Its
-`setupHandlers` registers every entry of the `tools` array (`src/client/tools/index.ts`) with the MCP
-SDK, then dispatches each call like this:
+A call crosses three layers, one file each:
 
-1. The SDK validates the arguments in Node against the tool's **advertised** schema (see
-   "Advertised vs. real schemas" below) and calls the handler.
-2. The handler strips the three session fields (`sessionToken`, `extensionConnectionId`, `tabId`) and
-   probes the tab for the page runtime: `window.__smMcp?.h`.
-3. If the probe returns something other than the current build hash, the whole page bundle is eval'd
-   into the tab first. The server computes that hash itself (`sha256` of the bundle, first 16 hex
-   chars) because the bundle can't know its own; a rebuilt server therefore reinstalls automatically,
-   as does a reloaded tab.
-4. `window.__smMcp.call(name, params, {tabId})` runs the tool page-side. The extension
-   JSON-stringifies whatever it returns, which is the tool's own `CallToolResult`.
+- `SudokuMakerMcpServer` (`src/SudokuMakerMcpServer.ts`) extends `BrowserMcpServer` and registers
+  every entry of the `tools` array (`src/client/tools/index.ts`) with the MCP SDK. The SDK validates
+  arguments against the tool's **advertised** schema (see "Advertised vs. real schemas" below); the
+  handler splits off the session fields (`sessionToken`, `extensionConnectionId`, `tabId`) and
+  dispatches the rest into the tab.
+- `TabController` (`src/TabController.ts`) is the only thing that talks to a tab. It installs the
+  page runtime if that tab doesn't already carry this build's, then calls a method on it. The
+  installation is guarded by a build hash the server computes and stamps on itself, so a rebuilt
+  server and a reloaded tab both reinstall on their own. `callRuntimeMethod` is typed off the
+  `Runtime` interface, so only its methods can be named, with their real arguments and return type.
+- `Runtime` (`src/client/runtime.ts`) receives the call page-side and hands it to the tool.
 
 A tool marked `global: true` (only `docs` today) skips all of that: no session, no tab, no page - it
 runs in the Node process directly. `global` says nothing about where the file lives; `docsTool.ts`

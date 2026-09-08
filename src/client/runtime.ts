@@ -18,7 +18,7 @@ import type { TabStateSnapshot } from "./tabState";
 const toolsByName = new Map(tools.map((tool) => [tool.name, tool]));
 
 /** What the server probes for and dispatches through. */
-interface Runtime {
+export interface Runtime {
   /** Build hash, stamped on by the server right after installing this bundle. */
   h?: string;
   call: (name: string, params: unknown, context: ToolContext) => Promise<CallToolResult>;

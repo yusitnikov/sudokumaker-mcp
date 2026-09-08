@@ -1,28 +1,12 @@
 import { BrowserMcpServer, type ExecuteJsError } from "@sitnikov/browser-automation";
-import { createHash } from "crypto";
 import { z } from "zod";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-// eslint-disable-next-line import-x/no-unresolved
-import runtimeCode from "injected:./client/runtime";
-import { runtimeGlobal } from "./client/runtimeGlobal";
 import { tools } from "./client/tools";
 import { docsToolName } from "./client/tools/toolNames";
 import { introTopicName } from "./client/tools/docs/topicNames";
+import { TabController } from "./TabController";
 
 const sudokuMakerHostname = "sudokumaker.app";
-
-/**
- * The page runtime is installed once per tab rather than shipped per call: it carries zod plus the
- * whole puzzle schema graph, so sending it every time would cost ~110 KB a call. `window` survives
- * between calls because the extension evals in the MAIN world, so the tab keeps the runtime until
- * it navigates or reloads.
- *
- * The bundle cannot know its own hash, so the server stamps it on after installing and probes for
- * it before each call. A rebuilt server produces a different hash and re-installs automatically.
- */
-const runtimeHash = createHash("sha256").update(runtimeCode).digest("hex").slice(0, 16);
-
-const runtimeRef = `window.${runtimeGlobal}`;
 
 export class SudokuMakerMcpServer extends BrowserMcpServer {
   /** The session fields every page-side tool needs, shared by all of them. */
@@ -100,32 +84,23 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
           delete params.extensionConnectionId;
           delete params.tabId;
 
+          const tabController = new TabController(this.client, sessionToken, extensionConnectionId, tabId);
+
+          const installationError = await tabController.installRuntime();
+          if (installationError) {
+            return toErrorResult(installationError, "install the page runtime");
+          }
+
           // Only the dispatch gets the tool's timeout: the solver tools poll in the page for longer
           // than the transport's default wait, so it has to outlast them or the caller sees a
           // transport timeout instead of the page's own "still running" answer. Probe and install
           // are short calls either way, and stretching them would only delay reporting a dead tab.
-          const run = (code: string, codeTimeout?: number) =>
-            this.client.executeJs(sessionToken, extensionConnectionId, tabId, code, codeTimeout);
-
-          const installed = await run(`${runtimeRef}?.h ?? null`);
-          if (!installed.success || (JSON.parse(installed.result) as unknown) !== runtimeHash) {
-            const installation = await run(`${runtimeCode};${runtimeRef}.h=${JSON.stringify(runtimeHash)}`);
-            if (!installation.success) {
-              return toErrorResult(installation, "install the page runtime");
-            }
-          }
-
-          const response = await run(
-            `${runtimeRef}.call(${JSON.stringify(name)},${JSON.stringify(params)},{tabId:${tabId}})`,
-            timeout,
-          );
+          const response = await tabController.callRuntimeMethod("call", [name, params, { tabId }], timeout);
           if (!response.success) {
             return toErrorResult(response, `run ${name}`);
           }
 
-          // The extension JSON-stringifies whatever the page returned, which here is the tool's
-          // own CallToolResult.
-          return JSON.parse(response.result) as CallToolResult;
+          return response.result;
         },
       );
     }
