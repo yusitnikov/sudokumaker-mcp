@@ -1,47 +1,45 @@
-import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { puzzleDiffSummary } from "../format/puzzle/diffSummary";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updatePuzzleMetadataToolName } from "./toolNames";
 import { copyCells } from "../copyCells";
 import { editText, editTextOperation } from "./editText";
+import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
 
-export const updatePuzzleMetadataTool = new CallbackToolImplementation(
+export const updatePuzzleMetadataTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: updatePuzzleMetadataToolName,
-      title: "Update SudokuMaker puzzle metadata",
-      description:
-        // language=markdown
-        `
+    name: updatePuzzleMetadataToolName,
+    title: "Update SudokuMaker puzzle metadata",
+    description:
+      // language=markdown
+      `
 Change the puzzle's title, author, rules text, completion message, or digit range.
 Every field is optional - skip whatever you're not changing.
 
 This tool does not cover the puzzle's grid dimensions or its type (sudoku/custom) - changing either is not supported by any tool by design.
 `.trim(),
-    },
+    inputSchema: z.object({
+      operationDescription: operationDescriptionParam,
+      name: z.string().optional().describe("Puzzle title, shown to the solver."),
+      author: z.string().optional().describe("Puzzle author/setter name, shown to the solver."),
+      comment: editTextOperation
+        .optional()
+        .describe("Rules text, shown to the solver. Usually describes the puzzle's rules, but can hold any text."),
+      completionMessage: z
+        .string()
+        .optional()
+        .describe(
+          "Message shown to the solver after they successfully complete the puzzle. Pass an empty string to remove it.",
+        ),
+      minDigit: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .describe("Lowest digit allowed in the grid (e.g. 1 for standard sudoku, 0 for a 0-indexed variant)."),
+      maxDigit: z.number().int().optional().describe("Highest digit allowed in the grid (e.g. 9 for standard sudoku)."),
+    }),
   },
-  z.object({
-    operationDescription: operationDescriptionParam,
-    name: z.string().optional().describe("Puzzle title, shown to the solver."),
-    author: z.string().optional().describe("Puzzle author/setter name, shown to the solver."),
-    comment: editTextOperation
-      .optional()
-      .describe("Rules text, shown to the solver. Usually describes the puzzle's rules, but can hold any text."),
-    completionMessage: z
-      .string()
-      .optional()
-      .describe(
-        "Message shown to the solver after they successfully complete the puzzle. Pass an empty string to remove it.",
-      ),
-    minDigit: z
-      .number()
-      .int()
-      .min(0)
-      .optional()
-      .describe("Lowest digit allowed in the grid (e.g. 1 for standard sudoku, 0 for a 0-indexed variant)."),
-    maxDigit: z.number().int().optional().describe("Highest digit allowed in the grid (e.g. 9 for standard sudoku)."),
-  }),
   async function ({ operationDescription, name, author, comment, completionMessage, minDigit, maxDigit }) {
     const {
       tabState,
@@ -129,19 +127,22 @@ This tool does not cover the puzzle's grid dimensions or its type (sudoku/custom
     );
 
     return {
-      content: [
-        {
-          type: "text",
-          text: [
-            `Updated metadata of puzzle "${tabState.puzzle.name || "(untitled)"}".`,
-            clearedCellsCount > 0 &&
-              `Cleared values/candidates/corner marks that fell outside the new digit range in ${clearedCellsCount} ${clearedCellsCount === 1 ? "cell" : "cells"} - check the diff below and undo if that wasn't intended.`,
-            puzzleDiffSummary(tabState),
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: [
+              `Updated metadata of puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+              clearedCellsCount > 0 &&
+                `Cleared values/candidates/corner marks that fell outside the new digit range in ${clearedCellsCount} ${clearedCellsCount === 1 ? "cell" : "cells"} - check the diff below and undo if that wasn't intended.`,
+              puzzleDiffSummary(tabState),
+            ]
+              .filter(Boolean)
+              .join("\n"),
+          },
+        ],
+      },
     };
   },
 );

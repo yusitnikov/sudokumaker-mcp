@@ -9,23 +9,21 @@ import { CustomElement } from "../../elements/CustomElement";
 
 export const renameCustomComponentTool = new CustomElementToolImplementation(
   {
-    definition: {
-      name: renameCustomComponentToolName,
-      title: "Rename a custom component",
-      description:
-        // language=markdown
-        `Rename one custom component of a \`${CustomElement.typeName}\` element.`,
-    },
-  },
-  {
-    name: z.string().describe("Current name of the component to rename."),
-    newName: z.string().describe("New name for the component."),
-    keepInitializationCode: z
-      .boolean()
-      .optional()
-      .describe(
-        "Rename only the component, leaving the initialization code as it is - for when the name means something else there.",
-      ),
+    name: renameCustomComponentToolName,
+    title: "Rename a custom component",
+    description:
+      // language=markdown
+      `Rename one custom component of a \`${CustomElement.typeName}\` element.`,
+    inputSchema: z.object({
+      name: z.string().describe("Current name of the component to rename."),
+      newName: z.string().describe("New name for the component."),
+      keepInitializationCode: z
+        .boolean()
+        .optional()
+        .describe(
+          "Rename only the component, leaving the initialization code as it is - for when the name means something else there.",
+        ),
+    }),
   },
   function (targetElement, { name, newName, keepInitializationCode }, elementName, puzzleName) {
     const code = this.getCustomComponentCode(targetElement, name);

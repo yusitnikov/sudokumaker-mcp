@@ -99,7 +99,7 @@ export const RegionSumLineElement = new SudokuMakerElement({
 Every time the line re-visits a region it already passed through:
 - if true, that visit counts towards the same running total for that region;
 - if false, it counts to a new total instead.
-      `.trim(),
+`.trim(),
     ),
   }),
   clue: LineClue,

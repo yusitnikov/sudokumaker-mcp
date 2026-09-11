@@ -3,7 +3,7 @@ import { createHash } from "crypto";
 // eslint-disable-next-line import-x/no-unresolved
 import runtimeCode from "injected:./client/runtime";
 import { runtimeGlobal } from "./client/runtimeGlobal";
-import type { Runtime } from "./client/runtime";
+import type { ParsedExecuteJsResponse } from "./ParsedExecuteJsResponse";
 
 /** Runs code in one SudokuMaker tab, on behalf of one session. */
 export class TabController {
@@ -14,7 +14,7 @@ export class TabController {
     private readonly tabId: number,
   ) {}
 
-  private executeJs(code: string, codeTimeout?: number) {
+  executeJs(code: string, codeTimeout?: number) {
     return this.client.executeJs(this.sessionToken, this.extensionConnectionId, this.tabId, code, codeTimeout);
   }
 
@@ -34,24 +34,20 @@ export class TabController {
     return undefined;
   }
 
-  /**
-   * Calls a method of the page runtime, which `installRuntime` must have put in the tab first,
-   * and returns what it returned or the failure that running it reported.
-   */
-  async callRuntimeMethod<NameT extends RuntimeMethodName>(
-    methodName: NameT,
-    args: Parameters<Runtime[NameT]>,
-    codeTimeout?: number,
-  ) {
-    const result = await this.executeJs(
-      `${runtimeRef}.${methodName}(${args.map((arg) => JSON.stringify(arg)).join(",")})`,
-      codeTimeout,
-    );
+  async callToolMethod<ResultT>(
+    toolName: string,
+    methodName: string,
+    args: any[],
+    timeout?: number,
+  ): Promise<ParsedExecuteJsResponse<ResultT>> {
+    const getToolCode = `${runtimeRef}.getTool(${JSON.stringify(toolName)})`;
+    const callMethodCode = `${methodName}(${args.map((arg) => JSON.stringify(arg)).join(",")})`;
+    const result = await this.executeJs(`${getToolCode}.${callMethodCode}`, timeout);
 
     return result.success
       ? {
-          success: true as const,
-          result: JSON.parse(result.result) as Awaited<ReturnType<Runtime[NameT]>>,
+          success: true,
+          result: JSON.parse(result.result),
         }
       : result;
   }
@@ -69,8 +65,3 @@ export class TabController {
 const runtimeHash = createHash("sha256").update(runtimeCode).digest("hex").slice(0, 16);
 
 const runtimeRef = `window.${runtimeGlobal}`;
-
-/** The names of the page runtime's callable members, excluding its plain data properties. */
-type RuntimeMethodName = {
-  [K in keyof Runtime]-?: Runtime[K] extends (...args: any[]) => any ? K : never;
-}[keyof Runtime];

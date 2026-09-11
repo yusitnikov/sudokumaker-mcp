@@ -44,7 +44,7 @@ export const CustomElement = new SudokuMakerElement({
 Custom components used by the initialization code, beyond the standard ones, keyed by the component's name.
 Read the \`${customComponentsTopicName}\` docs topic before writing or editing one.
 Use dedicated tools to modify the custom components, NOT the \`${updateElementToolName}\` tool.
-          `.trim(),
+`.trim(),
         ),
     }),
     z.object({

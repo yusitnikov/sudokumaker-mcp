@@ -6,6 +6,8 @@ import { docsToolName } from "./client/tools/toolNames";
 import { introTopicName } from "./client/tools/docs/topicNames";
 import { TabController } from "./TabController";
 
+import { BackendToolImplementation } from "./client/tools/BackendToolImplementation";
+
 const sudokuMakerHostname = "sudokumaker.app";
 
 export class SudokuMakerMcpServer extends BrowserMcpServer {
@@ -46,8 +48,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
     const { sessionSchema } = SudokuMakerMcpServer;
 
     for (const tool of tools) {
-      const { definition, global, timeout } = tool.definition;
-      const { name, title, description } = definition;
+      const { name, title, description } = tool;
 
       // The MCP SDK uses one schema object both to advertise the tool and to validate arguments in
       // Node before the handler runs. Our schemas are codecs that read grid geometry off
@@ -60,12 +61,12 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
       // page-side, in `tool.run`.
       const registeredSchema = tool.publicShape;
 
-      if (global) {
+      if (tool instanceof BackendToolImplementation) {
         // Never touches the page, so it needs neither a session nor a tab.
         this.server.registerTool(
           name,
           { title, description, inputSchema: registeredSchema },
-          (params): CallToolResult | Promise<CallToolResult> => tool.run(params, { tabId: 0 }),
+          (params): CallToolResult | Promise<CallToolResult> => tool.runOnBackend(params),
         );
         continue;
       }
@@ -91,22 +92,14 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
             return toErrorResult(installationError, "install the page runtime");
           }
 
-          // Only the dispatch gets the tool's timeout: the solver tools poll in the page for longer
-          // than the transport's default wait, so it has to outlast them or the caller sees a
-          // transport timeout instead of the page's own "still running" answer. Probe and install
-          // are short calls either way, and stretching them would only delay reporting a dead tab.
-          const response = await tabController.callRuntimeMethod("call", [name, params, { tabId }], timeout);
-          if (!response.success) {
-            return toErrorResult(response, `run ${name}`);
-          }
-
-          return response.result;
+          return await tool.runOnBackend(tabController, params);
         },
       );
     }
   }
 }
 
+// TODO: inline
 const toErrorResult = (error: ExecuteJsError, action: string): CallToolResult => ({
   content: [
     {

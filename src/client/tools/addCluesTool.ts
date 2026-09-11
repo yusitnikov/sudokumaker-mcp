@@ -1,4 +1,3 @@
-import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { jsonValue } from "../../jsonValue";
 import { getElementFinalName, getElementWithClueById, parseElementSpecificData } from "./elementUtils";
@@ -15,45 +14,44 @@ import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { ThermometerElement } from "../../elements/lineElements";
 import { ArrowElement } from "../../elements/miscElements";
 import { getByPath, setByPath } from "../../PathToObject";
+import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
 
-export const addCluesTool = new CallbackToolImplementation(
+export const addCluesTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: addCluesToolName,
-      title: "Add SudokuMaker clues",
-      description:
-        // language=markdown
-        `
+    name: addCluesToolName,
+    title: "Add SudokuMaker clues",
+    description:
+      // language=markdown
+      `
 Append one or more clues to an existing multi-clue element (e.g. add thermometers to a
 \`${ThermometerElement.typeName}\` element, or arrows to an \`${ArrowElement.typeName}\` element). The
 clues are pushed onto the end of the element's clue list; use
 \`${updateCluesToolName}\`/\`${removeCluesToolName}\` to change or delete existing ones.
 `.trim(),
-    },
-  },
-  z.object({
-    elementId: z
-      .number()
-      .int()
-      .describe(
-        // language=markdown
-        `
+    inputSchema: z.object({
+      elementId: z
+        .number()
+        .int()
+        .describe(
+          // language=markdown
+          `
 ID of the target element (the multi-clue element to add clues to), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
 ${elementIdNote}
-        `.trim(),
-      ),
-    operationDescription: operationDescriptionParam,
-    clues: z.array(jsonValue).describe(
-      // language=markdown
-      `
+`.trim(),
+        ),
+      operationDescription: operationDescriptionParam,
+      clues: z.array(jsonValue).describe(
+        // language=markdown
+        `
 Array of new clues to append to the element's clue list, one array entry per new clue; docs topic
 \`${elementTopicPattern}\` (substitute the target element's exact type name, e.g.
 \`${elementTopicPrefix}${ThermometerElement.typeName}\`)'s \`## Clues\` section shows the exact clue JSON schema.
 
 Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", "r1c3"]]\`.
 `.trim(),
-    ),
-  }),
+      ),
+    }),
+  },
   async function ({ elementId, operationDescription, clues }) {
     const {
       tabState,
@@ -88,15 +86,18 @@ Example (for a \`${ThermometerElement.typeName}\` element): \`[["r1c1", "r1c2", 
     const updatedElement = tabState.puzzle.allElements[index];
 
     return {
-      content: [
-        {
-          type: "text",
-          text: [
-            `Added ${clues.length} clues to "${getElementFinalName(targetElement)}" in puzzle "${tabState.puzzle.name || "(untitled)"}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
-            elementsDiffSummary(tabState),
-          ].join("\n"),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: [
+              `Added ${clues.length} clues to "${getElementFinalName(targetElement)}" in puzzle "${tabState.puzzle.name || "(untitled)"}", there are ${(updatedElement.config as any)[cluesKey].length} clues in total now.`,
+              elementsDiffSummary(tabState),
+            ].join("\n"),
+          },
+        ],
+      },
     };
   },
 );

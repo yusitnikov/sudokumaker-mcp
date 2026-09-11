@@ -1,37 +1,26 @@
 import { z } from "zod";
-import { CallbackToolImplementation } from "./ToolImplementation";
 import { renderIndex, topics } from "./docs/topics";
 import { getElementTopic } from "./docs/elementTopic";
 import { docsToolName } from "./toolNames";
 import { introTopicName } from "./docs/topicNames";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { BackendToolImplementation } from "./BackendToolImplementation";
 
-export const docsTool = new CallbackToolImplementation(
-  {
-    definition: {
-      name: docsToolName,
-      title: "Read SudokuMaker MCP documentation",
-      description:
-        // language=markdown
-        `
-Fetch a documentation topic by name.
-Start every session with the \`${introTopicName}\` topic.
-        `.trim(),
-    },
-    global: true,
-  },
-  z.object({
-    topic: z
-      .string()
-      .optional()
-      .describe(
-        // language=markdown
-        `
+const inputSchema = z.object({
+  topic: z
+    .string()
+    .optional()
+    .describe(
+      // language=markdown
+      `
 The documentation topic to fetch.
 Omit to get the index of available topics.
-        `.trim(),
-      ),
-  }),
-  ({ topic: name }) => {
+`.trim(),
+    ),
+});
+
+class DocsTool extends BackendToolImplementation<typeof inputSchema> {
+  protected run({ topic: name }: z.input<typeof inputSchema>): CallToolResult {
     let text = renderIndex();
 
     if (name !== undefined) {
@@ -54,5 +43,17 @@ Omit to get the index of available topics.
         },
       ],
     };
-  },
-);
+  }
+}
+
+export const docsTool = new DocsTool({
+  name: docsToolName,
+  title: "Read SudokuMaker MCP documentation",
+  description:
+    // language=markdown
+    `
+Fetch a documentation topic by name.
+Start every session with the \`${introTopicName}\` topic.
+`.trim(),
+  inputSchema,
+});

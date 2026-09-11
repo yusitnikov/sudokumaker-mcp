@@ -72,7 +72,7 @@ A group of cells that identifies which clue(s) to target.
 A clue matches only if **all** cells in the group are among the cells it affects.
 
 Pass enough cells to identify one clue uniquely, or fewer to target several clues at once.
-    `.trim(),
+`.trim(),
 });
 
 export const CluePositionsFilter = z

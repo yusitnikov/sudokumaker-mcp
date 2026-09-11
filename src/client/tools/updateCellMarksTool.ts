@@ -1,64 +1,62 @@
-import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { type CellNotation, CellId, CellSchemaNoId, parseCellNotation } from "../../SudokuMakerSchemas";
 import { operationDescriptionParam } from "./descriptionSnippets";
 import { updateCellMarksToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 import { copyCells } from "../copyCells";
+import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
 
-export const updateCellMarksTool = new CallbackToolImplementation(
+export const updateCellMarksTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: updateCellMarksToolName,
-      title: "Update cell marks and colors",
-      description:
-        // language=markdown
-        `
+    name: updateCellMarksToolName,
+    title: "Update cell marks and colors",
+    description:
+      // language=markdown
+      `
 Add, replace, or remove pencil marks and/or cell colors in one or more grid cells:
 candidates (center marks), corner pencil marks, and cell background colors.
 
 A solved cell has no pencil marks, so candidates/\`cornerPencilMarks\` changes don't apply to cells
 that already contain a value; colors can still be applied to such cells.
 `.trim(),
-    },
-  },
-  z.object({
-    operationDescription: operationDescriptionParam,
-    cells: z.array(CellId).describe("Target cells."),
-    operation: z.enum(["add", "replace", "remove"]).describe(
-      // language=markdown
-      `
+    inputSchema: z.object({
+      operationDescription: operationDescriptionParam,
+      cells: z.array(CellId).describe("Target cells."),
+      operation: z.enum(["add", "replace", "remove"]).describe(
+        // language=markdown
+        `
 How to combine the given values with each cell's existing marks:
 
 - \`"add"\` unions them in.
 - \`"replace"\` overwrites the mark list outright (use an empty array to clear all marks of a kind).
 - \`"remove"\` subtracts them out.
 `.trim(),
-    ),
-    candidates: CellSchemaNoId.shape.candidates.optional().describe(
-      // language=markdown
-      `
+      ),
+      candidates: CellSchemaNoId.shape.candidates.optional().describe(
+        // language=markdown
+        `
         Set of possible candidates for the cell.
         Omit to leave candidates untouched.
-      `.trim(),
-    ),
-    cornerPencilMarks: CellSchemaNoId.shape.cornerPencilMarks.optional().describe(
-      // language=markdown
-      `
+`.trim(),
+      ),
+      cornerPencilMarks: CellSchemaNoId.shape.cornerPencilMarks.optional().describe(
+        // language=markdown
+        `
           ${CellSchemaNoId.shape.cornerPencilMarks.description}
           
           Omit to leave corner marks untouched.
-        `.trim(),
-    ),
-    colors: CellSchemaNoId.shape.colors.optional().describe(
-      // language=markdown
-      `
+`.trim(),
+      ),
+      colors: CellSchemaNoId.shape.colors.optional().describe(
+        // language=markdown
+        `
         ${CellSchemaNoId.shape.colors.description}
         
         Omit to leave colors untouched.
-      `.trim(),
-    ),
-  }),
+`.trim(),
+      ),
+    }),
+  },
   async function ({ operationDescription, cells, operation, candidates, cornerPencilMarks, colors }) {
     const {
       tabState,
@@ -111,39 +109,48 @@ How to combine the given values with each cell's existing marks:
 
     if (skippedCells.length === 0) {
       return {
-        content: [
-          {
-            type: "text",
-            text: [`Updated cell marks in puzzle "${tabState.puzzle.name || "(untitled)"}".`, diffText].join("\n"),
-          },
-        ],
+        updatedPuzzle: tabState.puzzle,
+        response: {
+          content: [
+            {
+              type: "text",
+              text: [`Updated cell marks in puzzle "${tabState.puzzle.name || "(untitled)"}".`, diffText].join("\n"),
+            },
+          ],
+        },
       };
     }
 
     if (updatedCells.length === 0) {
       return {
-        content: [
-          {
-            type: "text",
-            text: "Failed to update the cells because they all contain value.",
-          },
-        ],
-        isError: true,
+        updatedPuzzle: tabState.puzzle,
+        response: {
+          content: [
+            {
+              type: "text",
+              text: "Failed to update the cells because they all contain value.",
+            },
+          ],
+          isError: true,
+        },
       };
     }
 
     return {
-      content: [
-        {
-          type: "text",
-          text: [
-            `Updated cells ${updatedCells.join(", ")} in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
-            diffText,
-            "",
-            `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,
-          ].join("\n"),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: [
+              `Updated cells ${updatedCells.join(", ")} in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+              diffText,
+              "",
+              `Failed to update cells ${skippedCells.join(", ")} because they contain value.`,
+            ].join("\n"),
+          },
+        ],
+      },
     };
   },
 );

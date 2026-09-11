@@ -1,18 +1,17 @@
-import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { type CellNotation, CellId, parseCellNotation } from "../../SudokuMakerSchemas";
 import { updateCellValuesToolName, updateGivenDigitsToolName } from "./toolNames";
 import { cellsDiffSummary } from "../format/puzzle/diffSummary";
 import { copyCells } from "../copyCells";
+import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
 
-export const updateCellValuesTool = new CallbackToolImplementation(
+export const updateCellValuesTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: updateCellValuesToolName,
-      title: "Update cell values",
-      description:
-        // language=markdown
-        `
+    name: updateCellValuesToolName,
+    title: "Update cell values",
+    description:
+      // language=markdown
+      `
 Set or clear the solver-entered value (a hand-entered digit, not a given/fixed clue)
 in one or more grid cells - what a human solver would type in while solving.
 
@@ -20,15 +19,14 @@ To change given digits instead, use \`${updateGivenDigitsToolName}\`.
 
 Setting a value also clears any candidates/corner marks already in that cell.
 `.trim(),
-    },
+    inputSchema: z.object({
+      cells: z.array(CellId).describe("Target cells."),
+      digit: z.number().int().min(-1).describe(
+        // language=markdown
+        `The digit to place in each target cell, or \`-1\` to clear the cell's value.`,
+      ),
+    }),
   },
-  z.object({
-    cells: z.array(CellId).describe("Target cells."),
-    digit: z.number().int().min(-1).describe(
-      // language=markdown
-      `The digit to place in each target cell, or \`-1\` to clear the cell's value.`,
-    ),
-  }),
   async function ({ cells, digit }) {
     const {
       tabState,
@@ -63,39 +61,48 @@ Setting a value also clears any candidates/corner marks already in that cell.
 
     if (skippedCells.length === 0) {
       return {
-        content: [
-          {
-            type: "text",
-            text: [`Updated cell values in puzzle "${tabState.puzzle.name || "(untitled)"}".`, diffText].join("\n"),
-          },
-        ],
+        updatedPuzzle: tabState.puzzle,
+        response: {
+          content: [
+            {
+              type: "text",
+              text: [`Updated cell values in puzzle "${tabState.puzzle.name || "(untitled)"}".`, diffText].join("\n"),
+            },
+          ],
+        },
       };
     }
 
     if (updatedCells.length === 0) {
       return {
-        content: [
-          {
-            type: "text",
-            text: "Failed to update the cells because they all contain given digits.",
-          },
-        ],
-        isError: true,
+        updatedPuzzle: tabState.puzzle,
+        response: {
+          content: [
+            {
+              type: "text",
+              text: "Failed to update the cells because they all contain given digits.",
+            },
+          ],
+          isError: true,
+        },
       };
     }
 
     return {
-      content: [
-        {
-          type: "text",
-          text: [
-            `Updated cells ${updatedCells.join(", ")} in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
-            diffText,
-            "",
-            `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,
-          ].join("\n"),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: [
+              `Updated cells ${updatedCells.join(", ")} in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+              diffText,
+              "",
+              `Failed to update cells ${skippedCells.join(", ")} because they contain given digits.`,
+            ].join("\n"),
+          },
+        ],
+      },
     };
   },
 );

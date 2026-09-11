@@ -13,20 +13,37 @@ A call crosses three layers, one file each:
   every entry of the `tools` array (`src/client/tools/index.ts`) with the MCP SDK. The SDK validates
   arguments against the tool's **advertised** schema (see "Advertised vs. real schemas" below); the
   handler splits off the session fields (`sessionToken`, `extensionConnectionId`, `tabId`) and
-  dispatches the rest into the tab.
+  calls `tool.runOnBackend`.
 - `TabController` (`src/TabController.ts`) is the only thing that talks to a tab. It installs the
-  page runtime if that tab doesn't already carry this build's, then calls a method on it. The
-  installation is guarded by a build hash the server computes and stamps on itself, so a rebuilt
-  server and a reloaded tab both reinstall on their own. `callRuntimeMethod` is typed off the
-  `Runtime` interface, so only its methods can be named, with their real arguments and return type.
-- `Runtime` (`src/client/runtime.ts`) receives the call page-side and hands it to the tool.
+  page runtime if that tab doesn't already carry this build's, then calls one method of one tool on
+  it. The installation is guarded by a build hash the server computes and stamps on itself, so a
+  rebuilt server and a reloaded tab both reinstall on their own.
+- `Runtime` (`src/client/runtime.ts`) receives the call page-side and looks the tool up by name.
 
-A tool marked `global: true` (only `docs` today) skips all of that: no session, no tab, no page - it
-runs in the Node process directly. `global` says nothing about where the file lives; `docsTool.ts`
-sits in `src/client/tools/` with every other tool.
+## A tool runs in two realms
 
-`tool.run` is where the **real** schema runs: `inputSchema.parse(params)` then
-`inputSchema.encode(...)`, so the handler body always receives encoded (public-format) values.
+One tool class, two live instances: one in Node, one in the page bundle, with the whole `src/client/`
+source compiled into both. They are not one object - **only JSON crosses between them**, so a field
+set page-side is invisible in Node, and a tool keeps no state across the two.
+
+A tool call is therefore a conversation of several `execute_js` round trips, not one dispatch, and
+`FrontendToolImplementation.runOnBackend` is the fixed script for it: validate the params page-side,
+run the tool's own logic, then ask the page what changed while that ran, so a concurrent edit lands
+in the response as a `[WARNING]`. A subclass fills in the middle step; `SimpleFrontendToolImplementation`
+is the one-round-trip case almost every tool uses. Which realm a method runs in is in its name
+(`...OnBackend` / `...OnFrontend`), and `callFrontend` accepts only the latter - typed off the class,
+so a page-side call is checked at compile time.
+
+Splitting on the class rather than per tool is what lets a tool do work in both realms: keep the body
+page-side where `window.Api` is, and still have Node steps around it - `BackendToolImplementation`
+(no tab at all, `docs` alone today) and `checkPuzzleOnBackend` (inspect the written puzzle back in
+Node) are the two ends of that range.
+
+Tool bodies run as methods of the page-side instance, so **a tool body that touches the tab is a
+`function`, never an arrow**.
+
+The **real** schema runs page-side, in `validateParams`: `inputSchema.parse(params)` then
+`inputSchema.encode(...)`, so the tool body always receives encoded (public-format) values.
 
 ## The page runtime bundle
 
@@ -95,7 +112,7 @@ The wire format is deliberately the format a puzzle setter speaks:
 
 `getPuzzle()` (`src/client/tabState.ts`) encodes the app's puzzle into that public shape and injects a
 read-only `elementMetadata` per element (the app's own title/description for that exact config).
-`ToolImplementation.updatePuzzle()` encodes, hands the public object to a callback, decodes the
+`FrontendToolImplementation.updatePuzzle()` encodes, hands the public object to a callback, decodes the
 result, and copies it back into the app's live object - the copy step is per-tool, because the app's
 object identity matters to its reactivity.
 
@@ -114,11 +131,10 @@ reject on *any* part changing, since a stale label would name the wrong action),
 while the tool runs is folded into its result as a `[WARNING]`, and a different puzzle loaded into the
 tab always rejects and reports the whole new state, there being nothing meaningful to diff against.
 
-Reads and writes therefore live on `ToolImplementation`, not in free functions -
-`checkPrevTabState`, `updatePuzzle`, `updateCluesByCellGroups` - so **a tool body that touches the tab
-is a `function`, never an arrow**. `updatePuzzle` dry-runs its callback against a copy before letting
-it near `window.Api`, so a rejected write leaves no half-applied edit and no spurious undo entry;
-a tool signals any failure by throwing, and `run` renders it.
+Reads and writes therefore live on `FrontendToolImplementation`, not in free functions -
+`checkPrevTabState`, `updatePuzzle`, `updateCluesByCellGroups`. `updatePuzzle` dry-runs its callback
+against a copy before letting it near `window.Api`, so a rejected write leaves no half-applied edit
+and no spurious undo entry; a tool signals any failure by throwing, and `runOnFrontend` renders it.
 
 ## The formatting layer (`src/client/format/`)
 
@@ -189,10 +205,10 @@ Solver and check responses close with a blind-spot warning naming the elements t
 see, an overwrite reminder on the runs that write, and a pointer to the `solving` topic - each
 carried only by the tools it applies to, and only once the run has actually finished.
 
-`ToolImplementation.run` catches whatever a tool throws and returns it as an `isError: true` result,
-so a failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace
-through the minified bundle. That is the only way a tool reports a failure - no tool assembles an
-error result itself.
+`runOnFrontend` catches whatever a tool throws and returns it as an `isError: true` result, so a
+failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace through
+the minified bundle; `runOnBackend` does the same for a failed round trip. That is the only way a
+tool reports a failure - no tool assembles an error result itself.
 
 ## Documentation (`src/client/tools/docs/`)
 
@@ -229,7 +245,7 @@ one up.
 
 `element.clue` is what makes a type multi-clue. It is the single source for: which config key holds
 the clues, that array's item schema, and which cells a given clue touches - the last drives clue
-targeting (`ToolImplementation.updateCluesByCellGroups`), diff labels, and the `## Clues` section of
+targeting (`FrontendToolImplementation.updateCluesByCellGroups`), diff labels, and the `## Clues` section of
 the generated topic. A type with no `clue` descriptor is set as a whole through `update_element`.
 
 `ElementConfigSchema` is a `SmartDiscriminatedUnion` over every type's schema

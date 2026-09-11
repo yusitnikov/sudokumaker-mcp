@@ -1,7 +1,6 @@
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { tools } from "./tools";
 import { runtimeGlobal } from "./runtimeGlobal";
-import type { ToolContext } from "./tools/ToolImplementation";
+import type { ToolImplementation } from "./tools/ToolImplementation";
 import type { TabStateSnapshot } from "./tabState";
 
 /**
@@ -21,7 +20,7 @@ const toolsByName = new Map(tools.map((tool) => [tool.name, tool]));
 export interface Runtime {
   /** Build hash, stamped on by the server right after installing this bundle. */
   h?: string;
-  call: (name: string, params: unknown, context: ToolContext) => Promise<CallToolResult>;
+  getTool: (toolName: string) => ToolImplementation<any>;
   /** The tab state as of the last `getTabState` call - see tabState.ts. */
   lastTabStateSnapshot?: TabStateSnapshot;
 }
@@ -35,13 +34,12 @@ declare global {
 // Spelled out rather than `window[runtimeGlobal]`, so the assignment survives minification as a
 // static member expression — that literal is what the `injected` plugin asserts on.
 window.__smMcp = {
-  call: async (name, params, context) => {
-    const tool = toolsByName.get(name);
+  getTool: (toolName) => {
+    const tool = toolsByName.get(toolName);
     if (!tool) {
-      throw new Error(`Unknown tool: ${name}`);
+      throw new Error(`Unknown tool: ${toolName}`);
     }
 
-    // `tool.run` catches what the tool throws and returns it as an `isError: true` result.
-    return await tool.run(params, context);
+    return tool;
   },
 };

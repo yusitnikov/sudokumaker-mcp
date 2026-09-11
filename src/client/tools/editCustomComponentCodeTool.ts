@@ -7,23 +7,21 @@ import { editText, editTextOperation } from "./editText";
 
 export const editCustomComponentCodeTool = new CustomElementToolImplementation(
   {
-    definition: {
-      name: editCustomComponentCodeToolName,
-      title: "Edit a custom component's code",
-      description:
-        // language=markdown
-        `
+    name: editCustomComponentCodeToolName,
+    title: "Edit a custom component's code",
+    description:
+      // language=markdown
+      `
 Change one custom component's code in a \`${CustomElement.typeName}\` element.
 See the \`operation\` parameter for the available ways to change it.
 
 Read the \`${customComponentsTopicName}\` docs topic before using this tool -
 the component's API cannot be guessed.
-        `.trim(),
-    },
-  },
-  {
-    name: z.string().describe("Name of the component to edit."),
-    operation: editTextOperation,
+`.trim(),
+    inputSchema: z.object({
+      name: z.string().describe("Name of the component to edit."),
+      operation: editTextOperation,
+    }),
   },
   function (targetElement, { name, operation }, elementName, puzzleName) {
     const code = this.getCustomComponentCode(targetElement, name);

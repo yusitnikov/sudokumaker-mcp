@@ -1,4 +1,3 @@
-import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { ClueCellsGroupFilter, CluePositionsFilter, getElementFinalName } from "./elementUtils";
 import { elementIdNote, operationDescriptionParam } from "./descriptionSnippets";
@@ -6,48 +5,47 @@ import { addElementToolName, getPuzzleToolName, removeCluesToolName } from "./to
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { ThermometerElement } from "../../elements/lineElements";
 import { ArrowElement } from "../../elements/miscElements";
+import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
 
-export const removeCluesTool = new CallbackToolImplementation(
+export const removeCluesTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: removeCluesToolName,
-      title: "Remove SudokuMaker clues",
-      description:
-        // language=markdown
-        `
+    name: removeCluesToolName,
+    title: "Remove SudokuMaker clues",
+    description:
+      // language=markdown
+      `
 Delete one or more existing clues of a multi-clue element (e.g. remove a \`${ThermometerElement.typeName}\`,
 delete an \`${ArrowElement.typeName}\`).
 
 The response lists which clues were matched and removed - **undo immediately** if a match wasn't
 the clue you intended.
 `.trim(),
-    },
-  },
-  z.object({
-    elementId: z
-      .number()
-      .int()
-      .describe(
-        // language=markdown
-        `
+    inputSchema: z.object({
+      elementId: z
+        .number()
+        .int()
+        .describe(
+          // language=markdown
+          `
 ID of the target element (the multi-clue element to remove clues from), as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
 ${elementIdNote}
-        `.trim(),
-      ),
-    operationDescription: operationDescriptionParam,
-    match: z
-      .union([
-        z.object({ positions: CluePositionsFilter }),
-        z.object({ clueCellGroups: z.array(ClueCellsGroupFilter) }),
-      ])
-      .describe(
-        // language=markdown
-        `
+`.trim(),
+        ),
+      operationDescription: operationDescriptionParam,
+      match: z
+        .union([
+          z.object({ positions: CluePositionsFilter }),
+          z.object({ clueCellGroups: z.array(ClueCellsGroupFilter) }),
+        ])
+        .describe(
+          // language=markdown
+          `
 Which clues to remove: either \`positions\` to remove exact clues directly, or \`clueCellGroups\` -
 one or more cell groups, each independently selecting the clue(s) it matches.
 `.trim(),
-      ),
-  }),
+        ),
+    }),
+  },
   async function ({ elementId, match, operationDescription }) {
     const { tabState, allMatchingIndexes, updatedElement, messages } = await this.updateCluesByCellGroups(
       elementId,
@@ -59,18 +57,21 @@ one or more cell groups, each independently selecting the clue(s) it matches.
     );
 
     return {
-      content: [
-        {
-          type: "text",
-          text: [
-            `Removed ${allMatchingIndexes.size} clues from "${getElementFinalName(updatedElement)}" in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
-            "",
-            ...messages,
-            "",
-            elementsDiffSummary(tabState),
-          ].join("\n"),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: [
+              `Removed ${allMatchingIndexes.size} clues from "${getElementFinalName(updatedElement)}" in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+              "",
+              ...messages,
+              "",
+              elementsDiffSummary(tabState),
+            ].join("\n"),
+          },
+        ],
+      },
     };
   },
 );

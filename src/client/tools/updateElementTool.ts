@@ -1,4 +1,3 @@
-import { CallbackToolImplementation } from "./ToolImplementation";
 import { z } from "zod";
 import { mergeDeepUpdates, ZodDeepPartial } from "../../DeepPartial";
 import { getElementById, getElementFinalName, parseElementSpecificData } from "./elementUtils";
@@ -7,41 +6,39 @@ import { addElementToolName, getPuzzleToolName, updateCluesToolName, updateEleme
 import { elementTopicPattern } from "./docs/topicNames";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { getElementByTypeName } from "../../elements/AllElements";
+import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
 
-export const updateElementTool = new CallbackToolImplementation(
+export const updateElementTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: updateElementToolName,
-      title: "Update SudokuMaker element",
-      description:
-        // language=markdown
-        `
+    name: updateElementToolName,
+    title: "Update SudokuMaker element",
+    description:
+      // language=markdown
+      `
 Update an existing element's own fields, and/or batch-apply the same partial update to every one
 of its clues at once.
 
 To update individual clues differently from each other, use \`${updateCluesToolName}\` instead -
 the \`clueBatchUpdates\` field here applies identically to ALL clues.
-        `.trim(),
-    },
-  },
-  z.object({
-    elementId: z
-      .number()
-      .int()
-      .describe(
-        // language=markdown
-        `
+`.trim(),
+    inputSchema: z.object({
+      elementId: z
+        .number()
+        .int()
+        .describe(
+          // language=markdown
+          `
 ID of the target element to update, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
 ${elementIdNote}
-        `.trim(),
-      ),
-    operationDescription: operationDescriptionParam,
-    elementUpdates: z
-      .looseObject({})
-      .optional()
-      .describe(
-        // language=markdown
-        `
+`.trim(),
+        ),
+      operationDescription: operationDescriptionParam,
+      elementUpdates: z
+        .looseObject({})
+        .optional()
+        .describe(
+          // language=markdown
+          `
 Object of the element's config fields to change (e.g. \`{"style": {"bulbRadius": 0.6}}\` for a
 thermometer) - only accepted for element types that have config beyond their clues; docs topic
 \`${elementTopicPattern}\`'s \`## Config\` section shows the full config JSON schema.
@@ -49,13 +46,13 @@ thermometer) - only accepted for element types that have config beyond their clu
 ${partialUpdateNote}
 ${unsetFieldNote}
 `.trim(),
-      ),
-    clueBatchUpdates: z
-      .looseObject({})
-      .optional()
-      .describe(
-        // language=markdown
-        `
+        ),
+      clueBatchUpdates: z
+        .looseObject({})
+        .optional()
+        .describe(
+          // language=markdown
+          `
 Object applied identically to every clue this element currently has (e.g. \`{"value": 0}\` would
 zero every cage's total) - only accepted for multi-clue element types; docs topic
 \`${elementTopicPattern}\`'s \`## Clues\` section shows the exact clue JSON schema.
@@ -63,20 +60,21 @@ zero every cage's total) - only accepted for multi-clue element types; docs topi
 ${partialUpdateNote}
 ${unsetFieldNote}
 `.trim(),
+        ),
+      name: z.string().optional().describe(
+        // language=markdown
+        `Rename the element (skip to leave the current name, pass an empty string to revert to the default name).`,
       ),
-    name: z.string().optional().describe(
-      // language=markdown
-      `Rename the element (skip to leave the current name, pass an empty string to revert to the default name).`,
-    ),
-    enabled: z.boolean().optional().describe(
-      // language=markdown
-      `Enable or disable the element (both logic and visuals).`,
-    ),
-    solverIgnored: z.boolean().optional().describe(
-      // language=markdown
-      `Enable or disable the element for the solver (logic only).`,
-    ),
-  }),
+      enabled: z.boolean().optional().describe(
+        // language=markdown
+        `Enable or disable the element (both logic and visuals).`,
+      ),
+      solverIgnored: z.boolean().optional().describe(
+        // language=markdown
+        `Enable or disable the element for the solver (logic only).`,
+      ),
+    }),
+  },
   async function ({ elementId, elementUpdates, clueBatchUpdates, name, enabled, solverIgnored, operationDescription }) {
     const {
       tabState,
@@ -153,15 +151,18 @@ ${unsetFieldNote}
     const updatedElement = tabState.puzzle.allElements[index];
 
     return {
-      content: [
-        {
-          type: "text",
-          text: [
-            `Element "${getElementFinalName(updatedElement)}" updated successfully in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
-            elementsDiffSummary(tabState),
-          ].join("\n"),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: [
+              `Element "${getElementFinalName(updatedElement)}" updated successfully in puzzle "${tabState.puzzle.name || "(untitled)"}".`,
+              elementsDiffSummary(tabState),
+            ].join("\n"),
+          },
+        ],
+      },
     };
   },
 );

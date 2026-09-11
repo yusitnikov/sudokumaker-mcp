@@ -5,16 +5,14 @@ import { CustomElement } from "../../elements/CustomElement";
 
 export const removeCustomComponentTool = new CustomElementToolImplementation(
   {
-    definition: {
-      name: removeCustomComponentToolName,
-      title: "Remove a custom component",
-      description:
-        // language=markdown
-        `Delete one custom component from a \`${CustomElement.typeName}\` element.`,
-    },
-  },
-  {
-    name: z.string().describe("Name of the component to remove."),
+    name: removeCustomComponentToolName,
+    title: "Remove a custom component",
+    description:
+      // language=markdown
+      `Delete one custom component from a \`${CustomElement.typeName}\` element.`,
+    inputSchema: z.object({
+      name: z.string().describe("Name of the component to remove."),
+    }),
   },
   function (targetElement, { name }, elementName, puzzleName) {
     this.getCustomComponentCode(targetElement, name);

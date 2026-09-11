@@ -1,14 +1,11 @@
 import { z } from "zod";
-import type { CallToolResult, Tool as SdkTool } from "@modelcontextprotocol/sdk/types.js";
-import { TabState, TabStateChangedError } from "../tabState";
-import { type PuzzlePublic, PuzzleSchema } from "../../SudokuMakerPuzzleSchema";
-import { ClueMatch, getElementWithClueById } from "./elementUtils";
-import { getByPath, setByPath } from "../../PathToObject";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
-export interface Tool {
-  definition: SdkTool;
-  global?: boolean;
-  timeout?: number;
+export interface ToolOptions<SchemaT extends z.ZodSchema> {
+  name: string;
+  title?: string;
+  description?: string;
+  inputSchema: SchemaT;
 }
 
 /**
@@ -29,13 +26,6 @@ export const withAdvertisedSchema = <T extends z.ZodType>(realSchema: T, adverti
   advertisedSchemaOverrides.add(realSchema, { advertisedSchema });
   return realSchema;
 };
-
-/**
- * Data that only the Node side knows, passed inward to the page on every call.
- */
-export interface ToolContext {
-  tabId: number;
-}
 
 /**
  * Unwraps `ZodOptional`/`ZodDefault`/`ZodCodec` (to its input side, `.def.in`) down to the shape-carrying node.
@@ -62,31 +52,16 @@ const stripNonShapeWrappers = (schema: z.core.$ZodType): z.ZodType => {
 };
 
 export abstract class ToolImplementation<SchemaT extends z.ZodSchema> {
-  protected constructor(
-    private readonly tool: Omit<Tool, "definition"> & {
-      definition: Omit<Tool["definition"], "inputSchema">;
-    },
-    private readonly inputSchema: SchemaT,
-  ) {}
+  readonly name: string;
+  readonly title?: string;
+  readonly description?: string;
+  protected readonly inputSchema: SchemaT;
 
-  /**
-   * Carries out the call, on parameters already validated and encoded against `inputSchema`.
-   * Throwing rejects the call: `run` renders the error as the tool's result.
-   */
-  protected abstract _run(params: z.input<SchemaT>, context: ToolContext): CallToolResult | Promise<CallToolResult>;
-
-  get name() {
-    return this.tool.definition.name;
-  }
-
-  get definition(): Tool {
-    return {
-      ...this.tool,
-      definition: {
-        ...this.tool.definition,
-        inputSchema: z.toJSONSchema(this.inputSchema, { io: "input" }),
-      } as Tool["definition"],
-    };
+  constructor({ name, title, description, inputSchema }: ToolOptions<SchemaT>) {
+    this.name = name;
+    this.title = title;
+    this.description = description;
+    this.inputSchema = inputSchema;
   }
 
   /**
@@ -129,262 +104,19 @@ export abstract class ToolImplementation<SchemaT extends z.ZodSchema> {
     return shape;
   }
 
-  async run(params: unknown, context: ToolContext): Promise<CallToolResult> {
-    try {
-      const validatedParams = this.inputSchema.parse(params);
-
-      const result = await this._run(this.inputSchema.encode(validatedParams), context);
-
-      if (this.prevTabState?.puzzleChanged) {
-        const warningText = `[WARNING] The tab state changed since the last tool call: ${this.prevTabState.formattedDiff}`;
-        if (result.isError) {
-          result.content.push({
-            type: "text",
-            text: "\n\n" + warningText,
-          });
-        } else {
-          result.content.unshift({
-            type: "text",
-            text: warningText + "\n\n",
-          });
-        }
-      }
-
-      return result;
-    } catch (error: unknown) {
-      if (error instanceof TabStateChangedError) {
-        const tabState = error.tabState;
-
-        let text = error.message;
-        if (tabState.puzzleIdChanged) {
-          text += `\nHere's the new tab state:\n${tabState.formattedSnapshot}`;
-        } else {
-          text += `\nHere's what changed:\n${tabState.formattedDiff}`;
-        }
-
-        return {
-          content: [
-            {
-              type: "text",
-              text,
-            },
-          ],
-          isError: true,
-        };
-      }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: `${error instanceof Error ? error.message : String(error)}\n\nTechnical error: fix the call and retry; don't relay this to the user.`,
-          },
-        ],
-        isError: true,
-      };
-    }
+  validateParams(params: unknown) {
+    return this.inputSchema.encode(this.inputSchema.parse(params));
   }
 
-  private prevTabState?: TabState;
-
-  protected checkPrevTabState(allowChanges = false) {
-    this.prevTabState = TabState.read();
-
-    if (!allowChanges && this.prevTabState.puzzleChanged) {
-      throw new TabStateChangedError(this.prevTabState);
-    }
-
-    return this.prevTabState;
-  }
-
-  protected async updatePuzzle(
-    updateCallback: (puzzle: PuzzlePublic) => { puzzle?: PuzzlePublic } | void,
-    copyCallback: (from: z.output<typeof PuzzleSchema>, to: z.output<typeof PuzzleSchema>) => void,
-    operationDescription: string | ((puzzle: PuzzlePublic) => string),
-  ): Promise<{ tabState: TabState }>;
-  protected async updatePuzzle<UpdateResultT>(
-    updateCallback: (puzzle: PuzzlePublic) => {
-      puzzle?: PuzzlePublic;
-      result: UpdateResultT;
-    },
-    copyCallback: (
-      from: z.output<typeof PuzzleSchema>,
-      to: z.output<typeof PuzzleSchema>,
-      updateResult: UpdateResultT,
-    ) => void,
-    operationDescription: string | ((puzzle: PuzzlePublic, updateResult: UpdateResultT) => string),
-  ): Promise<{ tabState: TabState; result: UpdateResultT }>;
-  protected async updatePuzzle<UpdateResultT>(
-    updateCallback: (puzzle: PuzzlePublic) => { puzzle?: PuzzlePublic; result?: UpdateResultT } | void,
-    copyCallback: (
-      from: z.output<typeof PuzzleSchema>,
-      to: z.output<typeof PuzzleSchema>,
-      updateResult: UpdateResultT,
-    ) => void,
-    operationDescription: string | ((puzzle: PuzzlePublic, updateResult?: UpdateResultT) => string),
-  ): Promise<{ tabState: TabState; result?: UpdateResultT }> {
-    const tabState = this.checkPrevTabState(false);
-
-    const run = (puzzle: PuzzlePublic) => {
-      const result = updateCallback(puzzle);
-
-      const updatedPuzzle = result?.puzzle ?? puzzle;
-
-      const updatedSudokuMakerPuzzle = PuzzleSchema.decode(updatedPuzzle);
-
-      return {
-        updatedSudokuMakerPuzzle,
-        updatePuzzleResult: result?.result,
-      };
-    };
-
-    // Dry run on a copy of the current state to check for errors without calling the actual SudokuMaker API
-    const dryRunResult = run(JSON.parse(JSON.stringify(tabState.puzzle)));
-
-    let updatePuzzleResult: UpdateResultT | undefined;
-
-    window.Api.updatePuzzle(
-      (sudokuMakerPuzzle) => {
-        const puzzle = PuzzleSchema.encode(sudokuMakerPuzzle);
-
-        const result = run(puzzle);
-        updatePuzzleResult = result.updatePuzzleResult;
-
-        copyCallback(result.updatedSudokuMakerPuzzle, sudokuMakerPuzzle, updatePuzzleResult!);
-      },
-      typeof operationDescription === "function"
-        ? operationDescription(tabState.puzzle, dryRunResult.updatePuzzleResult)
-        : operationDescription,
-    );
-
+  protected formatErrorResponse(error: unknown): CallToolResult {
     return {
-      tabState: await TabState.waitAndRead(),
-      result: updatePuzzleResult,
+      content: [
+        {
+          type: "text",
+          text: `${error instanceof Error ? error.message : String(error)}\n\nTechnical error: fix the call and retry; don't relay this to the user.`,
+        },
+      ],
+      isError: true,
     };
-  }
-
-  // TODO: move to independent class
-  protected async updateCluesByCellGroups(
-    elementId: number,
-    clueMatches: z.input<typeof ClueMatch>[],
-    updateCallback: (
-      clues: any[],
-      matchingIndexGroups: number[][],
-      allMatchingIndexes: Set<number>,
-      puzzle: PuzzlePublic,
-    ) => any[] | void,
-    operationDescription: string,
-  ) {
-    const {
-      tabState,
-      result: { index, matchingClues, allMatchingIndexes },
-    } = await this.updatePuzzle(
-      (puzzle) => {
-        const { index, targetElement, clueType } = getElementWithClueById(puzzle, elementId);
-
-        const cluesKey = clueType.key;
-        const clues = ((targetElement.config as any)[cluesKey] as any[]).map((clue, index) => ({
-          index,
-          clue,
-          cells: clueType.getAffectedCells(clue),
-        }));
-        const matchingClues = clueMatches.map((match, groupIndex) => {
-          if ("clueCells" in match) {
-            return clues.filter((clue) => match.clueCells.every((cell) => clue.cells.includes(cell)));
-          }
-
-          const groupMatches = match.positions.map((position) => clues[position - 1]);
-          if (groupMatches.some((item) => !item)) {
-            throw new Error(
-              `Group #${groupIndex + 1}: invalid positions provided - this element has ${clues.length} clues.`,
-            );
-          }
-          return groupMatches;
-        });
-        const allMatchingIndexes = new Set(matchingClues.flat().map(({ index }) => index));
-
-        if (allMatchingIndexes.size === 0) {
-          const allClueCells = clues.map(({ cells }) => `(${cells.join(", ") || "none"})`);
-
-          throw new Error(
-            `No matching clues found, please check the filters. There are clues with the following affected cells - you can target only these cells: ${allClueCells.join("; ") || "none"}`,
-          );
-        }
-
-        const config = puzzle.allElements[index].config as any;
-        const result = updateCallback(
-          config[cluesKey],
-          matchingClues.map((group) => group.map(({ index }) => index)),
-          allMatchingIndexes,
-          puzzle,
-        );
-        if (result) {
-          config[cluesKey] = result;
-        }
-
-        return {
-          result: {
-            index,
-            cluesInternalPath: clueType.internalPath ?? [cluesKey],
-            matchingClues,
-            allMatchingIndexes,
-          },
-        };
-      },
-      (from, to, { index, cluesInternalPath }) => {
-        setByPath(
-          to.allConstraints[index].config as any,
-          cluesInternalPath,
-          getByPath(from.allConstraints[index].config as any, cluesInternalPath),
-        );
-      },
-      operationDescription,
-    );
-
-    const updatedElement = tabState.puzzle.allElements[index];
-
-    const messages: string[] = [];
-    for (const [groupIndex, matches] of matchingClues.entries()) {
-      if ("clueCells" in clueMatches[groupIndex]) {
-        const formattedClues = matches.map(({ index, cells }) => `position ${index + 1}: ${cells.join(" ")}`);
-        messages.push(`Group #${groupIndex + 1} - targeted ${matches.length} clues: [${formattedClues.join(", ")}]`);
-      }
-    }
-    if (messages.length) {
-      messages.push(
-        "If some of the targeted clues above don't match your expectations, UNDO THE OPERATION IMMEDIATELY!",
-      );
-    }
-
-    return {
-      tabState,
-      allMatchingIndexes,
-      updatedElement,
-      messages,
-    };
-  }
-}
-
-/**
- * A tool whose body is supplied as a callback rather than by subclassing -
- * what a tool that needs nothing beyond the base helpers uses.
- */
-export class CallbackToolImplementation<SchemaT extends z.ZodSchema> extends ToolImplementation<SchemaT> {
-  constructor(
-    tool: Omit<Tool, "definition"> & {
-      definition: Omit<Tool["definition"], "inputSchema">;
-    },
-    inputSchema: SchemaT,
-    private readonly _runCallback: (
-      this: CallbackToolImplementation<SchemaT>,
-      params: z.input<SchemaT>,
-      context: ToolContext,
-    ) => CallToolResult | Promise<CallToolResult>,
-  ) {
-    super(tool, inputSchema);
-  }
-
-  protected _run(params: z.input<SchemaT>, context: ToolContext) {
-    return this._runCallback(params, context);
   }
 }

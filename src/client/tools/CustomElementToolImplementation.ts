@@ -1,6 +1,4 @@
 import { z } from "zod";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { type Tool, ToolImplementation } from "./ToolImplementation";
 import { getElementById, getElementFinalName } from "./elementUtils";
 import { elementIdNote, operationDescriptionParam } from "./descriptionSnippets";
 import { addElementToolName, getPuzzleToolName } from "./toolNames";
@@ -9,6 +7,12 @@ import { CustomElement } from "../../elements/CustomElement";
 import type { ElementByType } from "../../elements/types";
 import { ElementType } from "../../elements/ElementType";
 import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
+
+import {
+  type FrontendRunResult,
+  type FrontendToolOptions,
+  SimpleFrontendToolImplementation,
+} from "./SimpleFrontendToolImplementation";
 
 type CustomElementPublic = ElementByType<ElementType.Custom>;
 
@@ -22,7 +26,7 @@ const customElementBaseShape = {
       `
 ID of the target \`${CustomElement.typeName}\` element, as returned by \`${getPuzzleToolName}\`/\`${addElementToolName}\`.
 ${elementIdNote}
-      `.trim(),
+`.trim(),
     ),
   operationDescription: operationDescriptionParam,
 };
@@ -54,21 +58,28 @@ type CustomElementToolParams<ExtraShapeT extends z.ZodRawShape> = z.input<z.ZodO
  * that changes the resolved element; adding the shared fields, resolving the element, writing the
  * change back and rendering the diff all happen here.
  */
-export class CustomElementToolImplementation<ExtraShapeT extends z.ZodRawShape> extends ToolImplementation<
-  z.ZodObject<ExtraShapeT & BaseShape>
-> {
+export class CustomElementToolImplementation<
+  ExtraShapeT extends z.ZodRawShape,
+> extends SimpleFrontendToolImplementation<z.ZodObject<ExtraShapeT & BaseShape>> {
   constructor(
-    tool: Omit<Tool, "definition"> & { definition: Omit<Tool["definition"], "inputSchema"> },
-    extraShape: ExtraShapeT,
-    private readonly _applyUpdate: (
+    options: FrontendToolOptions<z.ZodObject<ExtraShapeT>>,
+    private readonly applyUpdate: (
       this: CustomElementToolImplementation<ExtraShapeT>,
       targetElement: CustomElementPublic,
       params: CustomElementToolParams<ExtraShapeT>,
       elementName: string,
       puzzleName: string,
     ) => string,
+    private readonly checkElementOnBackend?: (
+      this: CustomElementToolImplementation<ExtraShapeT>,
+      targetElement: CustomElementPublic,
+      params: CustomElementToolParams<ExtraShapeT>,
+    ) => string | undefined | Promise<string | undefined>,
   ) {
-    super(tool, z.object({ ...extraShape, ...customElementBaseShape }));
+    super({
+      ...options,
+      inputSchema: z.object({ ...options.inputSchema.shape, ...customElementBaseShape }),
+    });
   }
 
   /**
@@ -127,11 +138,11 @@ export class CustomElementToolImplementation<ExtraShapeT extends z.ZodRawShape> 
     }
   }
 
-  protected async _run(
+  protected async run(
     // The shared fields are named alongside the combined type: with `ExtraShapeT` still open, zod's
     // inference can't reduce the combined object to one with known keys, so they'd be unreachable.
     params: CustomElementToolParams<ExtraShapeT> & z.input<z.ZodObject<BaseShape>>,
-  ): Promise<CallToolResult> {
+  ): Promise<FrontendRunResult> {
     const { elementId, operationDescription } = params;
 
     const {
@@ -141,7 +152,7 @@ export class CustomElementToolImplementation<ExtraShapeT extends z.ZodRawShape> 
       (puzzle) => {
         const { index, targetElement } = this.getCustomElement(puzzle, elementId);
 
-        const summary = this._applyUpdate(
+        const summary = this.applyUpdate(
           targetElement,
           params,
           getElementFinalName(targetElement),
@@ -157,12 +168,23 @@ export class CustomElementToolImplementation<ExtraShapeT extends z.ZodRawShape> 
     );
 
     return {
-      content: [
-        {
-          type: "text",
-          text: [summary, elementsDiffSummary(tabState)].join("\n"),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: [summary, elementsDiffSummary(tabState)].join("\n"),
+          },
+        ],
+      },
     };
+  }
+
+  protected async checkPuzzleOnBackend(
+    puzzle: PuzzlePublic,
+    params: CustomElementToolParams<ExtraShapeT> & z.input<z.ZodObject<BaseShape>>,
+  ): Promise<string | undefined> {
+    const { targetElement } = this.getCustomElement(puzzle, params.elementId);
+    return this.checkElementOnBackend?.(targetElement, params);
   }
 }

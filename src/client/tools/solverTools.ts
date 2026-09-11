@@ -1,4 +1,3 @@
-import { CallbackToolImplementation } from "./ToolImplementation";
 import { reversibleActionNote } from "./descriptionSnippets";
 import { z } from "zod";
 import {
@@ -22,6 +21,7 @@ import { solverLogsDescriptor } from "../format/tabState/solverLogs";
 import { ElementType } from "../../elements/ElementType";
 import type { ElementPublic } from "../../elements/types";
 import { getElementByTypeName } from "../../elements/AllElements";
+import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
@@ -80,50 +80,51 @@ const solverResultText = ({ finished, message, tabState }: SolverWaitResult, log
 const replacedLogResultText = ({ solverLogs }: TabState) =>
   `Solver logs: ${new RootObjectNode(solverLogs, solverLogsDescriptor).format()}`;
 
-export const doLogicalStepTool = new CallbackToolImplementation(
+export const doLogicalStepTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: doLogicalStepToolName,
-      title: "Do a single logical step",
-      description:
-        // language=markdown
-        `
+    name: doLogicalStepToolName,
+    title: "Do a single logical step",
+    description:
+      // language=markdown
+      `
 Run one round of human-style logical deduction and write any newly deduced candidates/eliminations
 into the grid's center marks (overwriting existing center marks).
 
 Blind to free-text rules and cosmetic-only elements; may miss deductions \`${bruteForceSolveToolName}\` would find.
 
 ${reversibleActionNote}
-        `.trim(),
-    },
+`.trim(),
+    inputSchema: z.object({}),
     timeout: singleStepTimeout + 1000,
   },
-  z.object({}),
   async function () {
     this.checkPrevTabState();
 
     window.Api.triggerAction("doSingleLogicalStep");
     const result = await waitForSolver(singleStepTimeout);
+    const { tabState } = result;
 
     return {
-      content: [
-        {
-          type: "text",
-          text: solverResultText(result, appendedLogResultText(result.tabState)),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: solverResultText(result, appendedLogResultText(tabState)),
+          },
+        ],
+      },
     };
   },
 );
 
-export const doAllLogicalStepsTool = new CallbackToolImplementation(
+export const doAllLogicalStepsTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: doAllLogicalStepsToolName,
-      title: "Solve step-by-step, logically",
-      description:
-        // language=markdown
-        `
+    name: doAllLogicalStepsToolName,
+    title: "Solve step-by-step, logically",
+    description:
+      // language=markdown
+      `
 Repeatedly run human-style logical deduction until no further step is found, writing all deduced
 candidates/eliminations into the grid's center marks (overwriting existing center marks).
 
@@ -132,35 +133,37 @@ Blind to free-text rules and cosmetic-only elements; may leave the puzzle unsolv
 
 ${reversibleActionNote} - all steps taken in this call are undone/redone together as one action.
 `.trim(),
-    },
+    inputSchema: z.object({}),
     timeout: solverMaxTimeout + 1000,
   },
-  z.object({}),
   async function () {
     this.checkPrevTabState();
 
     window.Api.triggerAction("doAllLogicalSteps");
     const result = await waitForSolver(solverMaxTimeout);
+    const { tabState } = result;
 
     return {
-      content: [
-        {
-          type: "text",
-          text: solverResultText(result, appendedLogResultText(result.tabState)),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: solverResultText(result, appendedLogResultText(tabState)),
+          },
+        ],
+      },
     };
   },
 );
 
-export const bruteForceSolveTool = new CallbackToolImplementation(
+export const bruteForceSolveTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: bruteForceSolveToolName,
-      title: "Find all possible solutions and valid candidates",
-      description:
-        // language=markdown
-        `
+    name: bruteForceSolveToolName,
+    title: "Find all possible solutions and valid candidates",
+    description:
+      // language=markdown
+      `
 Exhaustively search for every solution consistent with the current givens, entered values, and
 marks; fills in digits if the solution is unique, and always writes the exact valid candidates into
 center marks (overwriting existing center marks).
@@ -174,35 +177,37 @@ may be reported as "stopped counting" rather than an exact number.
 
 ${reversibleActionNote}
 `.trim(),
-    },
+    inputSchema: z.object({}),
     timeout: solverMaxTimeout + 1000,
   },
-  z.object({}),
   async function () {
     this.checkPrevTabState();
 
     window.Api.triggerAction("findSolutions");
     const result = await waitForSolver(solverMaxTimeout);
+    const { tabState } = result;
 
     return {
-      content: [
-        {
-          type: "text",
-          text: solverResultText(result, replacedLogResultText(result.tabState)),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: solverResultText(result, replacedLogResultText(tabState)),
+          },
+        ],
+      },
     };
   },
 );
 
-export const checkValidityTool = new CallbackToolImplementation(
+export const checkValidityTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: checkValidityToolName,
-      title: "Check whether the puzzle is broken or non-unique",
-      description:
-        // language=markdown
-        `
+    name: checkValidityToolName,
+    title: "Check whether the puzzle is broken or non-unique",
+    description:
+      // language=markdown
+      `
 Run the app's own existence-and-uniqueness check and report its verdict: whether the puzzle has a
 solution at all, and if so, whether it's unique. Writes nothing to the grid - unlike
 \`${bruteForceSolveToolName}\`, this is safe to run at any time without disturbing existing values or marks.
@@ -211,72 +216,75 @@ Already-entered cell values and center marks are treated as constraints, so a ve
 on them when present.
 
 Blind to free-text rules and cosmetic-only elements.
-        `.trim(),
-    },
+`.trim(),
+    inputSchema: z.object({}),
     timeout: solverMaxTimeout + 1000,
   },
-  z.object({}),
   async function () {
     this.checkPrevTabState(true);
 
     window.Api.triggerAction("checkValidity");
     const result = await waitForSolver(solverMaxTimeout);
+    const { tabState } = result;
 
     return {
-      content: [
-        {
-          type: "text",
-          text: solverResultText(result, replacedLogResultText(result.tabState)),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: solverResultText(result, replacedLogResultText(tabState)),
+          },
+        ],
+      },
     };
   },
 );
 
-export const waitForSolverTool = new CallbackToolImplementation(
+export const waitForSolverTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: waitForSolverToolName,
-      title: "Wait for the solver",
-      description:
-        // language=markdown
-        `
+    name: waitForSolverToolName,
+    title: "Wait for the solver",
+    description:
+      // language=markdown
+      `
 Block until the currently running solver operation (\`${doLogicalStepToolName}\`, \`${doAllLogicalStepsToolName}\`,
 \`${bruteForceSolveToolName}\`, or \`${checkValidityToolName}\`) finishes, then return its result.
 
 Use this if a previous solver call's response indicated the solve was still in progress.
 `.trim(),
-    },
+    inputSchema: z.object({}),
     timeout: solverMaxTimeout + 1000,
   },
-  z.object({}),
   async () => {
     const result = await waitForSolver(solverMaxTimeout);
+    const { tabState } = result;
 
     return {
-      content: [
-        {
-          type: "text",
-          /*
-           * Whether the run being waited on writes to the grid isn't knowable here.
-           * Assume it does, since the three writing tools are the common case.
-           */
-          text: solverResultText(result, replacedLogResultText(result.tabState)),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            /*
+             * Whether the run being waited on writes to the grid isn't knowable here.
+             * Assume it does, since the three writing tools are the common case.
+             */
+            text: solverResultText(result, replacedLogResultText(tabState)),
+          },
+        ],
+      },
     };
   },
 );
 
-export const stopSolverTool = new CallbackToolImplementation(
+export const stopSolverTool = new FrontendCallbackToolImplementation(
   {
-    definition: {
-      name: stopSolverToolName,
-      title: "Stop the solver",
-      description: "Abort a currently running solver operation before it finishes on its own.",
-    },
+    name: stopSolverToolName,
+    title: "Stop the solver",
+    description: "Abort a currently running solver operation before it finishes on its own.",
+    inputSchema: z.object({}),
   },
-  z.object({}),
   async () => {
     if (window.Api.busy) {
       window.Api.triggerAction("stopSolver");
@@ -285,30 +293,33 @@ export const stopSolverTool = new CallbackToolImplementation(
     const { tabState } = await waitForSolver(3000);
 
     return {
-      content: [
-        {
-          type: "text",
-          text: [
-            "The solver has been stopped.",
-            "",
-            replacedLogResultText(tabState),
-            // TODO: show updated grid
-            "",
-            /*
-             * How far the run got before stopping isn't knowable, hence "may have"
-             * rather than the finished-run note's flat assertion.
-             * No blind-spot warning: an aborted run has no verdict to qualify.
-             */
-            ...(tabState.puzzleChanged
-              ? [
-                  // TODO: WTF is this message?
-                  `The stopped run may have already replaced center marks in some cells - \`${undoToolName}\` reverts it if so.`,
-                ]
-              : []),
-            solvingTopicNote,
-          ].join("\n"),
-        },
-      ],
+      updatedPuzzle: tabState.puzzle,
+      response: {
+        content: [
+          {
+            type: "text",
+            text: [
+              "The solver has been stopped.",
+              "",
+              replacedLogResultText(tabState),
+              // TODO: show updated grid
+              "",
+              /*
+               * How far the run got before stopping isn't knowable, hence "may have"
+               * rather than the finished-run note's flat assertion.
+               * No blind-spot warning: an aborted run has no verdict to qualify.
+               */
+              ...(tabState.puzzleChanged
+                ? [
+                    // TODO: WTF is this message?
+                    `The stopped run may have already replaced center marks in some cells - \`${undoToolName}\` reverts it if so.`,
+                  ]
+                : []),
+              solvingTopicNote,
+            ].join("\n"),
+          },
+        ],
+      },
     };
   },
 );
