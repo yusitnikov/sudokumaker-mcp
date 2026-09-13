@@ -1,0 +1,2080 @@
+{
+  "object": {
+    "ArrayUtils": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "ArrayUtils"
+      },
+      "references": ["ArrayUtils", "InitialCodeScope.ArrayUtils", "CustomComponentScope.ArrayUtils"],
+      "ownProperties": {
+        "areSameLength": {
+          "type": "function",
+          "code": "function Vt(...s){return s.length===0?!0:s.every(e=>e.length===s[0].length)}"
+        },
+        "chunk": {
+          "type": "function",
+          "code": "function vn(s,e){const t=[];let n;for(let i=0;i<s.length;i++)i%e===0&&(n=[],t.push(n)),n.push(s[i]);return t}"
+        },
+        "count": {
+          "type": "function",
+          "code": "function an(s,e,{comparator:t=(n,i)=>n===i}={}){return s.reduce((n,i)=>n+(t(i,e)?1:0),0)}"
+        },
+        "countWhere": {
+          "type": "function",
+          "code": "function cn(s,e){return s.reduce((t,n)=>t+(e(n)?1:0),0)}"
+        },
+        "createFilledArray": {
+          "type": "function",
+          "code": "function X(s,e){return new Array(s).fill(e)}"
+        },
+        "ensureArray": {
+          "type": "function",
+          "code": "function E(s){return Array.isArray(s)?s:[s]}"
+        },
+        "hasDuplicates": {
+          "type": "function",
+          "code": "function Re(s,e){if(e?.comparator)return yn(s,e?.comparator);const t=new Set;for(let n=0;n<s.length;n++){if(t.has(s[n]))return!0;t.add(s[n])}return!1}"
+        },
+        "includesEvery": {
+          "type": "function",
+          "code": "function gn(s,e,t){if(t?.comparator){for(const n of e)if(!s.some(i=>t.comparator(n,i)))return!1;return!0}for(const n of e)if(!s.includes(n))return!1;return!0}"
+        },
+        "includesSome": {
+          "type": "function",
+          "code": "function fn(s,e,t){if(t?.comparator){for(const n of e)if(s.some(i=>t.comparator(n,i)))return!0;return!1}for(const n of e)if(s.includes(n))return!0;return!1}"
+        },
+        "mapIterable": {
+          "type": "function",
+          "code": "function Cn(s,e){const t=[];for(const n of s)t.push(e(n));return t}"
+        },
+        "remove": {
+          "type": "function",
+          "code": "function dn(s,e,t){if(t?.comparator){const r=[...s],o=Xt(e,{unique:!0});s.length=0;for(const l of r)o.find(a=>t.comparator(l,a))||s.push(l);return s}const n=[...s],i=new Set(e);s.length=0;for(const r of n)i.has(r)||s.push(r);return s}"
+        },
+        "removeFirst": {
+          "type": "function",
+          "code": "function Ne(s,e,t){if(t?.comparator)return qt(s,i=>t.comparator(e,i));const n=s.indexOf(e);return n===-1||s.splice(n,1),s}"
+        },
+        "removeFirstWhere": {
+          "type": "function",
+          "code": "function qt(s,e){const t=s.findIndex(e);return t===-1||s.splice(t,1),s}"
+        },
+        "removeWhere": {
+          "type": "function",
+          "code": "function hn(s,e){const t=[...s];s.length=0;for(const n of t)e(n)||s.push(n);return s}"
+        },
+        "shuffled": {
+          "type": "function",
+          "code": "function mn(s){s=s.slice();for(let e=s.length-1;e>0;e--){const t=Math.floor(Math.random()*(e+1));[s[e],s[t]]=[s[t],s[e]]}return s}"
+        },
+        "sliceWrapped": {
+          "type": "function",
+          "code": "function pn(s,e,t){if(s.length===0)return[];const n=[];for(let i=e;i<t;i++)n.push(s[Gt(i,s.length)]);return n}"
+        },
+        "withoutAll": {
+          "type": "function",
+          "code": "function un(s,e,t){if(t?.comparator){const r=Xt(e,{unique:!0});return s.filter(o=>!r.find(l=>t.comparator(o,l)))}const n=new Set(e),i=[];for(const r of s)n.has(r)||i.push(r);return i}"
+        },
+        "withoutDuplicates": {
+          "type": "function",
+          "code": "function ge(s,e){return e?.comparator?wn(s,e.comparator):Array.from(new Set(s))}"
+        }
+      }
+    },
+    "CombinatoricUtils": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "CombinatoricUtils"
+      },
+      "references": [
+        "CombinatoricUtils",
+        "InitialCodeScope.CombinatoricUtils",
+        "CustomComponentScope.CombinatoricUtils"
+      ],
+      "ownProperties": {
+        "getCombinationsForSum": {
+          "type": "function",
+          "code": "function*$s(s,e,t=1,n=1/0){const i=[...s].sort((o,l)=>o-l);function*r(o,l,a){if(a===0){l.length>=t&&(yield[...l]);return}if(l.length!==n)for(let c=o;c<i.length;c++){if(c>o&&i[c]===i[c-1])continue;const h=i[c];if(h>a)break;l.push(h),yield*r(c+1,l,a-h),l.pop()}}yield*r(0,[],e)}"
+        }
+      }
+    },
+    "CustomComponentInstance": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "CustomComponentInstance"
+      },
+      "references": [
+        "CustomComponentInstance",
+        "SetParamsArgs.instance",
+        "InitializeArgs.instance",
+        "InitializeArgs.puzzle.instance",
+        "ValidateArgs.instance",
+        "ValidateArgs.puzzle.instance",
+        "UpdateArgs.instance",
+        "UpdateArgs.puzzle.instance"
+      ],
+      "ownProperties": {
+        "cellIds": {
+          "type": "array",
+          "item": {
+            "type": "scalar",
+            "value": 23
+          }
+        },
+        "cells": {
+          "type": "array",
+          "item": {
+            "type": "scalar",
+            "value": 23
+          }
+        },
+        "name": {
+          "type": "scalar",
+          "value": "DebuggerName"
+        },
+        "allowsEmptyCells": {
+          "type": "magic",
+          "get": "get allowsEmptyCells(){return!1}",
+          "value": {
+            "type": "scalar",
+            "value": false
+          }
+        },
+        "getExclusionGroup": {
+          "type": "function",
+          "code": "getExclusionGroup(e){return[]}"
+        },
+        "getIsDone": {
+          "type": "function",
+          "code": "getIsDone(e){return this.cellIds.some(t=>e.cells[t].value===void 0)?!1:this.validateDuringSolve?this.validate(e).valid:!1}"
+        },
+        "initialize": {
+          "type": "function",
+          "code": "*initialize(e){if(this.getExclusionGroup!==D.prototype.getExclusionGroup||this.onValueSet!==D.prototype.onValueSet)for(const t of this.cellIds){const n=e.cells[t].value;if(n!==void 0){yield*this.onValueSet(e,t,n);const i=Ne([...this.getExclusionGroup(t)],t);yield me(n,i)}}yield*this.update(e)}"
+        },
+        "onValueSet": {
+          "type": "function",
+          "code": "*onValueSet(e,t,n){}"
+        },
+        "update": {
+          "type": "function",
+          "code": "*update(e){}"
+        },
+        "validate": {
+          "type": "function",
+          "code": "validate(e){return C}"
+        },
+        "validateDuringSolve": {
+          "type": "magic",
+          "get": "get validateDuringSolve(){return!1}",
+          "value": {
+            "type": "scalar",
+            "value": true
+          }
+        }
+      }
+    },
+    "CustomComponentScope": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "CustomComponentScope"
+      },
+      "references": ["CustomComponentScope"],
+      "ownProperties": {
+        "customComponents": {
+          "type": "object",
+          "reference": {
+            "type": "reference",
+            "id": "#030"
+          },
+          "references": ["CustomComponentScope.customComponents"]
+        },
+        "helpers": {
+          "type": "reference",
+          "id": "CustomComponentScopeHelpers"
+        }
+      },
+      "class": {
+        "type": "reference",
+        "id": "GlobalScope"
+      }
+    },
+    "CustomComponentScopeHelpers": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "CustomComponentScopeHelpers"
+      },
+      "references": [
+        "CustomComponentScopeHelpers",
+        "CustomComponentScope.helpers",
+        "InitializeArgs.puzzle.helpers",
+        "ValidateArgs.puzzle.helpers",
+        "UpdateArgs.puzzle.helpers"
+      ],
+      "ownProperties": {
+        "geometry": {
+          "type": "reference",
+          "id": "InstanceOfCustomComponentScopeGeometryHelper"
+        }
+      },
+      "class": {
+        "type": "reference",
+        "id": "Helpers"
+      }
+    },
+    "GetAffectedCellsArgs": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "GetAffectedCellsArgs"
+      },
+      "references": ["GetAffectedCellsArgs"]
+    },
+    "InitialCodePuzzle": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InitialCodePuzzle"
+      },
+      "references": ["InitialCodePuzzle", "InitialCodeScope.puzzle", "InitialCodeScope.sudoku"],
+      "ownProperties": {
+        "helpers": {
+          "type": "reference",
+          "id": "InitialCodeScopeHelpers"
+        },
+        "addConstraintComponent": {
+          "type": "function",
+          "code": "addConstraintComponent(e){this.state.addConstraintComponent(e)}"
+        },
+        "getConstraintComponentsAt": {
+          "type": "function",
+          "code": "getConstraintComponentsAt(e){return this.state.getConstraintComponentsAt(e)}"
+        },
+        "removeConstraintComponent": {
+          "type": "function",
+          "code": "removeConstraintComponent(e){this.state.removeConstraintComponent(e)}"
+        },
+        "setRegions": {
+          "type": "function",
+          "code": "setRegions(e){this.state.setRegions(e)}"
+        }
+      },
+      "class": {
+        "type": "reference",
+        "id": "PuzzleBase"
+      }
+    },
+    "InitialCodeScope": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InitialCodeScope"
+      },
+      "references": ["InitialCodeScope"],
+      "ownProperties": {
+        "helpers": {
+          "type": "reference",
+          "id": "InitialCodeScopeHelpers"
+        },
+        "input": {
+          "type": "object",
+          "reference": {
+            "type": "reference",
+            "id": "#028"
+          },
+          "references": ["InitialCodeScope.input"],
+          "ownProperties": {
+            "groups": {
+              "type": "array",
+              "item": {
+                "type": "object",
+                "reference": {
+                  "type": "reference",
+                  "id": "#029"
+                },
+                "references": ["InitialCodeScope.input.groups[0]"],
+                "ownProperties": {
+                  "cells": {
+                    "type": "array",
+                    "item": {
+                      "type": "scalar",
+                      "value": 42
+                    }
+                  },
+                  "value": {
+                    "type": "scalar",
+                    "value": "val"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "puzzle": {
+          "type": "reference",
+          "id": "InitialCodePuzzle"
+        },
+        "sudoku": {
+          "type": "reference",
+          "id": "InitialCodePuzzle"
+        }
+      },
+      "class": {
+        "type": "reference",
+        "id": "GlobalScope"
+      }
+    },
+    "InitialCodeScopeHelpers": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InitialCodeScopeHelpers"
+      },
+      "references": ["InitialCodeScopeHelpers", "InitialCodePuzzle.helpers", "InitialCodeScope.helpers"],
+      "ownProperties": {
+        "geometry": {
+          "type": "object",
+          "reference": {
+            "type": "reference",
+            "id": "#008"
+          },
+          "references": ["InitialCodeScopeHelpers.geometry"],
+          "ownProperties": {
+            "sudoku": {
+              "type": "reference",
+              "id": "PuzzleState"
+            },
+            "getSubsetsPerRegion": {
+              "type": "function",
+              "code": "getSubsetsPerRegion(e){const t=new Map;for(const n of new Set(e)){const i=this.sudoku.getRegionIdAt(n);t.has(i)||t.set(i,[]),t.get(i).push(n)}return t}"
+            }
+          },
+          "class": {
+            "type": "reference",
+            "id": "CustomComponentScopeGeometryHelper"
+          }
+        },
+        "lines": {
+          "type": "object",
+          "reference": {
+            "type": "reference",
+            "id": "#009"
+          },
+          "references": ["InitialCodeScopeHelpers.lines"],
+          "ownProperties": {
+            "getAllPairsAlongLines": {
+              "type": "function",
+              "code": "*getAllPairsAlongLines(e){for(const t of e)for(let n=0;n<t.length-1;n++)yield[t[n],t[n+1]]}"
+            },
+            "getCellsBetweenLineEnds": {
+              "type": "function",
+              "code": "getCellsBetweenLineEnds(e){return e.slice(1,e.length-1)}"
+            },
+            "getLineEnds": {
+              "type": "function",
+              "code": "getLineEnds(e){return[e[0],e.at(-1)]}"
+            }
+          }
+        },
+        "misc": {
+          "type": "object",
+          "reference": {
+            "type": "reference",
+            "id": "#010"
+          },
+          "references": ["InitialCodeScopeHelpers.misc"],
+          "ownProperties": {
+            "cellIdHelper": {
+              "type": "reference",
+              "id": "InstanceOfCellIdsHelper"
+            },
+            "cornerIdHelper": {
+              "type": "reference",
+              "id": "InstanceOfCornerIdsHelper"
+            },
+            "edgeIdHelper": {
+              "type": "reference",
+              "id": "InstanceOfEdgeIdsHelper"
+            },
+            "geometryHelper": {
+              "type": "reference",
+              "id": "InstanceOfCustomComponentScopeGeometryHelper"
+            },
+            "outerCellIdHelper": {
+              "type": "reference",
+              "id": "InstanceOfOuterCellIdsHelper"
+            },
+            "spec": {
+              "type": "reference",
+              "id": "InstanceOfPuzzleSpec"
+            },
+            "getCellGroupsFromLines": {
+              "type": "function",
+              "code": "getCellGroupsFromLines(e){const t=[],n=new Q(e),i=new Set(n.getPoints());for(;i.size>0;){const r=Y(i),l=n.getComponentContainingPoint(r).getPoints();t.push(l);for(const a of l)i.delete(a)}return t}"
+            },
+            "getEdgesForNegativeConstraint": {
+              "type": "function",
+              "code": "*getEdgesForNegativeConstraint(e){const t=new Set;for(const r of e)t.add(r.edge);const{width:n,height:i}=this.spec.size;for(let r=0;r<i;r++)for(let o=0;o<n;o++){if(o<n-1){const l=this.edgeIdHelper.getIdFromCoords({x:o+1,y:r+.5});t.has(l)||(yield l)}if(r<i-1){const l=this.edgeIdHelper.getIdFromCoords({x:o+.5,y:r+1});t.has(l)||(yield l)}}}"
+            }
+          }
+        }
+      },
+      "class": {
+        "type": "reference",
+        "id": "Helpers"
+      }
+    },
+    "InitializeArgs": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InitializeArgs"
+      },
+      "references": ["InitializeArgs"],
+      "ownProperties": {
+        "instance": {
+          "type": "reference",
+          "id": "CustomComponentInstance"
+        },
+        "puzzle": {
+          "type": "reference",
+          "id": "InstanceOfCustomComponentPuzzleBase"
+        }
+      }
+    },
+    "InstanceOfCellIdsHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfCellIdsHelper"
+      },
+      "references": [
+        "NestedGeometryHelperValue.cellIdHelper",
+        "NestedGeometryHelperValue.cornerIdHelper.cellIdHelper",
+        "NestedGeometryHelperValue.edgeIdHelper.cellIdHelper",
+        "InitialCodeScopeHelpers.cellIds",
+        "InitialCodeScopeHelpers.geometry.cellIdHelper",
+        "InitialCodeScopeHelpers.misc.cellIdHelper",
+        "CustomComponentScopeHelpers.cellIds",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.cellIdHelper",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.cornerIdHelper.cellIdHelper",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.edgeIdHelper.cellIdHelper"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "CellIdsHelper"
+      }
+    },
+    "InstanceOfConnectivityHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfConnectivityHelper"
+      },
+      "references": ["InitialCodeScopeHelpers.connectivity", "CustomComponentScopeHelpers.connectivity"],
+      "class": {
+        "type": "reference",
+        "id": "ConnectivityHelper"
+      }
+    },
+    "InstanceOfCornerIdsHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfCornerIdsHelper"
+      },
+      "references": [
+        "NestedGeometryHelperValue.cornerIdHelper",
+        "InitialCodeScopeHelpers.cornerIds",
+        "InitialCodeScopeHelpers.geometry.cornerIdHelper",
+        "InitialCodeScopeHelpers.misc.cornerIdHelper",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.cornerIdHelper",
+        "CustomComponentScopeHelpers.cornerIds"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "CornerIdsHelper"
+      }
+    },
+    "InstanceOfCustomComponentPuzzleBase": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfCustomComponentPuzzleBase"
+      },
+      "references": ["InitializeArgs.puzzle", "ValidateArgs.puzzle", "UpdateArgs.puzzle"],
+      "class": {
+        "type": "reference",
+        "id": "CustomComponentPuzzleBase"
+      }
+    },
+    "InstanceOfCustomComponentScopeGeometryHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfCustomComponentScopeGeometryHelper"
+      },
+      "references": [
+        "NestedGeometryHelperValue",
+        "InitialCodeScopeHelpers.connectivity.geometryHelper",
+        "InitialCodeScopeHelpers.misc.geometryHelper",
+        "InitialCodeScopeHelpers.naming.geometryHelper",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper",
+        "CustomComponentScopeHelpers.geometry",
+        "CustomComponentScopeHelpers.naming.geometryHelper"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "CustomComponentScopeGeometryHelper"
+      }
+    },
+    "InstanceOfDigitsHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfDigitsHelper"
+      },
+      "references": [
+        "InitialCodeScopeHelpers.digits",
+        "InitialCodeScopeHelpers.naming.digitsHelper",
+        "CustomComponentScopeHelpers.digits",
+        "CustomComponentScopeHelpers.naming.digitsHelper"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "DigitsHelper"
+      }
+    },
+    "InstanceOfEdgeIdsHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfEdgeIdsHelper"
+      },
+      "references": [
+        "NestedGeometryHelperValue.edgeIdHelper",
+        "InitialCodeScopeHelpers.edgeIds",
+        "InitialCodeScopeHelpers.geometry.edgeIdHelper",
+        "InitialCodeScopeHelpers.misc.edgeIdHelper",
+        "InitialCodeScopeHelpers.naming.edgeIdHelper",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.edgeIdHelper",
+        "CustomComponentScopeHelpers.edgeIds",
+        "CustomComponentScopeHelpers.naming.edgeIdHelper"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "EdgeIdsHelper"
+      }
+    },
+    "InstanceOfEnv": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfEnv"
+      },
+      "references": ["InitialCodeEnv", "InitialCodeScope.env", "CustomComponentEnv", "CustomComponentScope.env"],
+      "class": {
+        "type": "reference",
+        "id": "Env"
+      }
+    },
+    "InstanceOfNamingHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfNamingHelper"
+      },
+      "references": ["InitialCodeScopeHelpers.naming", "CustomComponentScopeHelpers.naming"],
+      "class": {
+        "type": "reference",
+        "id": "NamingHelper"
+      }
+    },
+    "InstanceOfOuterCellIdsHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfOuterCellIdsHelper"
+      },
+      "references": [
+        "NestedGeometryHelperValue.outerCellIdHelper",
+        "InitialCodeScopeHelpers.geometry.outerCellIdHelper",
+        "InitialCodeScopeHelpers.misc.outerCellIdHelper",
+        "InitialCodeScopeHelpers.naming.outerCellIdHelper",
+        "InitialCodeScopeHelpers.outerCellIds",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.outerCellIdHelper",
+        "CustomComponentScopeHelpers.naming.outerCellIdHelper",
+        "CustomComponentScopeHelpers.outerCellIds"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "OuterCellIdsHelper"
+      }
+    },
+    "InstanceOfPuzzleSpec": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfPuzzleSpec"
+      },
+      "references": [
+        "InitialCodePuzzleSpec",
+        "NestedGeometryHelperValue.cellIdHelper.spec",
+        "NestedGeometryHelperValue.cornerIdHelper.spec",
+        "NestedGeometryHelperValue.edgeIdHelper.spec",
+        "NestedGeometryHelperValue.spec",
+        "InitialCodeScopeHelpers.connectivity.spec",
+        "InitialCodeScopeHelpers.geometry.spec",
+        "InitialCodeScopeHelpers.misc.spec",
+        "InitialCodeScopeHelpers.naming.spec",
+        "InitialCodePuzzle.spec",
+        "CustomComponentPuzzleSpec",
+        "CustomComponentScopeHelpers.cellIds.spec",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.cornerIdHelper.spec",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.edgeIdHelper.spec",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.spec",
+        "CustomComponentScopeHelpers.connectivity.spec",
+        "CustomComponentScopeHelpers.naming.spec",
+        "InitializeArgs.puzzle.spec",
+        "ValidateArgs.puzzle.spec",
+        "UpdateArgs.puzzle.spec"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "PuzzleSpec"
+      }
+    },
+    "InstanceOfPuzzleSpecSize": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfPuzzleSpecSize"
+      },
+      "references": [
+        "InitialCodePuzzleSpecSize",
+        "InitialCodePuzzleSpec.size",
+        "CustomComponentPuzzleSpecSize",
+        "CustomComponentPuzzleSpec.size"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "PuzzleSpecSize"
+      }
+    },
+    "InstanceOfSumsHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfSumsHelper"
+      },
+      "references": [
+        "InitialCodeScopeHelpers.sums",
+        "InitialCodeScopeHelpers.xSums.sumHelper",
+        "CustomComponentScopeHelpers.sums",
+        "CustomComponentScopeHelpers.xSums.sumHelper"
+      ],
+      "class": {
+        "type": "reference",
+        "id": "SumsHelper"
+      }
+    },
+    "InstanceOfXSumsHelper": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "InstanceOfXSumsHelper"
+      },
+      "references": ["InitialCodeScopeHelpers.xSums", "CustomComponentScopeHelpers.xSums"],
+      "class": {
+        "type": "reference",
+        "id": "XSumsHelper"
+      }
+    },
+    "IterationUtils": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "IterationUtils"
+      },
+      "references": ["IterationUtils", "InitialCodeScope.IterationUtils", "CustomComponentScope.IterationUtils"],
+      "ownProperties": {
+        "getBest": {
+          "type": "function",
+          "code": "function Mn(s,e,t){let n=-1/0,i=t;for(const r of s){const o=e(r);o>n&&(i=r,n=o)}return i}"
+        },
+        "getCombinations": {
+          "type": "function",
+          "code": "function*Qt(s,e){const t=[...s],n=t.length;if(e>n)return;const i=Array.from({length:e},(r,o)=>o);for(yield i.map(r=>t[r]);;){let r=e-1;for(;r>=0&&i[r]===r+n-e;)r--;if(r===-1)return;i[r]++;for(let o=r+1;o<e;o++)i[o]=i[o-1]+1;yield i.map(o=>t[o])}}"
+        },
+        "getCounts": {
+          "type": "function",
+          "code": "function rt(s){const e=new Map;for(const t of s)e.set(t,(e.get(t)||0)+1);return e}"
+        },
+        "getOne": {
+          "type": "function",
+          "code": "function Ce(s){return s[Symbol.iterator]().next().value}"
+        },
+        "getRange": {
+          "type": "function",
+          "code": "function*On(s,e){for(let t=s;t<e;t++)yield t}"
+        },
+        "getRangeInclusive": {
+          "type": "function",
+          "code": "function*j(s,e){for(let t=s;t<=e;t++)yield t}"
+        }
+      }
+    },
+    "MathUtils": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "MathUtils"
+      },
+      "references": ["MathUtils", "InitialCodeScope.MathUtils", "CustomComponentScope.MathUtils"],
+      "ownProperties": {
+        "clamp": {
+          "type": "function",
+          "code": "function tt(s,e,t){return Math.min(Math.max(e,s),t)}"
+        },
+        "getFactors": {
+          "type": "function",
+          "code": "function nn(s){if(s%1!==0)throw new Error(\"Cannot factorize non-integers\");const e=[];let t=0;for(;t<he.length;){const n=he[t];for(;s%n===0;)e.push(n),s/=n;if(Math.abs(s)===1)return e;t++}for(let n=he[he.length-1]+2;;n+=2)if(jt(n)){for(;s%n===0;)e.push(n),s/=n;if(Math.abs(s)===1)return e}}"
+        },
+        "isPrime": {
+          "type": "function",
+          "code": "function jt(s){if(s<87)return sn.has(s);if(fe.has(s))return fe.get(s);if(s%2===0)return fe.set(s,!1),!1;for(let e=3;e*e<=s;e+=2)if(s%e===0)return fe.set(s,!1),!1;return fe.set(s,!0),!0}"
+        },
+        "lerp": {
+          "type": "function",
+          "code": "function tn(s,e,t){return s+(e-s)*t}"
+        },
+        "mod": {
+          "type": "function",
+          "code": "function Gt(s,e){return(s%e+e)%e}"
+        },
+        "product": {
+          "type": "function",
+          "code": "function en(s){let e=1;for(const t of s)e*=t;return e}"
+        },
+        "sum": {
+          "type": "function",
+          "code": "function zs(s){let e=0;for(const t of s)e+=t;return e}"
+        },
+        "toDegrees": {
+          "type": "function",
+          "code": "function rn(s){return s/Math.PI*180}"
+        },
+        "toRadians": {
+          "type": "function",
+          "code": "function on(s){return s/180*Math.PI}"
+        },
+        "triangularNumber": {
+          "type": "function",
+          "code": "function de(s){return s*(s+1)/2}"
+        }
+      }
+    },
+    "SetParamsArgs": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "SetParamsArgs"
+      },
+      "references": ["SetParamsArgs"],
+      "ownProperties": {
+        "instance": {
+          "type": "reference",
+          "id": "CustomComponentInstance"
+        }
+      }
+    },
+    "SetUtils": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "SetUtils"
+      },
+      "references": ["SetUtils", "InitialCodeScope.SetUtils", "CustomComponentScope.SetUtils"],
+      "ownProperties": {
+        "addAll": {
+          "type": "function",
+          "code": "function ke(s,e){for(const t of e)s.add(t);return s}"
+        },
+        "deleteAll": {
+          "type": "function",
+          "code": "function nt(s,e,t){if(t?.comparator)for(const n of e)for(const i of s)t.comparator(n,i)&&s.delete(i);else for(const n of e)s.delete(n);return s}"
+        },
+        "difference": {
+          "type": "function",
+          "code": "function it(s,e,t){const n=new Set(s);if(t?.comparator)for(const i of e)for(const r of n)t?.comparator(r,i)&&n.delete(r);else for(const i of e)n.delete(i);return n}"
+        },
+        "filter": {
+          "type": "function",
+          "code": "function Ut(s,e){for(const t of s)e.has(t)||s.delete(t);return s}"
+        },
+        "hasAll": {
+          "type": "function",
+          "code": "function Kt(s,e,t){if(t?.comparator){const n=t.comparator;for(const i of e){let r=!1;for(const o of s)if(n(o,i)){r=!0;break}if(!r)return!1}return!0}for(const n of e)if(!s.has(n))return!1;return!0}"
+        },
+        "hasSome": {
+          "type": "function",
+          "code": "function Yt(s,e,t){if(t?.comparator){const n=t.comparator;for(const i of e)for(const r of s)if(n(r,i))return!0;return!1}for(const n of e)if(s.has(n))return!0;return!1}"
+        },
+        "hasSomeWhere": {
+          "type": "function",
+          "code": "function An(s,e){for(const t of s)if(e(t))return!0;return!1}"
+        },
+        "intersection": {
+          "type": "function",
+          "code": "function bn(s,e){const t=new Set(s);for(const n of s)e.has(n)||t.delete(n);return t}"
+        },
+        "isEqual": {
+          "type": "function",
+          "code": "function $n(s,e,t){return s.size!==e.size?!1:Kt(s,e,t)}"
+        },
+        "symmetricDifference": {
+          "type": "function",
+          "code": "function In(s,e){return\"has\"in s&&\"has\"in e?Sn(s,e):Tt(it(s,e),it(e,s))}"
+        },
+        "takeOne": {
+          "type": "function",
+          "code": "function Y(s){for(const e of s)return s.delete(e),e}"
+        },
+        "union": {
+          "type": "function",
+          "code": "function Tt(s,e){const t=new Set(s);for(const n of e)t.add(n);return t}"
+        }
+      }
+    },
+    "UpdateArgs": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "UpdateArgs"
+      },
+      "references": ["UpdateArgs"],
+      "ownProperties": {
+        "instance": {
+          "type": "reference",
+          "id": "CustomComponentInstance"
+        },
+        "puzzle": {
+          "type": "reference",
+          "id": "InstanceOfCustomComponentPuzzleBase"
+        }
+      }
+    },
+    "ValidateArgs": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "ValidateArgs"
+      },
+      "references": ["ValidateArgs"],
+      "ownProperties": {
+        "instance": {
+          "type": "reference",
+          "id": "CustomComponentInstance"
+        },
+        "puzzle": {
+          "type": "reference",
+          "id": "InstanceOfCustomComponentPuzzleBase"
+        }
+      }
+    },
+    "Vector2Funcs": {
+      "type": "object",
+      "reference": {
+        "type": "reference",
+        "id": "Vector2Funcs"
+      },
+      "references": ["Vector2Funcs", "InitialCodeScope.Vector2Funcs", "CustomComponentScope.Vector2Funcs"],
+      "ownProperties": {
+        "compareVectors": {
+          "type": "function",
+          "code": "function is(s,e){return s.y<e.y?-1:s.y>e.y?1:Math.sign(s.x-e.x)}"
+        },
+        "difference": {
+          "type": "function",
+          "code": "function Wn(s,e){return{x:s.x-e.x,y:s.y-e.y}}"
+        },
+        "getAngle": {
+          "type": "function",
+          "code": "function qn(s,e){return Math.acos(ss(new ae(s.x,s.y).normalize(),new ae(e.x,e.y).normalize()))}"
+        },
+        "getAverage": {
+          "type": "function",
+          "code": "function Tn(s){const e={x:0,y:0};let t=0;for(const n of s)e.x+=n.x,e.y+=n.y,t++;return e.x/=t,e.y/=t,e}"
+        },
+        "getClamped": {
+          "type": "function",
+          "code": "function Xn(s,e){return{x:tt(s.x,e.x,e.x+e.width),y:tt(s.y,e.y,e.y+e.height)}}"
+        },
+        "getDistance": {
+          "type": "function",
+          "code": "function jn(s,e){return Math.hypot(s.x-e.x,s.y-e.y)}"
+        },
+        "getDotProduct": {
+          "type": "function",
+          "code": "function ss(s,e){return s.x*e.x+s.y*e.y}"
+        },
+        "getMagnitude": {
+          "type": "function",
+          "code": "function ts(s){return Math.hypot(s.x,s.y)}"
+        },
+        "getManhattanDistance": {
+          "type": "function",
+          "code": "function ns(s,e){return Math.abs(s.x-e.x)+Math.abs(s.y-e.y)}"
+        },
+        "getRotated": {
+          "type": "function",
+          "code": "function Vn(s,e){const t=Math.cos(e),n=Math.sin(e);return{x:s.x*t-s.y*n,y:s.x*n+s.y*t}}"
+        },
+        "isVectorGreaterThan": {
+          "type": "function",
+          "code": "function Un(s,e){return is(s,e)>0}"
+        },
+        "normalized": {
+          "type": "function",
+          "code": "function Bn(s){const e=1/ts(s);return{x:s.x*e,y:s.y*e}}"
+        },
+        "scaled": {
+          "type": "function",
+          "code": "function En(s,e){return{x:s.x*e,y:s.y*e}}"
+        },
+        "scaledSum": {
+          "type": "function",
+          "code": "function Gn(s,e,t){return{x:s.x+e.x*t,y:s.y+e.y*t}}"
+        },
+        "sum": {
+          "type": "function",
+          "code": "function Hn(s,e){return{x:s.x+e.x,y:s.y+e.y}}"
+        }
+      }
+    }
+  },
+  "class": {
+    "CellIdsHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "CellIdsHelper"
+      },
+      "references": [
+        "CellIdsHelper",
+        "NestedGeometryHelperValue.cellIdHelper.class",
+        "CustomComponentScopeHelpers.cellIds.class"
+      ],
+      "ownProperties": {
+        "areValidCoords": {
+          "type": "function",
+          "code": "areValidCoords({x:e,y:t}){return e>=0&&t>=0&&e<this.width&&t<this.height}"
+        },
+        "getAllCellIds": {
+          "type": "function",
+          "code": "getAllCellIds(){return Array.from({length:this.width*this.height},(e,t)=>t)}"
+        },
+        "getCellCenterFromId": {
+          "type": "function",
+          "code": "getCellCenterFromId(e){return{x:this.getX(e)+.5,y:this.getY(e)+.5}}"
+        },
+        "getCoordsFromId": {
+          "type": "function",
+          "code": "getCoordsFromId(e){return{x:this.getX(e),y:this.getY(e)}}"
+        },
+        "getIdFromCoords": {
+          "type": "function",
+          "code": "getIdFromCoords(e){return e.x+e.y*this.width}"
+        },
+        "getIdFromCoordsSafe": {
+          "type": "function",
+          "code": "getIdFromCoordsSafe(e){if(!(e.x<0||e.y<0||e.x>=this.width||e.y>=this.height))return this.getIdFromCoords(e)}"
+        },
+        "getX": {
+          "type": "function",
+          "code": "getX(e){return e%this.width}"
+        },
+        "getY": {
+          "type": "function",
+          "code": "getY(e){return Math.floor(e/this.width)}"
+        },
+        "height": {
+          "type": "scalar",
+          "value": 9
+        },
+        "width": {
+          "type": "scalar",
+          "value": 9
+        },
+        "spec": {
+          "type": "reference",
+          "id": "InstanceOfPuzzleSpec"
+        }
+      }
+    },
+    "ConnectivityHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "ConnectivityHelper"
+      },
+      "references": [
+        "ConnectivityHelper",
+        "InitialCodeScopeHelpers.connectivity.class",
+        "CustomComponentScopeHelpers.connectivity.class"
+      ],
+      "ownProperties": {
+        "getOrthogonallyConnectedGroups": {
+          "type": "function",
+          "code": "getOrthogonallyConnectedGroups(e){const t=new Set(e),n=new Q;for(const i of e)n.addPoint(i);for(const i of e)for(const r of this.geometryHelper.getOrthogonallyAdjacentCells(i))t.has(r)&&n.addEdge(i,r);return n.getAllComponents()}"
+        },
+        "spec": {
+          "type": "reference",
+          "id": "InstanceOfPuzzleSpec"
+        },
+        "geometryHelper": {
+          "type": "reference",
+          "id": "InstanceOfCustomComponentScopeGeometryHelper"
+        }
+      }
+    },
+    "CornerIdsHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "CornerIdsHelper"
+      },
+      "references": [
+        "CornerIdsHelper",
+        "NestedGeometryHelperValue.cornerIdHelper.class",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.cornerIdHelper.class"
+      ],
+      "ownProperties": {
+        "getCoordsFromId": {
+          "type": "function",
+          "code": "getCoordsFromId(e){return{x:e%(this.spec.size.width+1),y:Math.floor(e/(this.spec.size.width+1))}}"
+        },
+        "getIdFromCornerCoords": {
+          "type": "function",
+          "code": "getIdFromCornerCoords(e){return e.x+e.y*(this.spec.size.width+1)}"
+        },
+        "spec": {
+          "type": "reference",
+          "id": "InstanceOfPuzzleSpec"
+        },
+        "cellIdHelper": {
+          "type": "reference",
+          "id": "InstanceOfCellIdsHelper"
+        }
+      }
+    },
+    "CustomComponentPuzzleBase": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "CustomComponentPuzzleBase"
+      },
+      "references": [
+        "CustomComponentPuzzleBase",
+        "InitializeArgs.puzzle.class",
+        "ValidateArgs.puzzle.class",
+        "UpdateArgs.puzzle.class"
+      ],
+      "ownProperties": {
+        "filterCandidatesInCell": {
+          "type": "function",
+          "code": "filterCandidatesInCell(e,t){return A(e,t)}"
+        },
+        "filterCandidatesInCells": {
+          "type": "function",
+          "code": "filterCandidatesInCells(e,t){return R(e,t)}"
+        },
+        "getCandidates": {
+          "type": "function",
+          "code": "getCandidates(e){return new b(this.state.cells[e].candidates)}"
+        },
+        "getCandidatesBitMask": {
+          "type": "function",
+          "code": "getCandidatesBitMask(e){return this.state.cells[e].candidates}"
+        },
+        "getCellsAreFilled": {
+          "type": "function",
+          "code": "getCellsAreFilled(e){for(const t of e)if(!this.hasValue(t))return!1;return!0}"
+        },
+        "getFriendlyCandidates": {
+          "type": "function",
+          "code": "getFriendlyCandidates(e){const t=this.getFriendlyDigitsForCell(e);return t.intersect(this.getCandidates(e)),t}"
+        },
+        "getValue": {
+          "type": "function",
+          "code": "getValue(e){return this.state.cells[e].value}"
+        },
+        "hasValue": {
+          "type": "function",
+          "code": "hasValue(e){return this.state.cells[e].value!==void 0}"
+        },
+        "removeCandidateFromCell": {
+          "type": "function",
+          "code": "removeCandidateFromCell(e,t){return re(e,t)}"
+        },
+        "removeCandidateFromCells": {
+          "type": "function",
+          "code": "removeCandidateFromCells(e,t){return me(e,t)}"
+        },
+        "removeCandidatesFromCell": {
+          "type": "function",
+          "code": "removeCandidatesFromCell(e,t){return Pe(e,t)}"
+        },
+        "removeCandidatesFromCells": {
+          "type": "function",
+          "code": "removeCandidatesFromCells(e,t){return oe(e,t)}"
+        },
+        "removeComponent": {
+          "type": "function",
+          "code": "removeComponent(){return k()}"
+        },
+        "replaceComponent": {
+          "type": "function",
+          "code": "replaceComponent(e,t){return P(t??e)}"
+        },
+        "stop": {
+          "type": "function",
+          "code": "stop(e,t){return S(e||`unable to satisfy ${this.instance.name}`,t)}"
+        },
+        "helpers": {
+          "type": "reference",
+          "id": "CustomComponentScopeHelpers"
+        },
+        "instance": {
+          "type": "reference",
+          "id": "CustomComponentInstance"
+        }
+      },
+      "extends": {
+        "type": "reference",
+        "id": "PuzzleBase"
+      }
+    },
+    "CustomComponentScopeGeometryHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "CustomComponentScopeGeometryHelper"
+      },
+      "references": [
+        "InitialCodeScopeGeometryHelper.extends",
+        "CustomComponentScopeGeometryHelper",
+        "NestedGeometryHelperValue.class",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.class"
+      ],
+      "ownProperties": {
+        "getAdjacentCells": {
+          "type": "function",
+          "code": "*getAdjacentCells(e,t=!1){yield*this.getOrthogonallyAdjacentCells(e),t&&(yield*this.getDiagonallyAdjacentCells(e))}"
+        },
+        "getAllColumns": {
+          "type": "function",
+          "code": "*getAllColumns(){for(let e=0;e<this.width;e++)yield[...this.getCellsInColumn(e)]}"
+        },
+        "getAllDiagonallyAdjacentPairs": {
+          "type": "function",
+          "code": "*getAllDiagonallyAdjacentPairs(){yield*this.getAllPairsWithOffset(1,-1),yield*this.getAllPairsWithOffset(1,1)}"
+        },
+        "getAllDominoes": {
+          "type": "function",
+          "code": "*getAllDominoes(){yield*this.getAllPairsWithOffset(1,0),yield*this.getAllPairsWithOffset(0,1)}"
+        },
+        "getAllKingsMovePairs": {
+          "type": "function",
+          "code": "*getAllKingsMovePairs(){yield*this.getAllPairsWithOffset(1,0),yield*this.getAllPairsWithOffset(0,1),yield*this.getAllPairsWithOffset(1,-1),yield*this.getAllPairsWithOffset(1,1)}"
+        },
+        "getAllKnightMovePairs": {
+          "type": "function",
+          "code": "*getAllKnightMovePairs(){yield*this.getAllPairsWithOffset(1,-2),yield*this.getAllPairsWithOffset(1,2),yield*this.getAllPairsWithOffset(2,-1),yield*this.getAllPairsWithOffset(2,1)}"
+        },
+        "getAllPairsWithOffset": {
+          "type": "function",
+          "code": "*getAllPairsWithOffset(e,t){for(let n=0;n<this.height;n++)for(let i=0;i<this.width;i++){const r={x:i+e,y:n+t};r.x<0||r.y<0||r.x>=this.width||r.y>=this.height||(yield[this.cellIdHelper.getIdFromCoords({x:i,y:n}),this.cellIdHelper.getIdFromCoords(r)])}}"
+        },
+        "getAllQuadruples": {
+          "type": "function",
+          "code": "*getAllQuadruples(){for(let e=0;e<this.height-1;e++)for(let t=0;t<this.width-1;t++)yield[this.cellIdHelper.getIdFromCoords({x:t,y:e}),this.cellIdHelper.getIdFromCoords({x:t+1,y:e}),this.cellIdHelper.getIdFromCoords({x:t,y:e+1}),this.cellIdHelper.getIdFromCoords({x:t+1,y:e+1})]}"
+        },
+        "getAllRows": {
+          "type": "function",
+          "code": "*getAllRows(){for(let e=0;e<this.height;e++)yield[...this.getCellsInRow(e)]}"
+        },
+        "getCellsAreKingsMoveApart": {
+          "type": "function",
+          "code": "getCellsAreKingsMoveApart(e,t){const n=this.cellIdHelper.getCoordsFromId(e),i=this.cellIdHelper.getCoordsFromId(t),r=Math.abs(n.x-i.x),o=Math.abs(n.y-i.y);return r===0&&o===0?!1:r<=1&&o<=1}"
+        },
+        "getCellsInColumn": {
+          "type": "function",
+          "code": "*getCellsInColumn(e){for(let t=0;t<this.height;t++)yield this.cellIdHelper.getIdFromCoords({x:e,y:t})}"
+        },
+        "getCellsInColumnOfCell": {
+          "type": "function",
+          "code": "*getCellsInColumnOfCell(e){yield*this.getCellsInColumn(this.cellIdHelper.getX(e))}"
+        },
+        "getCellsInDiagonal": {
+          "type": "function",
+          "code": "*getCellsInDiagonal(e,t){for(const n of this.getCoordsInDiagonal(e,t))yield this.cellIdHelper.getIdFromCoords(n)}"
+        },
+        "getCellsInRow": {
+          "type": "function",
+          "code": "*getCellsInRow(e){for(let t=0;t<this.width;t++)yield this.cellIdHelper.getIdFromCoords({x:t,y:e})}"
+        },
+        "getCellsInRowOfCell": {
+          "type": "function",
+          "code": "*getCellsInRowOfCell(e){yield*this.getCellsInRow(this.cellIdHelper.getY(e))}"
+        },
+        "getCellsKnightsMoveAwayFromCell": {
+          "type": "function",
+          "code": "*getCellsKnightsMoveAwayFromCell(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>=1&&n>=2&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n-2})),t<this.width-1&&n>=2&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n-2})),t>=2&&n>=1&&(yield this.cellIdHelper.getIdFromCoords({x:t-2,y:n-1})),t<this.width-2&&n>=1&&(yield this.cellIdHelper.getIdFromCoords({x:t+2,y:n-1})),t>=2&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t-2,y:n+1})),t<this.width-2&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+2,y:n+1})),t>=1&&n<this.height-2&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n+2})),t<this.width-1&&n<this.height-2&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n+2}))}"
+        },
+        "getCellsPointedAtByOuterClue": {
+          "type": "function",
+          "code": "*getCellsPointedAtByOuterClue(e,t){for(const n of this.getCoordsPointedAtByOuterClue(e,t))yield this.cellIdHelper.getIdFromCoords(n)}"
+        },
+        "getCellsTouchingCorner": {
+          "type": "function",
+          "code": "*getCellsTouchingCorner(e){const t=this.cornerIdHelper.getCoordsFromId(e),n=[];for(let i=-1;i<=0;i++)for(let r=-1;r<=0;r++){const o=this.cellIdHelper.getIdFromCoordsSafe({x:t.x+r,y:t.y+i});o!==void 0&&(yield o)}return n}"
+        },
+        "getCellsTouchingEdge": {
+          "type": "function",
+          "code": "getCellsTouchingEdge(e){const{x:t,y:n}=this.edgeIdHelper.getCoordsFromId(e);return[{x:Math.floor(t-.5),y:Math.floor(n-.5)},{x:Math.ceil(t-.5),y:Math.ceil(n-.5)}].map(i=>this.cellIdHelper.getIdFromCoords(i))}"
+        },
+        "getCoordsInDiagonal": {
+          "type": "function",
+          "code": "*getCoordsInDiagonal(e,t){const n=e===$.NegativeDiagonal?1:-1;t===void 0&&(t=e===$.NegativeDiagonal?0:this.width-1);for(let i=0;i<this.height;i++){const r=t+i*n;if(r<0||r>=this.width)break;yield{x:r,y:i}}}"
+        },
+        "getCoordsPointedAtByOuterClue": {
+          "type": "function",
+          "code": "*getCoordsPointedAtByOuterClue(e,t){const n=this.outerCellIdHelper.getAllAttributes(e);let{x:i,y:r}=n;const{side:o}=n;if(t){const l=Yn[`${o}_${t}`];if(!l)return;for(i+=l.x,r+=l.y;i>=0&&r>=0&&i<this.width&&r<this.height;)yield{x:i,y:r},i+=l.x,r+=l.y}else switch(o){case p.Top:{for(let l=0;l<this.height;l++)yield{x:i,y:l};return}case p.Right:for(let l=this.width-1;l>=0;l--)yield{x:l,y:r};return;case p.Bottom:for(let l=this.height-1;l>=0;l--)yield{x:i,y:l};return;case p.Left:for(let l=0;l<this.width;l++)yield{x:l,y:r};return;case p.TopLeft:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:a,y:a};return}case p.TopRight:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:this.width-1-a,y:a};return}case p.BottomRight:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:a,y:this.height-1-a};return}case p.BottomLeft:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:this.width-1-a,y:this.height-1-a}}}}"
+        },
+        "getDiagonallyAdjacentCells": {
+          "type": "function",
+          "code": "*getDiagonallyAdjacentCells(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>0&&n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n-1})),t<this.width-1&&n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n-1})),t>0&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n+1})),t<this.width-1&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n+1}))}"
+        },
+        "getManhattanDistanceBetweenCells": {
+          "type": "function",
+          "code": "getManhattanDistanceBetweenCells(e,t){const n=this.cellIdHelper.getCoordsFromId(e),i=this.cellIdHelper.getCoordsFromId(t);return ns(n,i)}"
+        },
+        "getOrthogonallyAdjacentCells": {
+          "type": "function",
+          "code": "*getOrthogonallyAdjacentCells(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>0&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n})),n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t,y:n-1})),t<this.width-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n})),n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t,y:n+1}))}"
+        },
+        "height": {
+          "type": "scalar",
+          "value": 9
+        },
+        "width": {
+          "type": "scalar",
+          "value": 9
+        },
+        "outerCellIdHelper": {
+          "type": "reference",
+          "id": "InstanceOfOuterCellIdsHelper"
+        },
+        "spec": {
+          "type": "reference",
+          "id": "InstanceOfPuzzleSpec"
+        },
+        "cellIdHelper": {
+          "type": "reference",
+          "id": "InstanceOfCellIdsHelper"
+        },
+        "cornerIdHelper": {
+          "type": "reference",
+          "id": "InstanceOfCornerIdsHelper"
+        },
+        "edgeIdHelper": {
+          "type": "reference",
+          "id": "InstanceOfEdgeIdsHelper"
+        }
+      }
+    },
+    "DigitSet": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "DigitSet"
+      },
+      "references": [
+        "DigitSet",
+        "InitialCodeScope.DigitSet",
+        "InitialCodeScope.SudokuDigitSet",
+        "CustomComponentScope.DigitSet",
+        "CustomComponentScope.SudokuDigitSet"
+      ],
+      "ownProperties": {
+        "getLargestDigit": {
+          "type": "function",
+          "code": "getLargestDigit(){return this.getLargestNumber()}"
+        },
+        "getSmallestDigit": {
+          "type": "function",
+          "code": "getSmallestDigit(){return this.getSmallestNumber()}"
+        }
+      },
+      "extends": {
+        "type": "reference",
+        "id": "SmallNumberSet"
+      }
+    },
+    "DigitsHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "DigitsHelper"
+      },
+      "references": [
+        "DigitsHelper",
+        "InitialCodeScopeHelpers.digits.class",
+        "CustomComponentScopeHelpers.digits.class"
+      ],
+      "ownProperties": {
+        "createEvensDigitSet": {
+          "type": "function",
+          "code": "createEvensDigitSet(){return new b(this.allDigitsMask&1431655765)}"
+        },
+        "createFilteredDigitSet": {
+          "type": "function",
+          "code": "createFilteredDigitSet(e){const t=new b;for(let n=this.minDigit;n<=this.maxDigit;n++)e(n)&&t.add(n);return t}"
+        },
+        "createFullDigitSet": {
+          "type": "function",
+          "code": "createFullDigitSet(){return new b(this.allDigitsMask)}"
+        },
+        "createModuloDigitSet": {
+          "type": "function",
+          "code": "createModuloDigitSet(e,t){const n=new b;for(let i=this.minDigit;i<=this.maxDigit;i++)i%e===t&&n.add(i);return n}"
+        },
+        "createOddsDigitSet": {
+          "type": "function",
+          "code": "createOddsDigitSet(){return new b(this.allDigitsMask&2863311530)}"
+        },
+        "allDigitsMask": {
+          "type": "scalar",
+          "value": 1022
+        },
+        "maxDigit": {
+          "type": "scalar",
+          "value": 9
+        },
+        "minDigit": {
+          "type": "scalar",
+          "value": 1
+        }
+      }
+    },
+    "EdgeIdsHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "EdgeIdsHelper"
+      },
+      "references": [
+        "EdgeIdsHelper",
+        "NestedGeometryHelperValue.edgeIdHelper.class",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.edgeIdHelper.class"
+      ],
+      "ownProperties": {
+        "getCoordsFromId": {
+          "type": "function",
+          "code": "getCoordsFromId(e){const{width:t}=this.spec.size;return e%(t*2)<t?{x:e%t,y:Math.floor(e/(t*2))+.5}:{x:.5+e%t,y:Math.floor(e/(t*2))+1}}"
+        },
+        "getIdFromCoords": {
+          "type": "function",
+          "code": "getIdFromCoords(e){return Math.floor(e.x)+(e.y-.5)*this.spec.size.width*2}"
+        },
+        "spec": {
+          "type": "reference",
+          "id": "InstanceOfPuzzleSpec"
+        },
+        "cellIdHelper": {
+          "type": "reference",
+          "id": "InstanceOfCellIdsHelper"
+        }
+      }
+    },
+    "Env": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "Env"
+      },
+      "references": ["Env", "InitialCodeEnv.class", "CustomComponentEnv.class"],
+      "ownProperties": {
+        "verboseSolving": {
+          "type": "scalar",
+          "value": true
+        }
+      }
+    },
+    "GlobalScope": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "GlobalScope"
+      },
+      "references": ["GlobalScope", "InitialCodeScope.class", "CustomComponentScope.class"],
+      "ownProperties": {
+        "ArrayUtils": {
+          "type": "reference",
+          "id": "ArrayUtils"
+        },
+        "CombinatoricUtils": {
+          "type": "reference",
+          "id": "CombinatoricUtils"
+        },
+        "DiagonalType": {
+          "type": "reference",
+          "id": "DiagonalType"
+        },
+        "DigitSet": {
+          "type": "reference",
+          "id": "DigitSet"
+        },
+        "IterationUtils": {
+          "type": "reference",
+          "id": "IterationUtils"
+        },
+        "MathUtils": {
+          "type": "reference",
+          "id": "MathUtils"
+        },
+        "OuterPosition": {
+          "type": "reference",
+          "id": "OuterPosition"
+        },
+        "SetUtils": {
+          "type": "reference",
+          "id": "SetUtils"
+        },
+        "SmallNumberSet": {
+          "type": "reference",
+          "id": "SmallNumberSet"
+        },
+        "SudokuDigitSet": {
+          "type": "reference",
+          "id": "DigitSet"
+        },
+        "Vector2Funcs": {
+          "type": "reference",
+          "id": "Vector2Funcs"
+        },
+        "env": {
+          "type": "reference",
+          "id": "InstanceOfEnv"
+        }
+      }
+    },
+    "Helpers": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "Helpers"
+      },
+      "references": ["Helpers", "InitialCodeScopeHelpers.class", "CustomComponentScopeHelpers.class"],
+      "ownProperties": {
+        "digits": {
+          "type": "reference",
+          "id": "InstanceOfDigitsHelper"
+        },
+        "outerCellIds": {
+          "type": "reference",
+          "id": "InstanceOfOuterCellIdsHelper"
+        },
+        "sums": {
+          "type": "reference",
+          "id": "InstanceOfSumsHelper"
+        },
+        "xSums": {
+          "type": "reference",
+          "id": "InstanceOfXSumsHelper"
+        },
+        "cellIds": {
+          "type": "reference",
+          "id": "InstanceOfCellIdsHelper"
+        },
+        "cornerIds": {
+          "type": "reference",
+          "id": "InstanceOfCornerIdsHelper"
+        },
+        "edgeIds": {
+          "type": "reference",
+          "id": "InstanceOfEdgeIdsHelper"
+        },
+        "connectivity": {
+          "type": "reference",
+          "id": "InstanceOfConnectivityHelper"
+        },
+        "naming": {
+          "type": "reference",
+          "id": "InstanceOfNamingHelper"
+        }
+      }
+    },
+    "NamingHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "NamingHelper"
+      },
+      "references": [
+        "NamingHelper",
+        "InitialCodeScopeHelpers.naming.class",
+        "CustomComponentScopeHelpers.naming.class"
+      ],
+      "ownProperties": {
+        "getBranchingLineName": {
+          "type": "function",
+          "code": "getBranchingLineName(e,t){return`the ${e} containing ${this.getCellName(Math.min(...t))}`}"
+        },
+        "getCageName": {
+          "type": "function",
+          "code": "getCageName(e,t){return`the ${e} at ${this.getCellName(Math.min(...t))}`}"
+        },
+        "getCellName": {
+          "type": "function",
+          "code": "getCellName(e){return this.names[e]}"
+        },
+        "getCellsDescription": {
+          "type": "function",
+          "code": "getCellsDescription(e){const t=[...e].sort((n,i)=>n-i);return t.length===0?\"???\":Z(t.map(n=>this.getCellName(n)))}"
+        },
+        "getColumnName": {
+          "type": "function",
+          "code": "getColumnName(e){return`C${e+1}`}"
+        },
+        "getDigitFilterDescription": {
+          "type": "function",
+          "code": "getDigitFilterDescription(e){return e=this.digitsHelper.createFullDigitSet().intersect(e),this.digitsHelper.createOddsDigitSet().equals(e)?\"an odd digit\":this.digitsHelper.createEvensDigitSet().equals(e)?\"an even digit\":le(+e)===1?`a ${_(+e).toString()}`:`a ${this.getDigitSetDescription(e,\"or\")}`}"
+        },
+        "getDigitSetDescription": {
+          "type": "function",
+          "code": "getDigitSetDescription(e,t=\"and\"){return e=this.digitsHelper.createFullDigitSet().intersect(e),Z([...e],t)}"
+        },
+        "getEdgeClueName": {
+          "type": "function",
+          "code": "getEdgeClueName(e,t){return this.getEdgeClueNameFromDomino(e,this.geometryHelper.getCellsTouchingEdge(t))}"
+        },
+        "getEdgeClueNameFromDomino": {
+          "type": "function",
+          "code": "getEdgeClueNameFromDomino(e,t){return`the ${e} between ${this.getCellsDescription(t)}`}"
+        },
+        "getLineName": {
+          "type": "function",
+          "code": "getLineName(e,t){return`the ${e} from ${this.getCellName(t[0])} to ${this.getCellName(t.at(-1))}`}"
+        },
+        "getOuterClueName": {
+          "type": "function",
+          "code": "getOuterClueName(e,t){const n=this.outerCellIdHelper.getAllAttributes(t);switch(n.side){case p.TopLeft:return`the top-left ${e}`;case p.TopRight:return`the top-right ${e}`;case p.Top:return`the top ${e} in ${this.getColumnName(n.x)}`;case p.BottomLeft:return`the bottom-left ${e}`;case p.BottomRight:return`the bottom-right ${e}`;case p.Bottom:return`the bottom ${e} in ${this.getColumnName(n.x)}`;case p.Right:return`the right ${e} in ${this.getRowName(n.y)}`;case p.Left:return`the left ${e} in ${this.getRowName(n.y)}`}}"
+        },
+        "getRowName": {
+          "type": "function",
+          "code": "getRowName(e){return`R${e+1}`}"
+        },
+        "getTupleName": {
+          "type": "function",
+          "code": "getTupleName(e){return os(e.length)}"
+        },
+        "getTupleNameBySize": {
+          "type": "function",
+          "code": "getTupleNameBySize(e){return os(e)}"
+        },
+        "names": {
+          "type": "array",
+          "item": {
+            "type": "scalar",
+            "value": "R1C1"
+          }
+        },
+        "digitsHelper": {
+          "type": "reference",
+          "id": "InstanceOfDigitsHelper"
+        },
+        "outerCellIdHelper": {
+          "type": "reference",
+          "id": "InstanceOfOuterCellIdsHelper"
+        },
+        "spec": {
+          "type": "reference",
+          "id": "InstanceOfPuzzleSpec"
+        },
+        "edgeIdHelper": {
+          "type": "reference",
+          "id": "InstanceOfEdgeIdsHelper"
+        },
+        "geometryHelper": {
+          "type": "reference",
+          "id": "InstanceOfCustomComponentScopeGeometryHelper"
+        }
+      }
+    },
+    "OuterCellIdsHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "OuterCellIdsHelper"
+      },
+      "references": [
+        "OuterCellIdsHelper",
+        "NestedGeometryHelperValue.outerCellIdHelper.class",
+        "CustomComponentScopeHelpers.connectivity.geometryHelper.outerCellIdHelper.class"
+      ],
+      "ownProperties": {
+        "getAllAttributes": {
+          "type": "function",
+          "code": "getAllAttributes(e){const t=this.getCoordsFromId(e);return{x:t.x,y:t.y,side:this.getSideFromCoords(t)}}"
+        },
+        "getCellCenterFromId": {
+          "type": "function",
+          "code": "getCellCenterFromId(e){return new ae(this.getX(e)+.5,this.getY(e)+.5)}"
+        },
+        "getCoordsFromId": {
+          "type": "function",
+          "code": "getCoordsFromId(e){return new ae(this.getX(e),this.getY(e))}"
+        },
+        "getIdFromCoords": {
+          "type": "function",
+          "code": "getIdFromCoords(e){return e.x+1+(e.y+1)*(this.width+2)}"
+        },
+        "getSide": {
+          "type": "function",
+          "code": "getSide(e){return this.getSideFromCoords(this.getCoordsFromId(e))}"
+        },
+        "getSideFromCoords": {
+          "type": "function",
+          "code": "getSideFromCoords(e){return e.y<0?e.x<0?p.TopLeft:e.x>=this.width?p.TopRight:p.Top:e.y>=this.height?e.x<0?p.BottomLeft:e.x>=this.width?p.BottomRight:p.Bottom:e.x>=this.width?p.Right:p.Left}"
+        },
+        "getX": {
+          "type": "function",
+          "code": "getX(e){return e%(this.width+2)-1}"
+        },
+        "getY": {
+          "type": "function",
+          "code": "getY(e){return Math.floor(e/(this.width+2))-1}"
+        },
+        "height": {
+          "type": "scalar",
+          "value": 9
+        },
+        "width": {
+          "type": "scalar",
+          "value": 9
+        }
+      }
+    },
+    "PuzzleBase": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "PuzzleBase"
+      },
+      "references": ["InitialCodePuzzle.class.extends", "PuzzleBase", "CustomComponentPuzzleBase.extends"],
+      "ownProperties": {
+        "digitCount": {
+          "type": "magic",
+          "get": "get digitCount(){return this.spec.digitCount}",
+          "value": {
+            "type": "scalar",
+            "value": 9
+          }
+        },
+        "getCellAt": {
+          "type": "function",
+          "code": "getCellAt(e,t){return this.helpers.cellIds.getIdFromCoordsSafe({x:e,y:t})}"
+        },
+        "getCellsCanHaveRepeats": {
+          "type": "function",
+          "code": "getCellsCanHaveRepeats(e){return this.state.getCellsCanHaveRepeats(e)}"
+        },
+        "getCellsDiagonallyAdjacentToCell": {
+          "type": "function",
+          "code": "*getCellsDiagonallyAdjacentToCell(e){yield*this.helpers.geometry.getDiagonallyAdjacentCells(e)}"
+        },
+        "getCellsDiagonallyAdjacentToCoords": {
+          "type": "function",
+          "code": "*getCellsDiagonallyAdjacentToCoords(e,t){yield*this.getCellsDiagonallyAdjacentToCell(this.helpers.cellIds.getIdFromCoords({x:e,y:t}))}"
+        },
+        "getCellsOrthogonallyAdjacentToCell": {
+          "type": "function",
+          "code": "*getCellsOrthogonallyAdjacentToCell(e){yield*this.helpers.geometry.getOrthogonallyAdjacentCells(e)}"
+        },
+        "getCellsOrthogonallyAdjacentToCoords": {
+          "type": "function",
+          "code": "*getCellsOrthogonallyAdjacentToCoords(e,t){yield*this.getCellsOrthogonallyAdjacentToCell(this.helpers.cellIds.getIdFromCoords({x:e,y:t}))}"
+        },
+        "getCellsSeeEachOther": {
+          "type": "function",
+          "code": "getCellsSeeEachOther(e){return this.state.getCellsSeeEachOther(e)}"
+        },
+        "getCellsSeenByCell": {
+          "type": "function",
+          "code": "getCellsSeenByCell(e,t){return this.state.getCellsSeenByCell(e,t)}"
+        },
+        "getColumn": {
+          "type": "function",
+          "code": "getColumn(e){return this.helpers.cellIds.getX(e)}"
+        },
+        "getFriendlyDigitsForCell": {
+          "type": "function",
+          "code": "getFriendlyDigitsForCell(e){const t=this.state.getRegionIdAt(e),n=t>=0?1<<t+1:0;return new b(1<<this.helpers.cellIds.getX(e)+1|1<<this.helpers.cellIds.getY(e)+1|n)}"
+        },
+        "getRegion": {
+          "type": "function",
+          "code": "getRegion(e){return this.state.getRegionIdAt(e)}"
+        },
+        "getRegionAt": {
+          "type": "function",
+          "code": "getRegionAt(e,t){return this.state.getRegionIdAt(this.unsafeGetCellAt(e,t))}"
+        },
+        "getRegionCells": {
+          "type": "function",
+          "code": "getRegionCells(e){return this.state.getRegions()[e]}"
+        },
+        "getRegions": {
+          "type": "function",
+          "code": "getRegions(){return this.state.getRegions()}"
+        },
+        "getRow": {
+          "type": "function",
+          "code": "getRow(e){return this.helpers.cellIds.getY(e)}"
+        },
+        "getX": {
+          "type": "function",
+          "code": "getX(e){return this.helpers.cellIds.getX(e)}"
+        },
+        "getY": {
+          "type": "function",
+          "code": "getY(e){return this.helpers.cellIds.getY(e)}"
+        },
+        "hasRegions": {
+          "type": "function",
+          "code": "hasRegions(){return this.state.hasRegions()}"
+        },
+        "height": {
+          "type": "magic",
+          "get": "get height(){return this.spec.size.height}",
+          "value": {
+            "type": "scalar",
+            "value": 9
+          }
+        },
+        "maxDigit": {
+          "type": "magic",
+          "get": "get maxDigit(){return this.spec.maxDigit}",
+          "value": {
+            "type": "scalar",
+            "value": 9
+          }
+        },
+        "minDigit": {
+          "type": "magic",
+          "get": "get minDigit(){return this.spec.minDigit}",
+          "value": {
+            "type": "scalar",
+            "value": 1
+          }
+        },
+        "puzzleType": {
+          "type": "magic",
+          "get": "get puzzleType(){return this.spec.type}",
+          "value": {
+            "type": "scalar",
+            "value": "sudoku"
+          }
+        },
+        "size": {
+          "type": "magic",
+          "get": "get size(){return this.spec.size.width}",
+          "value": {
+            "type": "scalar",
+            "value": 9
+          }
+        },
+        "unsafeGetCellAt": {
+          "type": "function",
+          "code": "unsafeGetCellAt(e,t){return this.helpers.cellIds.getIdFromCoords({x:e,y:t})}"
+        },
+        "width": {
+          "type": "magic",
+          "get": "get width(){return this.spec.size.width}",
+          "value": {
+            "type": "scalar",
+            "value": 9
+          }
+        },
+        "state": {
+          "type": "reference",
+          "id": "PuzzleState"
+        },
+        "spec": {
+          "type": "reference",
+          "id": "InstanceOfPuzzleSpec"
+        }
+      }
+    },
+    "PuzzleSpec": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "PuzzleSpec"
+      },
+      "references": ["PuzzleSpec", "InitialCodePuzzleSpec.class", "CustomComponentPuzzleSpec.class"],
+      "ownProperties": {
+        "digitCount": {
+          "type": "scalar",
+          "value": 9
+        },
+        "maxDigit": {
+          "type": "scalar",
+          "value": 9
+        },
+        "minDigit": {
+          "type": "scalar",
+          "value": 1
+        },
+        "type": {
+          "type": "scalar",
+          "value": "sudoku"
+        },
+        "size": {
+          "type": "reference",
+          "id": "InstanceOfPuzzleSpecSize"
+        }
+      }
+    },
+    "PuzzleSpecSize": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "PuzzleSpecSize"
+      },
+      "references": ["PuzzleSpecSize", "InitialCodePuzzleSpecSize.class", "CustomComponentPuzzleSpecSize.class"],
+      "ownProperties": {
+        "height": {
+          "type": "scalar",
+          "value": 9
+        },
+        "width": {
+          "type": "scalar",
+          "value": 9
+        }
+      }
+    },
+    "SmallNumberSet": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "SmallNumberSet"
+      },
+      "references": [
+        "SmallNumberSet",
+        "DigitSet.extends",
+        "InitialCodeScope.SmallNumberSet",
+        "CustomComponentScope.SmallNumberSet"
+      ],
+      "ownProperties": {
+        "add": {
+          "type": "function",
+          "code": "add(e){this.mask|=1<<e}"
+        },
+        "clear": {
+          "type": "function",
+          "code": "clear(){this.mask=0}"
+        },
+        "delete": {
+          "type": "function",
+          "code": "delete(e){this.mask&=~(1<<e)}"
+        },
+        "equals": {
+          "type": "function",
+          "code": "equals(e){return this.mask===+e}"
+        },
+        "getLargestNumber": {
+          "type": "function",
+          "code": "getLargestNumber(){return zt(this.mask)}"
+        },
+        "getSmallestNumber": {
+          "type": "function",
+          "code": "getSmallestNumber(){return Jt(this.mask)}"
+        },
+        "has": {
+          "type": "function",
+          "code": "has(e){return(this.mask&1<<e)!==0}"
+        },
+        "intersect": {
+          "type": "function",
+          "code": "intersect(e){return this.mask&=e.valueOf(),this}"
+        },
+        "intersects": {
+          "type": "function",
+          "code": "intersects(e){return(this.mask&e.valueOf())!==0}"
+        },
+        "isDisjointFrom": {
+          "type": "function",
+          "code": "isDisjointFrom(e){return(this.mask&e.valueOf())===0}"
+        },
+        "isSubsetOf": {
+          "type": "function",
+          "code": "isSubsetOf(e){const t=e.valueOf();return(this.mask&t)===this.mask}"
+        },
+        "isSupersetOf": {
+          "type": "function",
+          "code": "isSupersetOf(e){const t=e.valueOf();return(this.mask&t)===t}"
+        },
+        "size": {
+          "type": "magic",
+          "get": "get size(){return le(this.mask)}"
+        },
+        "subtract": {
+          "type": "function",
+          "code": "subtract(e){return this.mask&=~e.valueOf(),this}"
+        },
+        "union": {
+          "type": "function",
+          "code": "union(e){return this.mask|=e.valueOf(),this}"
+        },
+        "xor": {
+          "type": "function",
+          "code": "xor(e){return this.mask^=e.valueOf(),this}"
+        }
+      },
+      "static": {
+        "from": {
+          "type": "function",
+          "code": "from(e){return new this(lt(e))}"
+        },
+        "getIntersection": {
+          "type": "function",
+          "code": "getIntersection(e){const t=new this(2147483647);for(const n of e)t.intersect(n);return t}"
+        },
+        "getUnion": {
+          "type": "function",
+          "code": "getUnion(e){const t=new this;for(const n of e)t.union(n);return t}"
+        }
+      }
+    },
+    "SumsHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "SumsHelper"
+      },
+      "references": ["SumsHelper", "InitialCodeScopeHelpers.sums.class", "CustomComponentScopeHelpers.sums.class"],
+      "ownProperties": {
+        "getCombinationsForSumWithoutRepeat": {
+          "type": "function",
+          "code": "getCombinationsForSumWithoutRepeat(e,t){if(t===0)return[];const n=[],i=Qt(j(this.minDigit,this.maxDigit),t);for(const r of i)r.reduce((l,a)=>l+a,0)===e&&n.push(r);return n}"
+        },
+        "getCombinationsForSumsWithoutRepeat": {
+          "type": "function",
+          "code": "getCombinationsForSumsWithoutRepeat(e,t){if(t===0)return[];const n=[];for(const i of e)n.push(...this.getCombinationsForSumWithoutRepeat(i,t));return n}"
+        },
+        "getExtremeSumsWithRepeat": {
+          "type": "function",
+          "code": "getExtremeSumsWithRepeat(e,t){let n=0,i=0;for(let r=0;r<e.length;r++){const o=e[r],l=t?.[r]??1,a=_(o),c=N(o);n+=(a??0)*l,i+=(c??0)*l}return{minSum:n,maxSum:i}}"
+        },
+        "getExtremeSumsWithoutRepeat": {
+          "type": "function",
+          "code": "getExtremeSumsWithoutRepeat(e,t){const n=this.getMinimumSumWithoutRepeat(e,t);if(n===null)return null;const i=this.getMaximumSumWithoutRepeat(e,t);return{minSum:n,maxSum:i}}"
+        },
+        "getMaximumSumWithoutRepeat": {
+          "type": "function",
+          "code": "getMaximumSumWithoutRepeat(e,t){const n=(i,r)=>{let o=-1/0,l=!0;for(let a=0;a<i.length;a++){const[c,h]=i[a];l=!1;const g=N(c&~r);if(g===void 0)return null;const m=i.slice();m.splice(a,1);const x=n(m,r|1<<g);x!==null&&x+g*h>o&&(o=x+g*h)}return l?0:o===-1/0?null:o};return this.#e(e,t,n)}"
+        },
+        "getMinimumSumWithoutRepeat": {
+          "type": "function",
+          "code": "getMinimumSumWithoutRepeat(e,t){const n=(i,r)=>{let o=1/0,l=!0;for(let a=0;a<i.length;a++){const[c,h]=i[a];l=!1;const g=_(c&~r);if(g===void 0)return null;const m=i.slice();m.splice(a,1);const x=n(m,r|1<<g);x!==null&&x+g*h<o&&(o=x+g*h)}return l?0:o===1/0?null:o};return this.#e(e,t,n)}"
+        },
+        "maxDigit": {
+          "type": "scalar",
+          "value": 9
+        },
+        "minDigit": {
+          "type": "scalar",
+          "value": 1
+        }
+      }
+    },
+    "XSumsHelper": {
+      "type": "class",
+      "reference": {
+        "type": "reference",
+        "id": "XSumsHelper"
+      },
+      "references": ["XSumsHelper", "InitialCodeScopeHelpers.xSums.class", "CustomComponentScopeHelpers.xSums.class"],
+      "ownProperties": {
+        "getXSumPossibilities": {
+          "type": "function",
+          "code": "*getXSumPossibilities(e){if(e===1){yield{x:1,combinations:[2]};return}else if(e===2||e===4||e>de(this.maxDigit))return;for(let t=2;t<=this.maxDigit;t++)if(e>=de(t)&&e<=this.#e(t)){const n=[];for(const i of this.sumHelper.getCombinationsForSumWithoutRepeat(e-t,t-1))i.includes(t)||n.push(lt(i));n.length>0&&(yield{x:t,combinations:n})}}"
+        },
+        "maxDigit": {
+          "type": "scalar",
+          "value": 9
+        },
+        "sumHelper": {
+          "type": "reference",
+          "id": "InstanceOfSumsHelper"
+        }
+      }
+    }
+  },
+  "numericEnum": {
+    "DiagonalType": {
+      "type": "numericEnum",
+      "reference": {
+        "type": "reference",
+        "id": "DiagonalType"
+      },
+      "references": ["DiagonalType", "InitialCodeScope.DiagonalType", "CustomComponentScope.DiagonalType"],
+      "values": {
+        "NegativeDiagonal": -1,
+        "PositiveDiagonal": 1
+      }
+    },
+    "OuterPosition": {
+      "type": "numericEnum",
+      "reference": {
+        "type": "reference",
+        "id": "OuterPosition"
+      },
+      "references": ["OuterPosition", "InitialCodeScope.OuterPosition", "CustomComponentScope.OuterPosition"],
+      "values": {
+        "Top": 0,
+        "Right": 1,
+        "Bottom": 2,
+        "Left": 3,
+        "TopLeft": 4,
+        "TopRight": 5,
+        "BottomRight": 6,
+        "BottomLeft": 7
+      }
+    }
+  },
+  "internal": {
+    "PuzzleState": {
+      "type": "internal",
+      "reference": {
+        "type": "reference",
+        "id": "PuzzleState"
+      },
+      "references": [
+        "PuzzleState",
+        "InitialCodeScopeHelpers.geometry.sudoku",
+        "InitialCodePuzzle.state",
+        "InitializeArgs.puzzle.state",
+        "ValidateArgs.puzzle.state",
+        "UpdateArgs.puzzle.state"
+      ]
+    }
+  }
+}

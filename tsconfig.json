@@ -11,6 +11,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "skipLibCheck": true,
+    "resolveJsonModule": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -25,5 +26,6 @@
     "noUnusedParameters": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "bin", "utils", "vite.config.ts"]
+  "include": ["src", "bin", "utils", "vite.config.ts"],
+  "exclude": ["src/generated"]
 }

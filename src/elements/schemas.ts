@@ -52,7 +52,7 @@ export const ElementSchema = z.intersection(
           "Element metadata adjusted to the specific element's config (more accurate than the general element info from the schema)",
         ),
     }),
-    z.object({}),
+    z.object({} as Record<string, unknown>),
     {
       encode: () => ({}),
       decode: () => ({}),

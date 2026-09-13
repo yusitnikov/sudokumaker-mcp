@@ -1,0 +1,254 @@
+[
+  {
+    "name": "BetweenComponent",
+    "aliases": [],
+    "definition": "(name: string, endPoints: [CellId, CellId], midPoints: CellId[])",
+    "description": "The digits on all `midPoints` must be between the digits on the `endPoints`."
+  },
+  {
+    "name": "ConsecutiveDigitsComponent",
+    "aliases": [],
+    "definition": "(name: string, cells: CellId[])",
+    "description": "All digits within `cells` must make a set of consecutive digits, but may repeat as well."
+  },
+  {
+    "name": "ConsecutiveDigitsSetComponent",
+    "aliases": [],
+    "definition": "(name: string, cells: CellId[])",
+    "description": "All digits within `cells` must make a set of consecutive digits, without repeats."
+  },
+  {
+    "name": "CountDigitComponent",
+    "aliases": [],
+    "definition": "(name: string, digit: number, counterCell: CellId, targetCells: CellId[])",
+    "description": "The digit in `counterCell` must equal the amount of occurrences of `digit` in `targetCells`"
+  },
+  {
+    "name": "CountDigitsComponent",
+    "aliases": [],
+    "definition": "(name: string, digits: DigitSet, counterCell: CellId, targetCells: CellId[])",
+    "description": "The digit in `counterCell` must equal the amount of occurrences of digits from `digits`."
+  },
+  {
+    "name": "DifferenceComponent",
+    "aliases": [],
+    "definition": "(name: string, difference: number | number[], cell1: CellId, cell2: CellId)",
+    "description": "The difference between the values at `cell1` and `cell2` must be exactly `difference`."
+  },
+  {
+    "name": "DifferentCombinationsComponent",
+    "aliases": [],
+    "definition": "(name: string, cellGroups: CellId[][])",
+    "description": "Every group of cells of `cellGroups` must have a distinct make-up of digits."
+  },
+  {
+    "name": "DifferentDigitsComponent",
+    "aliases": [],
+    "definition": "(name: string, cells: CellId[])",
+    "description": "Every cell of `cells` must have a different digit from the rest."
+  },
+  {
+    "name": "DifferentGroupsComponent",
+    "aliases": [],
+    "definition": "(name: string, groups: DigitSet[], cells: CellId[])",
+    "description": "Every cell of `cells` must have a digit from a different group from `groups`. E.g. if one group is 123, and one cell has a 1, the other cells cannot be 2 or 3.\n**Note:** currently only works properly when the groups do not overlap."
+  },
+  {
+    "name": "DiverseGroupsComponent",
+    "aliases": [],
+    "definition": "(name: string, groups: DigitSet[], cells: CellId[])",
+    "description": "A digit from every group from `groups` must appear at least once in `cells`, or from different groups if there are less cells than there are groups. \n**Note:** currently only works properly when the groups do not overlap."
+  },
+  {
+    "name": "ExactDigitCountComponent",
+    "aliases": [],
+    "definition": "(name: string, value: number, count: number, cells: CellId[])",
+    "description": "The digit `value` must appear exactly `count` times in `cells`."
+  },
+  {
+    "name": "ForbiddenCandidatesComponent",
+    "aliases": [],
+    "definition": "(name: string, candidates: DigitSet, cellOrCells: CellId | CellId[])",
+    "description": "The value of `cellOrCells` cannot be any of `candidates`."
+  },
+  {
+    "name": "GreaterThanComponent",
+    "aliases": ["LessThanComponent"],
+    "definition": "(name: string, lesserCell: CellId, greaterCell: CellId)",
+    "description": "The digit in `lesserCell` must be less than the one in `greaterCell`\nAliases: **LessThanComponent**"
+  },
+  {
+    "name": "GreaterThanOrEqualsComponent",
+    "aliases": [],
+    "definition": "(name: string, lesserCell: CellId, greaterCell: CellId)",
+    "description": "The digit in `greaterCell` must be greater than or equal to the one in `lesserCell`"
+  },
+  {
+    "name": "HouseComponent",
+    "aliases": [],
+    "definition": "(name: string, cells: CellId[])",
+    "description": "Every digit must appear exactly once in `cells`."
+  },
+  {
+    "name": "IndexComponent",
+    "aliases": [],
+    "definition": "(name: string, valueToIndex: number, indexerCell: CellId, cells: CellId[])",
+    "description": "The value of `indexerCell` must be the (1-based) index of an appearance of `valueToIndex` in the sequence of cells `cells`."
+  },
+  {
+    "name": "MaxDigitCountComponent",
+    "aliases": [],
+    "definition": "(name: string, value: number, maxCount: number, cells: CellId[])",
+    "description": "The digit `value` must appear at most `maxCount` times in `cells`."
+  },
+  {
+    "name": "MaximumDifferenceComponent",
+    "aliases": [],
+    "definition": "(name: string, maxDifference: number, cell1: CellId, cell2: CellId)",
+    "description": "The difference between the values of `cell1` and `cell2` must be at most `maxDifference`."
+  },
+  {
+    "name": "MinimumDifferenceComponent",
+    "aliases": [],
+    "definition": "(name: string, minDifference: number, cell1: CellId, cell2: CellId)",
+    "description": "The difference between the values of `cell1` and `cell2` must be at least `minDifference`."
+  },
+  {
+    "name": "NegativeBetweenComponent",
+    "aliases": [],
+    "definition": "(name: string, endPoints: [CellId, CellId], midPoints: CellId[])",
+    "description": "The digits on all `midPoints` must not be between the digits on the `endPoints`."
+  },
+  {
+    "name": "NegativeDifferenceComponent",
+    "aliases": [],
+    "definition": "(name: string, differences: number[], cell1: CellId, cell2: CellId)",
+    "description": "The difference between the values of `cell1` and `cell2` must not be any of `differences`."
+  },
+  {
+    "name": "NegativeIndexComponent",
+    "aliases": [],
+    "definition": "(name: string, valueToNotIndex: number, indexerCell: CellId, cells: CellId[])",
+    "description": "The value of `indexerCell` must **not** be the (1-based) index of `valueToNotIndex` in the sequence of cells `cells`."
+  },
+  {
+    "name": "NegativeRatioComponent",
+    "aliases": [],
+    "definition": "(name: string, ratios: number[], cell1: CellId, cell2: CellId)",
+    "description": "The ratio of the values of `cell1` and `cell2` (either way) must not be any of `ratios`."
+  },
+  {
+    "name": "NegativeSumComponent",
+    "aliases": [],
+    "definition": "(name: string, sums: number[], cells: CellId[])",
+    "description": "The digits within `cells` must not sum to any of `sums`."
+  },
+  {
+    "name": "PairComponent",
+    "aliases": ["AsymmetricalPairComponent"],
+    "definition": "(name: string, filterOrMapping: ((d1: number, d2: number) => boolean) | DigitSet[], cell1: CellId, cell2: CellId)",
+    "description": "The digits `digit1` and `digit2` in `cell1` and `cell2` are valid when `filterOrMapping(digit1, digit2)` evaluates to `true`, or when `filterOrMapping[digit1].has(digit2)`.\nAliases: **AsymmetricalPairComponent**"
+  },
+  {
+    "name": "PredefinedCandidatesComponent",
+    "aliases": [],
+    "definition": "(name: string, candidates: DigitSet, cellOrCells: CellId[])",
+    "description": "The value of `cellOrCells` must be one of `candidates`."
+  },
+  {
+    "name": "ProductComponent",
+    "aliases": [],
+    "definition": "(name: string, productOrProducts: number | number[], cells: CellId[])",
+    "description": "The product of the digits in `cells` must equal to `productOrProducts`."
+  },
+  {
+    "name": "RatioComponent",
+    "aliases": [],
+    "definition": "(name: string, ratioOrRatios: number | number[], cell1: CellId, cell2: CellId)",
+    "description": "The ratio of the values of `cell1` and `cell2` (either way) must equal `ratioOrRatios`."
+  },
+  {
+    "name": "RequiredDigitsComponent",
+    "aliases": [],
+    "definition": "(name: string, values: number[], cells: CellId[])",
+    "description": "Every digit of `values` must be assigned a unique cell of `cells`. Requiring a digit to repeat can be achieved by repeating that digit in `values`."
+  },
+  {
+    "name": "RequiredGroupsComponent",
+    "aliases": [],
+    "definition": "(name: string, groups: DigitSet[], cells: CellId[])",
+    "description": "For every group from `groups`, a digit must appear at least once in `cells`. E.g. If the groups are 123, 456 and 789, then `cells` must be at least 3 cells, and one digit of every group is assigned to a cell. \n**Note:** currently only works properly when the groups do not overlap."
+  },
+  {
+    "name": "SameDigitComponent",
+    "aliases": [],
+    "definition": "(name: string, cells: CellId[])",
+    "description": "Every cell of `cells` must have the same value."
+  },
+  {
+    "name": "SameGroupComponent",
+    "aliases": [],
+    "definition": "(name: string, groups: DigitSet[], cells: CellId[])",
+    "description": "Every cell of `cells` must have a digit from the same group within `groups`. E.g. if the groups are the evens and the odds, then either every cell is even, or every cell is odd. \n**Note:** currently only works properly when the groups do not overlap."
+  },
+  {
+    "name": "SameSumComponent",
+    "aliases": [],
+    "definition": "(name: string, groups: { name: string, cells: CellId[], weights?: Map<CellId, number>, asNumber?: boolean }[])",
+    "description": "Every group of cells from `groups` must sum to the same value. Set `asNumber` to true, to interpret that group as a sequence that spells out a number (e.g. for arrows), where the least significant digit is at index 0. Use `weights` to set a custom weight for specific cells (see **WeightedSumComponent** for details)"
+  },
+  {
+    "name": "SandwichSumComponent",
+    "aliases": [],
+    "definition": "(name: string, sum: number, sandwichDigits: [number, number], cells: CellId[])",
+    "description": "Along `cells` there must be a sequence of values starting with one of `sandwichDigits`, then some values summing to `sum`, then another digit from `sandwichDigits`. \n**Note:** currently requires all cells to be different."
+  },
+  {
+    "name": "SelfCountingComponent",
+    "aliases": [],
+    "definition": "(name: string, cells: CellId[])",
+    "description": "A digit X in a cell of `cells` means that digit is in exactly X cells of `cells` in total."
+  },
+  {
+    "name": "SequenceComponent",
+    "aliases": [],
+    "definition": "(name: string, cells: CellId[])",
+    "description": "Digits along `cells` must increase or decrease by the same amount (or stay the same)"
+  },
+  {
+    "name": "SkyscraperComponent",
+    "aliases": [],
+    "definition": "(name: string, amount: number, cells: CellId[])",
+    "description": "Digits along `cells` represent skyscrapers, blocking cells further along the sequence. The amount of skyscrapers seen from the start must equal `amount`."
+  },
+  {
+    "name": "SumComponent",
+    "aliases": [],
+    "definition": "(name: string, sumOrSums: number | number[], cells: CellId[])",
+    "description": "The digits in `cells` must sum to (one of) `sumOrSums`. If a cell appears N times in `cells`, the value in that cell is counted N times."
+  },
+  {
+    "name": "WeakLinkComponent",
+    "aliases": [],
+    "definition": "(name: string, cell1: CellId, value1: number, cell2: CellId, value2: number)",
+    "description": "If `cell1` is set to `value1`, `cell2` must not be `value2`. Similarly, if `cell2` is set to `value2`, `cell1` cannot be `value1`."
+  },
+  {
+    "name": "WeakLinksComponent",
+    "aliases": [],
+    "definition": "(name: string, cells1: CellId | CellId[], value1: DigitSet, cells2: CellId | CellId[], value2: DigitSet)",
+    "description": "If any of `cells1` is set to one of `values1`, all of `cells2` cannot be any of `values2`. Similarly, if any of `cells2` is set to one of `values2`, all of `cells1` cannot be any of `values1`."
+  },
+  {
+    "name": "WeightedSumComponent",
+    "aliases": [],
+    "definition": "(name: string, sumOrSums: number | number[], cellWeightMapping: Map<CellId, number>)",
+    "description": "The sums of every value of cell X in `cellWeightMapping`, multiplied by `cellWeightMapping.get(X)`, must sum to (one of) `sumOrSums`.\n**Note:** Currently only supports **positive** weights. To avoid floating point inaccuracies breaking this component, use whole numbers as weights. In case you want to do something like x+y/3=5, multiply it all such that you get 3x+y=15"
+  },
+  {
+    "name": "XSumComponent",
+    "aliases": [],
+    "definition": "(name: string, sum: number, xCell: CellId, cells: CellId[])",
+    "description": "The first X digits along `cells` must sum to `sum`, where X is the value of `xCell`."
+  }
+]
