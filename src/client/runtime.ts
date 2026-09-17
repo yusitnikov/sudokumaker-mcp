@@ -1,4 +1,4 @@
-import { tools } from "./tools";
+import { frontendTools } from "./tools/frontendTools";
 import { runtimeGlobal } from "./runtimeGlobal";
 import type { ToolImplementation } from "./tools/ToolImplementation";
 import type { TabStateSnapshot } from "./tabState";
@@ -14,7 +14,7 @@ import type { TabStateSnapshot } from "./tabState";
  * stale — after a page reload, say.
  */
 
-const toolsByName = new Map(tools.map((tool) => [tool.name, tool]));
+const toolsByName = new Map(frontendTools.map((tool) => [tool.name, tool]));
 
 /** What the server probes for and dispatches through. */
 export interface Runtime {

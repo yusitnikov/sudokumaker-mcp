@@ -7,3 +7,12 @@ declare module "injected:*" {
   const code: string;
   export default code;
 }
+
+/**
+ * Vite's built-in `?raw` suffix yields a file's contents as a string. Declared here because the
+ * project's `types` lists only `node`, so `vite/client`'s own declaration is not in scope.
+ */
+declare module "*?raw" {
+  const contents: string;
+  export default contents;
+}

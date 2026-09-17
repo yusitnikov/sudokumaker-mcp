@@ -20,14 +20,13 @@ import { removeElementTool } from "./removeElementTool";
 import { addCluesTool } from "./addCluesTool";
 import { updateCluesTool } from "./updateCluesTool";
 import { removeCluesTool } from "./removeCluesTool";
-import { docsTool } from "./docsTool";
 import { editInitializationCodeTool } from "./editInitializationCodeTool";
 import { addCustomComponentTool } from "./addCustomComponentTool";
 import { editCustomComponentCodeTool } from "./editCustomComponentCodeTool";
 import { renameCustomComponentTool } from "./renameCustomComponentTool";
 import { removeCustomComponentTool } from "./removeCustomComponentTool";
 
-export const tools = [
+export const frontendTools = [
   getPuzzleTool,
   getLogsTool,
   updatePuzzleMetadataTool,
@@ -45,7 +44,6 @@ export const tools = [
   editCustomComponentCodeTool,
   renameCustomComponentTool,
   removeCustomComponentTool,
-  docsTool,
   undoTool,
   redoTool,
   clearGridTool,

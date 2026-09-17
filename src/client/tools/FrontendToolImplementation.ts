@@ -7,6 +7,7 @@ import { ClueMatch, getElementWithClueById } from "./elementUtils";
 import { getByPath, setByPath } from "../../PathToObject";
 import { ToolImplementation } from "./ToolImplementation";
 import type { ParsedExecuteJsResponse } from "../../ParsedExecuteJsResponse";
+import type { BackendResources } from "../../BackendResources";
 
 /**
  * The callable members of `T`, keyed by name.
@@ -38,13 +39,17 @@ export abstract class FrontendToolImplementation<SchemaT extends z.ZodSchema> ex
     );
   }
 
-  async runOnBackend(tabController: TabController, params: unknown): Promise<CallToolResult> {
+  async runOnBackend(
+    tabController: TabController,
+    params: unknown,
+    resources: BackendResources,
+  ): Promise<CallToolResult> {
     const initResult = await this.callFrontend(tabController, 1000, "initOnFrontend", params);
     if (!initResult.success) {
       return this.formatErrorResponse(initResult.message);
     }
 
-    const runResult = await this.runLogicOnBackend(tabController, initResult.result);
+    const runResult = await this.runLogicOnBackend(tabController, initResult.result, resources);
     if (!runResult.success) {
       return this.formatErrorResponse(runResult.message);
     }
@@ -75,6 +80,7 @@ export abstract class FrontendToolImplementation<SchemaT extends z.ZodSchema> ex
   protected abstract runLogicOnBackend(
     tabController: TabController,
     params: z.input<SchemaT>,
+    resources: BackendResources,
   ): Promise<ParsedExecuteJsResponse<CallToolResult>>;
 
   initOnFrontend(params: unknown) {

@@ -184,8 +184,11 @@ program
           case "map":
             return `Map<${format(value.entry?.[0], offset, typePrefix)}, ${format(value.entry?.[1], offset, typePrefix)}>`;
           case "function":
-            // TODO
-            return `(...args: unknown[]) => unknown`;
+            // TODO: recover the real signature from the scanned source.
+            // The return has to be `any` until then - `unknown` makes every use of a result an
+            // error, so correct code gets rejected. The parameters stay `unknown[]`: anything is
+            // assignable to `unknown`, so that costs no call site anything.
+            return `(...args: unknown[]) => any`;
           case "object": {
             let code = "";
 
@@ -223,6 +226,10 @@ program
           declarations += ` extends ${value.extends.id}`;
         }
         declarations += " {\n";
+        // TODO: recover the real constructor signature from the scanned source.
+        // Without a constructor TypeScript assumes a zero-argument one, so `new DigitSet([1, 2])`
+        // would be an error.
+        declarations += "  constructor(...args: any[]);\n";
         declarations += formatOwnProperties(value.ownProperties, "  ");
         declarations += formatOwnProperties(value.static, "  ", true);
         declarations += "}\n\n";

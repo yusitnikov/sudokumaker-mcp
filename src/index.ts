@@ -1,5 +1,5 @@
 export * from "./SudokuMakerMcpServer";
-export * from "./client/tools";
+export * from "./client/tools/frontendTools";
 export * from "./client/tools/ToolImplementation";
 export * from "./client/tools/BackendToolImplementation";
 export * from "./client/tools/FrontendToolImplementation";

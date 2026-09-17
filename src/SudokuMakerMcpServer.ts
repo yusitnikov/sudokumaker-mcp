@@ -1,12 +1,12 @@
 import { BrowserMcpServer, type ExecuteJsError } from "@sitnikov/browser-automation";
 import { z } from "zod";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { tools } from "./client/tools";
+import { allTools } from "./client/tools/allTools";
 import { docsToolName } from "./client/tools/toolNames";
 import { introTopicName } from "./client/tools/docs/topicNames";
 import { TabController } from "./TabController";
-
 import { BackendToolImplementation } from "./client/tools/BackendToolImplementation";
+import { backendResources } from "./backendResourcesImpl";
 
 const sudokuMakerHostname = "sudokumaker.app";
 
@@ -47,7 +47,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
 
     const { sessionSchema } = SudokuMakerMcpServer;
 
-    for (const tool of tools) {
+    for (const tool of allTools) {
       const { name, title, description } = tool;
 
       // The MCP SDK uses one schema object both to advertise the tool and to validate arguments in
@@ -66,7 +66,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
         this.server.registerTool(
           name,
           { title, description, inputSchema: registeredSchema },
-          (params): CallToolResult | Promise<CallToolResult> => tool.runOnBackend(params),
+          (params): CallToolResult | Promise<CallToolResult> => tool.runOnBackend(params, backendResources),
         );
         continue;
       }
@@ -92,7 +92,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
             return toErrorResult(installationError, "install the page runtime");
           }
 
-          return await tool.runOnBackend(tabController, params);
+          return await tool.runOnBackend(tabController, params, backendResources);
         },
       );
     }

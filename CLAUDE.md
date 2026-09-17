@@ -10,7 +10,7 @@ and no database - the only channel into a tab is `execute_js`, provided by the
 A call crosses three layers, one file each:
 
 - `SudokuMakerMcpServer` (`src/SudokuMakerMcpServer.ts`) extends `BrowserMcpServer` and registers
-  every entry of the `tools` array (`src/client/tools/index.ts`) with the MCP SDK. The SDK validates
+  every entry of the `tools` array (`src/client/tools/frontendTools.ts`) with the MCP SDK. The SDK validates
   arguments against the tool's **advertised** schema (see "Advertised vs. real schemas" below); the
   handler splits off the session fields (`sessionToken`, `extensionConnectionId`, `tabId`) and
   calls `tool.runOnBackend`.

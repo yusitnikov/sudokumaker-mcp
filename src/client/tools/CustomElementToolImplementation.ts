@@ -7,6 +7,7 @@ import { CustomElement } from "../../elements/CustomElement";
 import type { ElementByType } from "../../elements/types";
 import { ElementType } from "../../elements/ElementType";
 import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
+import type { BackendResources } from "../../BackendResources";
 
 import {
   type FrontendRunResult,
@@ -70,10 +71,11 @@ export class CustomElementToolImplementation<
       elementName: string,
       puzzleName: string,
     ) => string,
-    private readonly checkElementOnBackend?: (
+    protected readonly checkElementOnBackend?: (
       this: CustomElementToolImplementation<ExtraShapeT>,
       targetElement: CustomElementPublic,
       params: CustomElementToolParams<ExtraShapeT>,
+      resources: BackendResources,
     ) => string | undefined | Promise<string | undefined>,
   ) {
     super({
@@ -183,8 +185,9 @@ export class CustomElementToolImplementation<
   protected async checkPuzzleOnBackend(
     puzzle: PuzzlePublic,
     params: CustomElementToolParams<ExtraShapeT> & z.input<z.ZodObject<BaseShape>>,
+    resources: BackendResources,
   ): Promise<string | undefined> {
     const { targetElement } = this.getCustomElement(puzzle, params.elementId);
-    return this.checkElementOnBackend?.(targetElement, params);
+    return this.checkElementOnBackend?.(targetElement, params, resources);
   }
 }

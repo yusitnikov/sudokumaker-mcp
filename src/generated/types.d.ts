@@ -1,77 +1,82 @@
 // noinspection JSUnusedGlobalSymbols
 
 export declare class CellIdsHelper {
-  areValidCoords: (...args: unknown[]) => unknown;
-  getAllCellIds: (...args: unknown[]) => unknown;
-  getCellCenterFromId: (...args: unknown[]) => unknown;
-  getCoordsFromId: (...args: unknown[]) => unknown;
-  getIdFromCoords: (...args: unknown[]) => unknown;
-  getIdFromCoordsSafe: (...args: unknown[]) => unknown;
-  getX: (...args: unknown[]) => unknown;
-  getY: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  areValidCoords: (...args: unknown[]) => any;
+  getAllCellIds: (...args: unknown[]) => any;
+  getCellCenterFromId: (...args: unknown[]) => any;
+  getCoordsFromId: (...args: unknown[]) => any;
+  getIdFromCoords: (...args: unknown[]) => any;
+  getIdFromCoordsSafe: (...args: unknown[]) => any;
+  getX: (...args: unknown[]) => any;
+  getY: (...args: unknown[]) => any;
   height: number;
   width: number;
   spec: PuzzleSpec;
 }
 
 export declare class ConnectivityHelper {
-  getOrthogonallyConnectedGroups: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getOrthogonallyConnectedGroups: (...args: unknown[]) => any;
   spec: PuzzleSpec;
   geometryHelper: CustomComponentScopeGeometryHelper;
 }
 
 export declare class CornerIdsHelper {
-  getCoordsFromId: (...args: unknown[]) => unknown;
-  getIdFromCornerCoords: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getCoordsFromId: (...args: unknown[]) => any;
+  getIdFromCornerCoords: (...args: unknown[]) => any;
   spec: PuzzleSpec;
   cellIdHelper: CellIdsHelper;
 }
 
 export declare class CustomComponentPuzzleBase extends PuzzleBase {
-  filterCandidatesInCell: (...args: unknown[]) => unknown;
-  filterCandidatesInCells: (...args: unknown[]) => unknown;
-  getCandidates: (...args: unknown[]) => unknown;
-  getCandidatesBitMask: (...args: unknown[]) => unknown;
-  getCellsAreFilled: (...args: unknown[]) => unknown;
-  getFriendlyCandidates: (...args: unknown[]) => unknown;
-  getValue: (...args: unknown[]) => unknown;
-  hasValue: (...args: unknown[]) => unknown;
-  removeCandidateFromCell: (...args: unknown[]) => unknown;
-  removeCandidateFromCells: (...args: unknown[]) => unknown;
-  removeCandidatesFromCell: (...args: unknown[]) => unknown;
-  removeCandidatesFromCells: (...args: unknown[]) => unknown;
-  removeComponent: (...args: unknown[]) => unknown;
-  replaceComponent: (...args: unknown[]) => unknown;
-  stop: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  filterCandidatesInCell: (...args: unknown[]) => any;
+  filterCandidatesInCells: (...args: unknown[]) => any;
+  getCandidates: (...args: unknown[]) => any;
+  getCandidatesBitMask: (...args: unknown[]) => any;
+  getCellsAreFilled: (...args: unknown[]) => any;
+  getFriendlyCandidates: (...args: unknown[]) => any;
+  getValue: (...args: unknown[]) => any;
+  hasValue: (...args: unknown[]) => any;
+  removeCandidateFromCell: (...args: unknown[]) => any;
+  removeCandidateFromCells: (...args: unknown[]) => any;
+  removeCandidatesFromCell: (...args: unknown[]) => any;
+  removeCandidatesFromCells: (...args: unknown[]) => any;
+  removeComponent: (...args: unknown[]) => any;
+  replaceComponent: (...args: unknown[]) => any;
+  stop: (...args: unknown[]) => any;
   helpers: CustomComponentScopeHelpers;
   instance: CustomComponentInstance;
 }
 
 export declare class CustomComponentScopeGeometryHelper {
-  getAdjacentCells: (...args: unknown[]) => unknown;
-  getAllColumns: (...args: unknown[]) => unknown;
-  getAllDiagonallyAdjacentPairs: (...args: unknown[]) => unknown;
-  getAllDominoes: (...args: unknown[]) => unknown;
-  getAllKingsMovePairs: (...args: unknown[]) => unknown;
-  getAllKnightMovePairs: (...args: unknown[]) => unknown;
-  getAllPairsWithOffset: (...args: unknown[]) => unknown;
-  getAllQuadruples: (...args: unknown[]) => unknown;
-  getAllRows: (...args: unknown[]) => unknown;
-  getCellsAreKingsMoveApart: (...args: unknown[]) => unknown;
-  getCellsInColumn: (...args: unknown[]) => unknown;
-  getCellsInColumnOfCell: (...args: unknown[]) => unknown;
-  getCellsInDiagonal: (...args: unknown[]) => unknown;
-  getCellsInRow: (...args: unknown[]) => unknown;
-  getCellsInRowOfCell: (...args: unknown[]) => unknown;
-  getCellsKnightsMoveAwayFromCell: (...args: unknown[]) => unknown;
-  getCellsPointedAtByOuterClue: (...args: unknown[]) => unknown;
-  getCellsTouchingCorner: (...args: unknown[]) => unknown;
-  getCellsTouchingEdge: (...args: unknown[]) => unknown;
-  getCoordsInDiagonal: (...args: unknown[]) => unknown;
-  getCoordsPointedAtByOuterClue: (...args: unknown[]) => unknown;
-  getDiagonallyAdjacentCells: (...args: unknown[]) => unknown;
-  getManhattanDistanceBetweenCells: (...args: unknown[]) => unknown;
-  getOrthogonallyAdjacentCells: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getAdjacentCells: (...args: unknown[]) => any;
+  getAllColumns: (...args: unknown[]) => any;
+  getAllDiagonallyAdjacentPairs: (...args: unknown[]) => any;
+  getAllDominoes: (...args: unknown[]) => any;
+  getAllKingsMovePairs: (...args: unknown[]) => any;
+  getAllKnightMovePairs: (...args: unknown[]) => any;
+  getAllPairsWithOffset: (...args: unknown[]) => any;
+  getAllQuadruples: (...args: unknown[]) => any;
+  getAllRows: (...args: unknown[]) => any;
+  getCellsAreKingsMoveApart: (...args: unknown[]) => any;
+  getCellsInColumn: (...args: unknown[]) => any;
+  getCellsInColumnOfCell: (...args: unknown[]) => any;
+  getCellsInDiagonal: (...args: unknown[]) => any;
+  getCellsInRow: (...args: unknown[]) => any;
+  getCellsInRowOfCell: (...args: unknown[]) => any;
+  getCellsKnightsMoveAwayFromCell: (...args: unknown[]) => any;
+  getCellsPointedAtByOuterClue: (...args: unknown[]) => any;
+  getCellsTouchingCorner: (...args: unknown[]) => any;
+  getCellsTouchingEdge: (...args: unknown[]) => any;
+  getCoordsInDiagonal: (...args: unknown[]) => any;
+  getCoordsPointedAtByOuterClue: (...args: unknown[]) => any;
+  getDiagonallyAdjacentCells: (...args: unknown[]) => any;
+  getManhattanDistanceBetweenCells: (...args: unknown[]) => any;
+  getOrthogonallyAdjacentCells: (...args: unknown[]) => any;
   height: number;
   width: number;
   outerCellIdHelper: OuterCellIdsHelper;
@@ -82,33 +87,38 @@ export declare class CustomComponentScopeGeometryHelper {
 }
 
 export declare class DigitSet extends SmallNumberSet {
-  getLargestDigit: (...args: unknown[]) => unknown;
-  getSmallestDigit: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getLargestDigit: (...args: unknown[]) => any;
+  getSmallestDigit: (...args: unknown[]) => any;
 }
 
 export declare class DigitsHelper {
-  createEvensDigitSet: (...args: unknown[]) => unknown;
-  createFilteredDigitSet: (...args: unknown[]) => unknown;
-  createFullDigitSet: (...args: unknown[]) => unknown;
-  createModuloDigitSet: (...args: unknown[]) => unknown;
-  createOddsDigitSet: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  createEvensDigitSet: (...args: unknown[]) => any;
+  createFilteredDigitSet: (...args: unknown[]) => any;
+  createFullDigitSet: (...args: unknown[]) => any;
+  createModuloDigitSet: (...args: unknown[]) => any;
+  createOddsDigitSet: (...args: unknown[]) => any;
   allDigitsMask: number;
   maxDigit: number;
   minDigit: number;
 }
 
 export declare class EdgeIdsHelper {
-  getCoordsFromId: (...args: unknown[]) => unknown;
-  getIdFromCoords: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getCoordsFromId: (...args: unknown[]) => any;
+  getIdFromCoords: (...args: unknown[]) => any;
   spec: PuzzleSpec;
   cellIdHelper: CellIdsHelper;
 }
 
 export declare class Env {
+  constructor(...args: any[]);
   verboseSolving: boolean;
 }
 
 export declare class Helpers {
+  constructor(...args: any[]);
   digits: DigitsHelper;
   outerCellIds: OuterCellIdsHelper;
   sums: SumsHelper;
@@ -121,20 +131,21 @@ export declare class Helpers {
 }
 
 export declare class NamingHelper {
-  getBranchingLineName: (...args: unknown[]) => unknown;
-  getCageName: (...args: unknown[]) => unknown;
-  getCellName: (...args: unknown[]) => unknown;
-  getCellsDescription: (...args: unknown[]) => unknown;
-  getColumnName: (...args: unknown[]) => unknown;
-  getDigitFilterDescription: (...args: unknown[]) => unknown;
-  getDigitSetDescription: (...args: unknown[]) => unknown;
-  getEdgeClueName: (...args: unknown[]) => unknown;
-  getEdgeClueNameFromDomino: (...args: unknown[]) => unknown;
-  getLineName: (...args: unknown[]) => unknown;
-  getOuterClueName: (...args: unknown[]) => unknown;
-  getRowName: (...args: unknown[]) => unknown;
-  getTupleName: (...args: unknown[]) => unknown;
-  getTupleNameBySize: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getBranchingLineName: (...args: unknown[]) => any;
+  getCageName: (...args: unknown[]) => any;
+  getCellName: (...args: unknown[]) => any;
+  getCellsDescription: (...args: unknown[]) => any;
+  getColumnName: (...args: unknown[]) => any;
+  getDigitFilterDescription: (...args: unknown[]) => any;
+  getDigitSetDescription: (...args: unknown[]) => any;
+  getEdgeClueName: (...args: unknown[]) => any;
+  getEdgeClueNameFromDomino: (...args: unknown[]) => any;
+  getLineName: (...args: unknown[]) => any;
+  getOuterClueName: (...args: unknown[]) => any;
+  getRowName: (...args: unknown[]) => any;
+  getTupleName: (...args: unknown[]) => any;
+  getTupleNameBySize: (...args: unknown[]) => any;
   names: string[];
   digitsHelper: DigitsHelper;
   outerCellIdHelper: OuterCellIdsHelper;
@@ -144,50 +155,53 @@ export declare class NamingHelper {
 }
 
 export declare class OuterCellIdsHelper {
-  getAllAttributes: (...args: unknown[]) => unknown;
-  getCellCenterFromId: (...args: unknown[]) => unknown;
-  getCoordsFromId: (...args: unknown[]) => unknown;
-  getIdFromCoords: (...args: unknown[]) => unknown;
-  getSide: (...args: unknown[]) => unknown;
-  getSideFromCoords: (...args: unknown[]) => unknown;
-  getX: (...args: unknown[]) => unknown;
-  getY: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getAllAttributes: (...args: unknown[]) => any;
+  getCellCenterFromId: (...args: unknown[]) => any;
+  getCoordsFromId: (...args: unknown[]) => any;
+  getIdFromCoords: (...args: unknown[]) => any;
+  getSide: (...args: unknown[]) => any;
+  getSideFromCoords: (...args: unknown[]) => any;
+  getX: (...args: unknown[]) => any;
+  getY: (...args: unknown[]) => any;
   height: number;
   width: number;
 }
 
 export declare class PuzzleBase {
+  constructor(...args: any[]);
   get digitCount(): number;
-  getCellAt: (...args: unknown[]) => unknown;
-  getCellsCanHaveRepeats: (...args: unknown[]) => unknown;
-  getCellsDiagonallyAdjacentToCell: (...args: unknown[]) => unknown;
-  getCellsDiagonallyAdjacentToCoords: (...args: unknown[]) => unknown;
-  getCellsOrthogonallyAdjacentToCell: (...args: unknown[]) => unknown;
-  getCellsOrthogonallyAdjacentToCoords: (...args: unknown[]) => unknown;
-  getCellsSeeEachOther: (...args: unknown[]) => unknown;
-  getCellsSeenByCell: (...args: unknown[]) => unknown;
-  getColumn: (...args: unknown[]) => unknown;
-  getFriendlyDigitsForCell: (...args: unknown[]) => unknown;
-  getRegion: (...args: unknown[]) => unknown;
-  getRegionAt: (...args: unknown[]) => unknown;
-  getRegionCells: (...args: unknown[]) => unknown;
-  getRegions: (...args: unknown[]) => unknown;
-  getRow: (...args: unknown[]) => unknown;
-  getX: (...args: unknown[]) => unknown;
-  getY: (...args: unknown[]) => unknown;
-  hasRegions: (...args: unknown[]) => unknown;
+  getCellAt: (...args: unknown[]) => any;
+  getCellsCanHaveRepeats: (...args: unknown[]) => any;
+  getCellsDiagonallyAdjacentToCell: (...args: unknown[]) => any;
+  getCellsDiagonallyAdjacentToCoords: (...args: unknown[]) => any;
+  getCellsOrthogonallyAdjacentToCell: (...args: unknown[]) => any;
+  getCellsOrthogonallyAdjacentToCoords: (...args: unknown[]) => any;
+  getCellsSeeEachOther: (...args: unknown[]) => any;
+  getCellsSeenByCell: (...args: unknown[]) => any;
+  getColumn: (...args: unknown[]) => any;
+  getFriendlyDigitsForCell: (...args: unknown[]) => any;
+  getRegion: (...args: unknown[]) => any;
+  getRegionAt: (...args: unknown[]) => any;
+  getRegionCells: (...args: unknown[]) => any;
+  getRegions: (...args: unknown[]) => any;
+  getRow: (...args: unknown[]) => any;
+  getX: (...args: unknown[]) => any;
+  getY: (...args: unknown[]) => any;
+  hasRegions: (...args: unknown[]) => any;
   get height(): number;
   get maxDigit(): number;
   get minDigit(): number;
   get puzzleType(): string;
   get size(): number;
-  unsafeGetCellAt: (...args: unknown[]) => unknown;
+  unsafeGetCellAt: (...args: unknown[]) => any;
   get width(): number;
   state: PuzzleState;
   spec: PuzzleSpec;
 }
 
 export declare class PuzzleSpec {
+  constructor(...args: any[]);
   digitCount: number;
   maxDigit: number;
   minDigit: number;
@@ -196,72 +210,76 @@ export declare class PuzzleSpec {
 }
 
 export declare class PuzzleSpecSize {
+  constructor(...args: any[]);
   height: number;
   width: number;
 }
 
 export declare class SmallNumberSet {
-  add: (...args: unknown[]) => unknown;
-  clear: (...args: unknown[]) => unknown;
-  delete: (...args: unknown[]) => unknown;
-  equals: (...args: unknown[]) => unknown;
-  getLargestNumber: (...args: unknown[]) => unknown;
-  getSmallestNumber: (...args: unknown[]) => unknown;
-  has: (...args: unknown[]) => unknown;
-  intersect: (...args: unknown[]) => unknown;
-  intersects: (...args: unknown[]) => unknown;
-  isDisjointFrom: (...args: unknown[]) => unknown;
-  isSubsetOf: (...args: unknown[]) => unknown;
-  isSupersetOf: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  add: (...args: unknown[]) => any;
+  clear: (...args: unknown[]) => any;
+  delete: (...args: unknown[]) => any;
+  equals: (...args: unknown[]) => any;
+  getLargestNumber: (...args: unknown[]) => any;
+  getSmallestNumber: (...args: unknown[]) => any;
+  has: (...args: unknown[]) => any;
+  intersect: (...args: unknown[]) => any;
+  intersects: (...args: unknown[]) => any;
+  isDisjointFrom: (...args: unknown[]) => any;
+  isSubsetOf: (...args: unknown[]) => any;
+  isSupersetOf: (...args: unknown[]) => any;
   get size(): unknown;
-  subtract: (...args: unknown[]) => unknown;
-  union: (...args: unknown[]) => unknown;
-  xor: (...args: unknown[]) => unknown;
-  static from: (...args: unknown[]) => unknown;
-  static getIntersection: (...args: unknown[]) => unknown;
-  static getUnion: (...args: unknown[]) => unknown;
+  subtract: (...args: unknown[]) => any;
+  union: (...args: unknown[]) => any;
+  xor: (...args: unknown[]) => any;
+  static from: (...args: unknown[]) => any;
+  static getIntersection: (...args: unknown[]) => any;
+  static getUnion: (...args: unknown[]) => any;
 }
 
 export declare class SumsHelper {
-  getCombinationsForSumWithoutRepeat: (...args: unknown[]) => unknown;
-  getCombinationsForSumsWithoutRepeat: (...args: unknown[]) => unknown;
-  getExtremeSumsWithRepeat: (...args: unknown[]) => unknown;
-  getExtremeSumsWithoutRepeat: (...args: unknown[]) => unknown;
-  getMaximumSumWithoutRepeat: (...args: unknown[]) => unknown;
-  getMinimumSumWithoutRepeat: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getCombinationsForSumWithoutRepeat: (...args: unknown[]) => any;
+  getCombinationsForSumsWithoutRepeat: (...args: unknown[]) => any;
+  getExtremeSumsWithRepeat: (...args: unknown[]) => any;
+  getExtremeSumsWithoutRepeat: (...args: unknown[]) => any;
+  getMaximumSumWithoutRepeat: (...args: unknown[]) => any;
+  getMinimumSumWithoutRepeat: (...args: unknown[]) => any;
   maxDigit: number;
   minDigit: number;
 }
 
 export declare class XSumsHelper {
-  getXSumPossibilities: (...args: unknown[]) => unknown;
+  constructor(...args: any[]);
+  getXSumPossibilities: (...args: unknown[]) => any;
   maxDigit: number;
   sumHelper: SumsHelper;
 }
 
 export type ArrayUtils = {
-  areSameLength: (...args: unknown[]) => unknown;
-  chunk: (...args: unknown[]) => unknown;
-  count: (...args: unknown[]) => unknown;
-  countWhere: (...args: unknown[]) => unknown;
-  createFilledArray: (...args: unknown[]) => unknown;
-  ensureArray: (...args: unknown[]) => unknown;
-  hasDuplicates: (...args: unknown[]) => unknown;
-  includesEvery: (...args: unknown[]) => unknown;
-  includesSome: (...args: unknown[]) => unknown;
-  mapIterable: (...args: unknown[]) => unknown;
-  remove: (...args: unknown[]) => unknown;
-  removeFirst: (...args: unknown[]) => unknown;
-  removeFirstWhere: (...args: unknown[]) => unknown;
-  removeWhere: (...args: unknown[]) => unknown;
-  shuffled: (...args: unknown[]) => unknown;
-  sliceWrapped: (...args: unknown[]) => unknown;
-  withoutAll: (...args: unknown[]) => unknown;
-  withoutDuplicates: (...args: unknown[]) => unknown;
+  areSameLength: (...args: unknown[]) => any;
+  chunk: (...args: unknown[]) => any;
+  count: (...args: unknown[]) => any;
+  countWhere: (...args: unknown[]) => any;
+  createFilledArray: (...args: unknown[]) => any;
+  ensureArray: (...args: unknown[]) => any;
+  hasDuplicates: (...args: unknown[]) => any;
+  includesEvery: (...args: unknown[]) => any;
+  includesSome: (...args: unknown[]) => any;
+  mapIterable: (...args: unknown[]) => any;
+  remove: (...args: unknown[]) => any;
+  removeFirst: (...args: unknown[]) => any;
+  removeFirstWhere: (...args: unknown[]) => any;
+  removeWhere: (...args: unknown[]) => any;
+  shuffled: (...args: unknown[]) => any;
+  sliceWrapped: (...args: unknown[]) => any;
+  withoutAll: (...args: unknown[]) => any;
+  withoutDuplicates: (...args: unknown[]) => any;
 };
 
 export type CombinatoricUtils = {
-  getCombinationsForSum: (...args: unknown[]) => unknown;
+  getCombinationsForSum: (...args: unknown[]) => any;
 };
 
 export type CustomComponentInstance = {
@@ -269,12 +287,12 @@ export type CustomComponentInstance = {
   cells: number[];
   name: string;
   get allowsEmptyCells(): boolean;
-  getExclusionGroup: (...args: unknown[]) => unknown;
-  getIsDone: (...args: unknown[]) => unknown;
-  initialize: (...args: unknown[]) => unknown;
-  onValueSet: (...args: unknown[]) => unknown;
-  update: (...args: unknown[]) => unknown;
-  validate: (...args: unknown[]) => unknown;
+  getExclusionGroup: (...args: unknown[]) => any;
+  getIsDone: (...args: unknown[]) => any;
+  initialize: (...args: unknown[]) => any;
+  onValueSet: (...args: unknown[]) => any;
+  update: (...args: unknown[]) => any;
+  validate: (...args: unknown[]) => any;
   get validateDuringSolve(): boolean;
 };
 
@@ -286,21 +304,21 @@ export type GetAffectedCellsArgs = {};
 
 export type InitialCodePuzzle = PuzzleBase & {
   helpers: InitialCodeScopeHelpers;
-  addConstraintComponent: (...args: unknown[]) => unknown;
-  getConstraintComponentsAt: (...args: unknown[]) => unknown;
-  removeConstraintComponent: (...args: unknown[]) => unknown;
-  setRegions: (...args: unknown[]) => unknown;
+  addConstraintComponent: (...args: unknown[]) => any;
+  getConstraintComponentsAt: (...args: unknown[]) => any;
+  removeConstraintComponent: (...args: unknown[]) => any;
+  setRegions: (...args: unknown[]) => any;
 };
 
 export type InitialCodeScopeHelpers = Helpers & {
   geometry: CustomComponentScopeGeometryHelper & {
     sudoku: PuzzleState;
-    getSubsetsPerRegion: (...args: unknown[]) => unknown;
+    getSubsetsPerRegion: (...args: unknown[]) => any;
   };
   lines: {
-    getAllPairsAlongLines: (...args: unknown[]) => unknown;
-    getCellsBetweenLineEnds: (...args: unknown[]) => unknown;
-    getLineEnds: (...args: unknown[]) => unknown;
+    getAllPairsAlongLines: (...args: unknown[]) => any;
+    getCellsBetweenLineEnds: (...args: unknown[]) => any;
+    getLineEnds: (...args: unknown[]) => any;
   };
   misc: {
     cellIdHelper: CellIdsHelper;
@@ -309,8 +327,8 @@ export type InitialCodeScopeHelpers = Helpers & {
     geometryHelper: CustomComponentScopeGeometryHelper;
     outerCellIdHelper: OuterCellIdsHelper;
     spec: PuzzleSpec;
-    getCellGroupsFromLines: (...args: unknown[]) => unknown;
-    getEdgesForNegativeConstraint: (...args: unknown[]) => unknown;
+    getCellGroupsFromLines: (...args: unknown[]) => any;
+    getEdgesForNegativeConstraint: (...args: unknown[]) => any;
   };
 };
 
@@ -320,25 +338,25 @@ export type InitializeArgs = {
 };
 
 export type IterationUtils = {
-  getBest: (...args: unknown[]) => unknown;
-  getCombinations: (...args: unknown[]) => unknown;
-  getCounts: (...args: unknown[]) => unknown;
-  getOne: (...args: unknown[]) => unknown;
-  getRange: (...args: unknown[]) => unknown;
-  getRangeInclusive: (...args: unknown[]) => unknown;
+  getBest: (...args: unknown[]) => any;
+  getCombinations: (...args: unknown[]) => any;
+  getCounts: (...args: unknown[]) => any;
+  getOne: (...args: unknown[]) => any;
+  getRange: (...args: unknown[]) => any;
+  getRangeInclusive: (...args: unknown[]) => any;
 };
 
 export type MathUtils = {
-  clamp: (...args: unknown[]) => unknown;
-  getFactors: (...args: unknown[]) => unknown;
-  isPrime: (...args: unknown[]) => unknown;
-  lerp: (...args: unknown[]) => unknown;
-  mod: (...args: unknown[]) => unknown;
-  product: (...args: unknown[]) => unknown;
-  sum: (...args: unknown[]) => unknown;
-  toDegrees: (...args: unknown[]) => unknown;
-  toRadians: (...args: unknown[]) => unknown;
-  triangularNumber: (...args: unknown[]) => unknown;
+  clamp: (...args: unknown[]) => any;
+  getFactors: (...args: unknown[]) => any;
+  isPrime: (...args: unknown[]) => any;
+  lerp: (...args: unknown[]) => any;
+  mod: (...args: unknown[]) => any;
+  product: (...args: unknown[]) => any;
+  sum: (...args: unknown[]) => any;
+  toDegrees: (...args: unknown[]) => any;
+  toRadians: (...args: unknown[]) => any;
+  triangularNumber: (...args: unknown[]) => any;
 };
 
 export type SetParamsArgs = {
@@ -346,18 +364,18 @@ export type SetParamsArgs = {
 };
 
 export type SetUtils = {
-  addAll: (...args: unknown[]) => unknown;
-  deleteAll: (...args: unknown[]) => unknown;
-  difference: (...args: unknown[]) => unknown;
-  filter: (...args: unknown[]) => unknown;
-  hasAll: (...args: unknown[]) => unknown;
-  hasSome: (...args: unknown[]) => unknown;
-  hasSomeWhere: (...args: unknown[]) => unknown;
-  intersection: (...args: unknown[]) => unknown;
-  isEqual: (...args: unknown[]) => unknown;
-  symmetricDifference: (...args: unknown[]) => unknown;
-  takeOne: (...args: unknown[]) => unknown;
-  union: (...args: unknown[]) => unknown;
+  addAll: (...args: unknown[]) => any;
+  deleteAll: (...args: unknown[]) => any;
+  difference: (...args: unknown[]) => any;
+  filter: (...args: unknown[]) => any;
+  hasAll: (...args: unknown[]) => any;
+  hasSome: (...args: unknown[]) => any;
+  hasSomeWhere: (...args: unknown[]) => any;
+  intersection: (...args: unknown[]) => any;
+  isEqual: (...args: unknown[]) => any;
+  symmetricDifference: (...args: unknown[]) => any;
+  takeOne: (...args: unknown[]) => any;
+  union: (...args: unknown[]) => any;
 };
 
 export type UpdateArgs = {
@@ -371,21 +389,21 @@ export type ValidateArgs = {
 };
 
 export type Vector2Funcs = {
-  compareVectors: (...args: unknown[]) => unknown;
-  difference: (...args: unknown[]) => unknown;
-  getAngle: (...args: unknown[]) => unknown;
-  getAverage: (...args: unknown[]) => unknown;
-  getClamped: (...args: unknown[]) => unknown;
-  getDistance: (...args: unknown[]) => unknown;
-  getDotProduct: (...args: unknown[]) => unknown;
-  getMagnitude: (...args: unknown[]) => unknown;
-  getManhattanDistance: (...args: unknown[]) => unknown;
-  getRotated: (...args: unknown[]) => unknown;
-  isVectorGreaterThan: (...args: unknown[]) => unknown;
-  normalized: (...args: unknown[]) => unknown;
-  scaled: (...args: unknown[]) => unknown;
-  scaledSum: (...args: unknown[]) => unknown;
-  sum: (...args: unknown[]) => unknown;
+  compareVectors: (...args: unknown[]) => any;
+  difference: (...args: unknown[]) => any;
+  getAngle: (...args: unknown[]) => any;
+  getAverage: (...args: unknown[]) => any;
+  getClamped: (...args: unknown[]) => any;
+  getDistance: (...args: unknown[]) => any;
+  getDotProduct: (...args: unknown[]) => any;
+  getMagnitude: (...args: unknown[]) => any;
+  getManhattanDistance: (...args: unknown[]) => any;
+  getRotated: (...args: unknown[]) => any;
+  isVectorGreaterThan: (...args: unknown[]) => any;
+  normalized: (...args: unknown[]) => any;
+  scaled: (...args: unknown[]) => any;
+  scaledSum: (...args: unknown[]) => any;
+  sum: (...args: unknown[]) => any;
 };
 
 export declare enum DiagonalType {

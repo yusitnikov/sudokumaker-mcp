@@ -5,6 +5,7 @@ import type { ParsedExecuteJsResponse } from "../../ParsedExecuteJsResponse";
 import { FrontendToolImplementation } from "./FrontendToolImplementation";
 import type { ToolOptions } from "./ToolImplementation";
 import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
+import type { BackendResources } from "../../BackendResources";
 
 export interface FrontendToolOptions<SchemaT extends z.ZodSchema> extends ToolOptions<SchemaT> {
   timeout?: number;
@@ -39,6 +40,7 @@ export abstract class SimpleFrontendToolImplementation<
   protected async runLogicOnBackend(
     tabController: TabController,
     params: z.input<SchemaT>,
+    resources: BackendResources,
   ): Promise<ParsedExecuteJsResponse<CallToolResult>> {
     const runResult = await this.callFrontend<SimpleFrontendToolImplementation<SchemaT>, "runOnFrontend">(
       tabController,
@@ -52,7 +54,7 @@ export abstract class SimpleFrontendToolImplementation<
     const { response, updatedPuzzle } = runResult.result;
 
     if (updatedPuzzle) {
-      const checkResult = await this.checkPuzzleOnBackend(updatedPuzzle, params);
+      const checkResult = await this.checkPuzzleOnBackend(updatedPuzzle, params, resources);
       if (checkResult) {
         (response.content[response.content.length - 1] as { text: string }).text += `\n\n${checkResult}`;
       }
@@ -64,7 +66,11 @@ export abstract class SimpleFrontendToolImplementation<
     };
   }
 
-  protected async checkPuzzleOnBackend(_puzzle: PuzzlePublic, _params: z.input<SchemaT>): Promise<string | undefined> {
+  protected async checkPuzzleOnBackend(
+    _puzzle: PuzzlePublic,
+    _params: z.input<SchemaT>,
+    _resources: BackendResources,
+  ): Promise<string | undefined> {
     return undefined;
   }
 }
