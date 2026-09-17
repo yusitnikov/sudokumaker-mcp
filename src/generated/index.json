@@ -96,7 +96,8 @@
       "ownProperties": {
         "getCombinationsForSum": {
           "type": "function",
-          "code": "function*$s(s,e,t=1,n=1/0){const i=[...s].sort((o,l)=>o-l);function*r(o,l,a){if(a===0){l.length>=t&&(yield[...l]);return}if(l.length!==n)for(let c=o;c<i.length;c++){if(c>o&&i[c]===i[c-1])continue;const h=i[c];if(h>a)break;l.push(h),yield*r(c+1,l,a-h),l.pop()}}yield*r(0,[],e)}"
+          "code": "function*$s(s,e,t=1,n=1/0){const i=[...s].sort((o,l)=>o-l);function*r(o,l,a){if(a===0){l.length>=t&&(yield[...l]);return}if(l.length!==n)for(let c=o;c<i.length;c++){if(c>o&&i[c]===i[c-1])continue;const h=i[c];if(h>a)break;l.push(h),yield*r(c+1,l,a-h),l.pop()}}yield*r(0,[],e)}",
+          "isGenerator": true
         }
       }
     },
@@ -153,15 +154,18 @@
         },
         "initialize": {
           "type": "function",
-          "code": "*initialize(e){if(this.getExclusionGroup!==D.prototype.getExclusionGroup||this.onValueSet!==D.prototype.onValueSet)for(const t of this.cellIds){const n=e.cells[t].value;if(n!==void 0){yield*this.onValueSet(e,t,n);const i=Ne([...this.getExclusionGroup(t)],t);yield me(n,i)}}yield*this.update(e)}"
+          "code": "*initialize(e){if(this.getExclusionGroup!==D.prototype.getExclusionGroup||this.onValueSet!==D.prototype.onValueSet)for(const t of this.cellIds){const n=e.cells[t].value;if(n!==void 0){yield*this.onValueSet(e,t,n);const i=Ne([...this.getExclusionGroup(t)],t);yield me(n,i)}}yield*this.update(e)}",
+          "isGenerator": true
         },
         "onValueSet": {
           "type": "function",
-          "code": "*onValueSet(e,t,n){}"
+          "code": "*onValueSet(e,t,n){}",
+          "isGenerator": true
         },
         "update": {
           "type": "function",
-          "code": "*update(e){}"
+          "code": "*update(e){}",
+          "isGenerator": true
         },
         "validate": {
           "type": "function",
@@ -369,7 +373,8 @@
           "ownProperties": {
             "getAllPairsAlongLines": {
               "type": "function",
-              "code": "*getAllPairsAlongLines(e){for(const t of e)for(let n=0;n<t.length-1;n++)yield[t[n],t[n+1]]}"
+              "code": "*getAllPairsAlongLines(e){for(const t of e)for(let n=0;n<t.length-1;n++)yield[t[n],t[n+1]]}",
+              "isGenerator": true
             },
             "getCellsBetweenLineEnds": {
               "type": "function",
@@ -419,7 +424,8 @@
             },
             "getEdgesForNegativeConstraint": {
               "type": "function",
-              "code": "*getEdgesForNegativeConstraint(e){const t=new Set;for(const r of e)t.add(r.edge);const{width:n,height:i}=this.spec.size;for(let r=0;r<i;r++)for(let o=0;o<n;o++){if(o<n-1){const l=this.edgeIdHelper.getIdFromCoords({x:o+1,y:r+.5});t.has(l)||(yield l)}if(r<i-1){const l=this.edgeIdHelper.getIdFromCoords({x:o+.5,y:r+1});t.has(l)||(yield l)}}}"
+              "code": "*getEdgesForNegativeConstraint(e){const t=new Set;for(const r of e)t.add(r.edge);const{width:n,height:i}=this.spec.size;for(let r=0;r<i;r++)for(let o=0;o<n;o++){if(o<n-1){const l=this.edgeIdHelper.getIdFromCoords({x:o+1,y:r+.5});t.has(l)||(yield l)}if(r<i-1){const l=this.edgeIdHelper.getIdFromCoords({x:o+.5,y:r+1});t.has(l)||(yield l)}}}",
+              "isGenerator": true
             }
           }
         }
@@ -709,7 +715,8 @@
         },
         "getCombinations": {
           "type": "function",
-          "code": "function*Qt(s,e){const t=[...s],n=t.length;if(e>n)return;const i=Array.from({length:e},(r,o)=>o);for(yield i.map(r=>t[r]);;){let r=e-1;for(;r>=0&&i[r]===r+n-e;)r--;if(r===-1)return;i[r]++;for(let o=r+1;o<e;o++)i[o]=i[o-1]+1;yield i.map(o=>t[o])}}"
+          "code": "function*Qt(s,e){const t=[...s],n=t.length;if(e>n)return;const i=Array.from({length:e},(r,o)=>o);for(yield i.map(r=>t[r]);;){let r=e-1;for(;r>=0&&i[r]===r+n-e;)r--;if(r===-1)return;i[r]++;for(let o=r+1;o<e;o++)i[o]=i[o-1]+1;yield i.map(o=>t[o])}}",
+          "isGenerator": true
         },
         "getCounts": {
           "type": "function",
@@ -721,11 +728,13 @@
         },
         "getRange": {
           "type": "function",
-          "code": "function*On(s,e){for(let t=s;t<e;t++)yield t}"
+          "code": "function*On(s,e){for(let t=s;t<e;t++)yield t}",
+          "isGenerator": true
         },
         "getRangeInclusive": {
           "type": "function",
-          "code": "function*j(s,e){for(let t=s;t<=e;t++)yield t}"
+          "code": "function*j(s,e){for(let t=s;t<=e;t++)yield t}",
+          "isGenerator": true
         }
       }
     },
@@ -1175,39 +1184,48 @@
       "ownProperties": {
         "getAdjacentCells": {
           "type": "function",
-          "code": "*getAdjacentCells(e,t=!1){yield*this.getOrthogonallyAdjacentCells(e),t&&(yield*this.getDiagonallyAdjacentCells(e))}"
+          "code": "*getAdjacentCells(e,t=!1){yield*this.getOrthogonallyAdjacentCells(e),t&&(yield*this.getDiagonallyAdjacentCells(e))}",
+          "isGenerator": true
         },
         "getAllColumns": {
           "type": "function",
-          "code": "*getAllColumns(){for(let e=0;e<this.width;e++)yield[...this.getCellsInColumn(e)]}"
+          "code": "*getAllColumns(){for(let e=0;e<this.width;e++)yield[...this.getCellsInColumn(e)]}",
+          "isGenerator": true
         },
         "getAllDiagonallyAdjacentPairs": {
           "type": "function",
-          "code": "*getAllDiagonallyAdjacentPairs(){yield*this.getAllPairsWithOffset(1,-1),yield*this.getAllPairsWithOffset(1,1)}"
+          "code": "*getAllDiagonallyAdjacentPairs(){yield*this.getAllPairsWithOffset(1,-1),yield*this.getAllPairsWithOffset(1,1)}",
+          "isGenerator": true
         },
         "getAllDominoes": {
           "type": "function",
-          "code": "*getAllDominoes(){yield*this.getAllPairsWithOffset(1,0),yield*this.getAllPairsWithOffset(0,1)}"
+          "code": "*getAllDominoes(){yield*this.getAllPairsWithOffset(1,0),yield*this.getAllPairsWithOffset(0,1)}",
+          "isGenerator": true
         },
         "getAllKingsMovePairs": {
           "type": "function",
-          "code": "*getAllKingsMovePairs(){yield*this.getAllPairsWithOffset(1,0),yield*this.getAllPairsWithOffset(0,1),yield*this.getAllPairsWithOffset(1,-1),yield*this.getAllPairsWithOffset(1,1)}"
+          "code": "*getAllKingsMovePairs(){yield*this.getAllPairsWithOffset(1,0),yield*this.getAllPairsWithOffset(0,1),yield*this.getAllPairsWithOffset(1,-1),yield*this.getAllPairsWithOffset(1,1)}",
+          "isGenerator": true
         },
         "getAllKnightMovePairs": {
           "type": "function",
-          "code": "*getAllKnightMovePairs(){yield*this.getAllPairsWithOffset(1,-2),yield*this.getAllPairsWithOffset(1,2),yield*this.getAllPairsWithOffset(2,-1),yield*this.getAllPairsWithOffset(2,1)}"
+          "code": "*getAllKnightMovePairs(){yield*this.getAllPairsWithOffset(1,-2),yield*this.getAllPairsWithOffset(1,2),yield*this.getAllPairsWithOffset(2,-1),yield*this.getAllPairsWithOffset(2,1)}",
+          "isGenerator": true
         },
         "getAllPairsWithOffset": {
           "type": "function",
-          "code": "*getAllPairsWithOffset(e,t){for(let n=0;n<this.height;n++)for(let i=0;i<this.width;i++){const r={x:i+e,y:n+t};r.x<0||r.y<0||r.x>=this.width||r.y>=this.height||(yield[this.cellIdHelper.getIdFromCoords({x:i,y:n}),this.cellIdHelper.getIdFromCoords(r)])}}"
+          "code": "*getAllPairsWithOffset(e,t){for(let n=0;n<this.height;n++)for(let i=0;i<this.width;i++){const r={x:i+e,y:n+t};r.x<0||r.y<0||r.x>=this.width||r.y>=this.height||(yield[this.cellIdHelper.getIdFromCoords({x:i,y:n}),this.cellIdHelper.getIdFromCoords(r)])}}",
+          "isGenerator": true
         },
         "getAllQuadruples": {
           "type": "function",
-          "code": "*getAllQuadruples(){for(let e=0;e<this.height-1;e++)for(let t=0;t<this.width-1;t++)yield[this.cellIdHelper.getIdFromCoords({x:t,y:e}),this.cellIdHelper.getIdFromCoords({x:t+1,y:e}),this.cellIdHelper.getIdFromCoords({x:t,y:e+1}),this.cellIdHelper.getIdFromCoords({x:t+1,y:e+1})]}"
+          "code": "*getAllQuadruples(){for(let e=0;e<this.height-1;e++)for(let t=0;t<this.width-1;t++)yield[this.cellIdHelper.getIdFromCoords({x:t,y:e}),this.cellIdHelper.getIdFromCoords({x:t+1,y:e}),this.cellIdHelper.getIdFromCoords({x:t,y:e+1}),this.cellIdHelper.getIdFromCoords({x:t+1,y:e+1})]}",
+          "isGenerator": true
         },
         "getAllRows": {
           "type": "function",
-          "code": "*getAllRows(){for(let e=0;e<this.height;e++)yield[...this.getCellsInRow(e)]}"
+          "code": "*getAllRows(){for(let e=0;e<this.height;e++)yield[...this.getCellsInRow(e)]}",
+          "isGenerator": true
         },
         "getCellsAreKingsMoveApart": {
           "type": "function",
@@ -1215,35 +1233,43 @@
         },
         "getCellsInColumn": {
           "type": "function",
-          "code": "*getCellsInColumn(e){for(let t=0;t<this.height;t++)yield this.cellIdHelper.getIdFromCoords({x:e,y:t})}"
+          "code": "*getCellsInColumn(e){for(let t=0;t<this.height;t++)yield this.cellIdHelper.getIdFromCoords({x:e,y:t})}",
+          "isGenerator": true
         },
         "getCellsInColumnOfCell": {
           "type": "function",
-          "code": "*getCellsInColumnOfCell(e){yield*this.getCellsInColumn(this.cellIdHelper.getX(e))}"
+          "code": "*getCellsInColumnOfCell(e){yield*this.getCellsInColumn(this.cellIdHelper.getX(e))}",
+          "isGenerator": true
         },
         "getCellsInDiagonal": {
           "type": "function",
-          "code": "*getCellsInDiagonal(e,t){for(const n of this.getCoordsInDiagonal(e,t))yield this.cellIdHelper.getIdFromCoords(n)}"
+          "code": "*getCellsInDiagonal(e,t){for(const n of this.getCoordsInDiagonal(e,t))yield this.cellIdHelper.getIdFromCoords(n)}",
+          "isGenerator": true
         },
         "getCellsInRow": {
           "type": "function",
-          "code": "*getCellsInRow(e){for(let t=0;t<this.width;t++)yield this.cellIdHelper.getIdFromCoords({x:t,y:e})}"
+          "code": "*getCellsInRow(e){for(let t=0;t<this.width;t++)yield this.cellIdHelper.getIdFromCoords({x:t,y:e})}",
+          "isGenerator": true
         },
         "getCellsInRowOfCell": {
           "type": "function",
-          "code": "*getCellsInRowOfCell(e){yield*this.getCellsInRow(this.cellIdHelper.getY(e))}"
+          "code": "*getCellsInRowOfCell(e){yield*this.getCellsInRow(this.cellIdHelper.getY(e))}",
+          "isGenerator": true
         },
         "getCellsKnightsMoveAwayFromCell": {
           "type": "function",
-          "code": "*getCellsKnightsMoveAwayFromCell(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>=1&&n>=2&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n-2})),t<this.width-1&&n>=2&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n-2})),t>=2&&n>=1&&(yield this.cellIdHelper.getIdFromCoords({x:t-2,y:n-1})),t<this.width-2&&n>=1&&(yield this.cellIdHelper.getIdFromCoords({x:t+2,y:n-1})),t>=2&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t-2,y:n+1})),t<this.width-2&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+2,y:n+1})),t>=1&&n<this.height-2&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n+2})),t<this.width-1&&n<this.height-2&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n+2}))}"
+          "code": "*getCellsKnightsMoveAwayFromCell(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>=1&&n>=2&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n-2})),t<this.width-1&&n>=2&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n-2})),t>=2&&n>=1&&(yield this.cellIdHelper.getIdFromCoords({x:t-2,y:n-1})),t<this.width-2&&n>=1&&(yield this.cellIdHelper.getIdFromCoords({x:t+2,y:n-1})),t>=2&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t-2,y:n+1})),t<this.width-2&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+2,y:n+1})),t>=1&&n<this.height-2&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n+2})),t<this.width-1&&n<this.height-2&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n+2}))}",
+          "isGenerator": true
         },
         "getCellsPointedAtByOuterClue": {
           "type": "function",
-          "code": "*getCellsPointedAtByOuterClue(e,t){for(const n of this.getCoordsPointedAtByOuterClue(e,t))yield this.cellIdHelper.getIdFromCoords(n)}"
+          "code": "*getCellsPointedAtByOuterClue(e,t){for(const n of this.getCoordsPointedAtByOuterClue(e,t))yield this.cellIdHelper.getIdFromCoords(n)}",
+          "isGenerator": true
         },
         "getCellsTouchingCorner": {
           "type": "function",
-          "code": "*getCellsTouchingCorner(e){const t=this.cornerIdHelper.getCoordsFromId(e),n=[];for(let i=-1;i<=0;i++)for(let r=-1;r<=0;r++){const o=this.cellIdHelper.getIdFromCoordsSafe({x:t.x+r,y:t.y+i});o!==void 0&&(yield o)}return n}"
+          "code": "*getCellsTouchingCorner(e){const t=this.cornerIdHelper.getCoordsFromId(e),n=[];for(let i=-1;i<=0;i++)for(let r=-1;r<=0;r++){const o=this.cellIdHelper.getIdFromCoordsSafe({x:t.x+r,y:t.y+i});o!==void 0&&(yield o)}return n}",
+          "isGenerator": true
         },
         "getCellsTouchingEdge": {
           "type": "function",
@@ -1251,15 +1277,18 @@
         },
         "getCoordsInDiagonal": {
           "type": "function",
-          "code": "*getCoordsInDiagonal(e,t){const n=e===$.NegativeDiagonal?1:-1;t===void 0&&(t=e===$.NegativeDiagonal?0:this.width-1);for(let i=0;i<this.height;i++){const r=t+i*n;if(r<0||r>=this.width)break;yield{x:r,y:i}}}"
+          "code": "*getCoordsInDiagonal(e,t){const n=e===$.NegativeDiagonal?1:-1;t===void 0&&(t=e===$.NegativeDiagonal?0:this.width-1);for(let i=0;i<this.height;i++){const r=t+i*n;if(r<0||r>=this.width)break;yield{x:r,y:i}}}",
+          "isGenerator": true
         },
         "getCoordsPointedAtByOuterClue": {
           "type": "function",
-          "code": "*getCoordsPointedAtByOuterClue(e,t){const n=this.outerCellIdHelper.getAllAttributes(e);let{x:i,y:r}=n;const{side:o}=n;if(t){const l=Yn[`${o}_${t}`];if(!l)return;for(i+=l.x,r+=l.y;i>=0&&r>=0&&i<this.width&&r<this.height;)yield{x:i,y:r},i+=l.x,r+=l.y}else switch(o){case p.Top:{for(let l=0;l<this.height;l++)yield{x:i,y:l};return}case p.Right:for(let l=this.width-1;l>=0;l--)yield{x:l,y:r};return;case p.Bottom:for(let l=this.height-1;l>=0;l--)yield{x:i,y:l};return;case p.Left:for(let l=0;l<this.width;l++)yield{x:l,y:r};return;case p.TopLeft:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:a,y:a};return}case p.TopRight:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:this.width-1-a,y:a};return}case p.BottomRight:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:a,y:this.height-1-a};return}case p.BottomLeft:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:this.width-1-a,y:this.height-1-a}}}}"
+          "code": "*getCoordsPointedAtByOuterClue(e,t){const n=this.outerCellIdHelper.getAllAttributes(e);let{x:i,y:r}=n;const{side:o}=n;if(t){const l=Yn[`${o}_${t}`];if(!l)return;for(i+=l.x,r+=l.y;i>=0&&r>=0&&i<this.width&&r<this.height;)yield{x:i,y:r},i+=l.x,r+=l.y}else switch(o){case p.Top:{for(let l=0;l<this.height;l++)yield{x:i,y:l};return}case p.Right:for(let l=this.width-1;l>=0;l--)yield{x:l,y:r};return;case p.Bottom:for(let l=this.height-1;l>=0;l--)yield{x:i,y:l};return;case p.Left:for(let l=0;l<this.width;l++)yield{x:l,y:r};return;case p.TopLeft:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:a,y:a};return}case p.TopRight:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:this.width-1-a,y:a};return}case p.BottomRight:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:a,y:this.height-1-a};return}case p.BottomLeft:{const l=Math.min(this.width,this.height);for(let a=0;a<l;a++)yield{x:this.width-1-a,y:this.height-1-a}}}}",
+          "isGenerator": true
         },
         "getDiagonallyAdjacentCells": {
           "type": "function",
-          "code": "*getDiagonallyAdjacentCells(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>0&&n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n-1})),t<this.width-1&&n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n-1})),t>0&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n+1})),t<this.width-1&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n+1}))}"
+          "code": "*getDiagonallyAdjacentCells(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>0&&n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n-1})),t<this.width-1&&n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n-1})),t>0&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n+1})),t<this.width-1&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n+1}))}",
+          "isGenerator": true
         },
         "getManhattanDistanceBetweenCells": {
           "type": "function",
@@ -1267,7 +1296,8 @@
         },
         "getOrthogonallyAdjacentCells": {
           "type": "function",
-          "code": "*getOrthogonallyAdjacentCells(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>0&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n})),n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t,y:n-1})),t<this.width-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n})),n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t,y:n+1}))}"
+          "code": "*getOrthogonallyAdjacentCells(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>0&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n})),n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t,y:n-1})),t<this.width-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n})),n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t,y:n+1}))}",
+          "isGenerator": true
         },
         "height": {
           "type": "scalar",
@@ -1698,19 +1728,23 @@
         },
         "getCellsDiagonallyAdjacentToCell": {
           "type": "function",
-          "code": "*getCellsDiagonallyAdjacentToCell(e){yield*this.helpers.geometry.getDiagonallyAdjacentCells(e)}"
+          "code": "*getCellsDiagonallyAdjacentToCell(e){yield*this.helpers.geometry.getDiagonallyAdjacentCells(e)}",
+          "isGenerator": true
         },
         "getCellsDiagonallyAdjacentToCoords": {
           "type": "function",
-          "code": "*getCellsDiagonallyAdjacentToCoords(e,t){yield*this.getCellsDiagonallyAdjacentToCell(this.helpers.cellIds.getIdFromCoords({x:e,y:t}))}"
+          "code": "*getCellsDiagonallyAdjacentToCoords(e,t){yield*this.getCellsDiagonallyAdjacentToCell(this.helpers.cellIds.getIdFromCoords({x:e,y:t}))}",
+          "isGenerator": true
         },
         "getCellsOrthogonallyAdjacentToCell": {
           "type": "function",
-          "code": "*getCellsOrthogonallyAdjacentToCell(e){yield*this.helpers.geometry.getOrthogonallyAdjacentCells(e)}"
+          "code": "*getCellsOrthogonallyAdjacentToCell(e){yield*this.helpers.geometry.getOrthogonallyAdjacentCells(e)}",
+          "isGenerator": true
         },
         "getCellsOrthogonallyAdjacentToCoords": {
           "type": "function",
-          "code": "*getCellsOrthogonallyAdjacentToCoords(e,t){yield*this.getCellsOrthogonallyAdjacentToCell(this.helpers.cellIds.getIdFromCoords({x:e,y:t}))}"
+          "code": "*getCellsOrthogonallyAdjacentToCoords(e,t){yield*this.getCellsOrthogonallyAdjacentToCell(this.helpers.cellIds.getIdFromCoords({x:e,y:t}))}",
+          "isGenerator": true
         },
         "getCellsSeeEachOther": {
           "type": "function",
@@ -2015,7 +2049,8 @@
       "ownProperties": {
         "getXSumPossibilities": {
           "type": "function",
-          "code": "*getXSumPossibilities(e){if(e===1){yield{x:1,combinations:[2]};return}else if(e===2||e===4||e>de(this.maxDigit))return;for(let t=2;t<=this.maxDigit;t++)if(e>=de(t)&&e<=this.#e(t)){const n=[];for(const i of this.sumHelper.getCombinationsForSumWithoutRepeat(e-t,t-1))i.includes(t)||n.push(lt(i));n.length>0&&(yield{x:t,combinations:n})}}"
+          "code": "*getXSumPossibilities(e){if(e===1){yield{x:1,combinations:[2]};return}else if(e===2||e===4||e>de(this.maxDigit))return;for(let t=2;t<=this.maxDigit;t++)if(e>=de(t)&&e<=this.#e(t)){const n=[];for(const i of this.sumHelper.getCombinationsForSumWithoutRepeat(e-t,t-1))i.includes(t)||n.push(lt(i));n.length>0&&(yield{x:t,combinations:n})}}",
+          "isGenerator": true
         },
         "maxDigit": {
           "type": "scalar",

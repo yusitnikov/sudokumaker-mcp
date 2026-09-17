@@ -255,7 +255,13 @@ export class SmCodeScanner extends GenericSmCodeScanner<false> {
     if (typeof value === "function") {
       const code = value.toString();
       if (!/^\s*class\s/.test(code)) {
-        return { type: "function", code };
+        const type = value.constructor.name;
+        return {
+          type: "function",
+          code,
+          isGenerator: type === "GeneratorFunction" || type === "AsyncGeneratorFunction" ? true : undefined,
+          isAsync: type === "AsyncFunction" || type === "AsyncGeneratorFunction" ? true : undefined,
+        };
       }
 
       const reference = this.registerReference(value, handle, isRoot);

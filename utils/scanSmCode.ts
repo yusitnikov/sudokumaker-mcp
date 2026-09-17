@@ -183,12 +183,20 @@ program
             return `Set<${format(value.item, offset, typePrefix)}>`;
           case "map":
             return `Map<${format(value.entry?.[0], offset, typePrefix)}, ${format(value.entry?.[1], offset, typePrefix)}>`;
-          case "function":
+          case "function": {
             // TODO: recover the real signature from the scanned source.
             // The return has to be `any` until then - `unknown` makes every use of a result an
             // error, so correct code gets rejected. The parameters stay `unknown[]`: anything is
             // assignable to `unknown`, so that costs no call site anything.
-            return `(...args: unknown[]) => any`;
+            const returnType = value.isGenerator
+              ? value.isAsync
+                ? "AsyncGenerator<any>"
+                : "Generator<any>"
+              : value.isAsync
+                ? "Promise<any>"
+                : "any";
+            return `(...args: unknown[]) => ${returnType}`;
+          }
           case "object": {
             let code = "";
 

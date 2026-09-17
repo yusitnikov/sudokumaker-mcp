@@ -51,6 +51,8 @@ export interface IndexClass<IsValue extends boolean> extends IndexBaseReference 
 export interface IndexFunction {
   type: "function";
   code: string;
+  isGenerator?: boolean;
+  isAsync?: boolean;
 }
 
 export interface IndexNumericEnum extends IndexBaseReference {

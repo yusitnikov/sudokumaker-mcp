@@ -53,30 +53,30 @@ export declare class CustomComponentPuzzleBase extends PuzzleBase {
 
 export declare class CustomComponentScopeGeometryHelper {
   constructor(...args: any[]);
-  getAdjacentCells: (...args: unknown[]) => any;
-  getAllColumns: (...args: unknown[]) => any;
-  getAllDiagonallyAdjacentPairs: (...args: unknown[]) => any;
-  getAllDominoes: (...args: unknown[]) => any;
-  getAllKingsMovePairs: (...args: unknown[]) => any;
-  getAllKnightMovePairs: (...args: unknown[]) => any;
-  getAllPairsWithOffset: (...args: unknown[]) => any;
-  getAllQuadruples: (...args: unknown[]) => any;
-  getAllRows: (...args: unknown[]) => any;
+  getAdjacentCells: (...args: unknown[]) => Generator<any>;
+  getAllColumns: (...args: unknown[]) => Generator<any>;
+  getAllDiagonallyAdjacentPairs: (...args: unknown[]) => Generator<any>;
+  getAllDominoes: (...args: unknown[]) => Generator<any>;
+  getAllKingsMovePairs: (...args: unknown[]) => Generator<any>;
+  getAllKnightMovePairs: (...args: unknown[]) => Generator<any>;
+  getAllPairsWithOffset: (...args: unknown[]) => Generator<any>;
+  getAllQuadruples: (...args: unknown[]) => Generator<any>;
+  getAllRows: (...args: unknown[]) => Generator<any>;
   getCellsAreKingsMoveApart: (...args: unknown[]) => any;
-  getCellsInColumn: (...args: unknown[]) => any;
-  getCellsInColumnOfCell: (...args: unknown[]) => any;
-  getCellsInDiagonal: (...args: unknown[]) => any;
-  getCellsInRow: (...args: unknown[]) => any;
-  getCellsInRowOfCell: (...args: unknown[]) => any;
-  getCellsKnightsMoveAwayFromCell: (...args: unknown[]) => any;
-  getCellsPointedAtByOuterClue: (...args: unknown[]) => any;
-  getCellsTouchingCorner: (...args: unknown[]) => any;
+  getCellsInColumn: (...args: unknown[]) => Generator<any>;
+  getCellsInColumnOfCell: (...args: unknown[]) => Generator<any>;
+  getCellsInDiagonal: (...args: unknown[]) => Generator<any>;
+  getCellsInRow: (...args: unknown[]) => Generator<any>;
+  getCellsInRowOfCell: (...args: unknown[]) => Generator<any>;
+  getCellsKnightsMoveAwayFromCell: (...args: unknown[]) => Generator<any>;
+  getCellsPointedAtByOuterClue: (...args: unknown[]) => Generator<any>;
+  getCellsTouchingCorner: (...args: unknown[]) => Generator<any>;
   getCellsTouchingEdge: (...args: unknown[]) => any;
-  getCoordsInDiagonal: (...args: unknown[]) => any;
-  getCoordsPointedAtByOuterClue: (...args: unknown[]) => any;
-  getDiagonallyAdjacentCells: (...args: unknown[]) => any;
+  getCoordsInDiagonal: (...args: unknown[]) => Generator<any>;
+  getCoordsPointedAtByOuterClue: (...args: unknown[]) => Generator<any>;
+  getDiagonallyAdjacentCells: (...args: unknown[]) => Generator<any>;
   getManhattanDistanceBetweenCells: (...args: unknown[]) => any;
-  getOrthogonallyAdjacentCells: (...args: unknown[]) => any;
+  getOrthogonallyAdjacentCells: (...args: unknown[]) => Generator<any>;
   height: number;
   width: number;
   outerCellIdHelper: OuterCellIdsHelper;
@@ -173,10 +173,10 @@ export declare class PuzzleBase {
   get digitCount(): number;
   getCellAt: (...args: unknown[]) => any;
   getCellsCanHaveRepeats: (...args: unknown[]) => any;
-  getCellsDiagonallyAdjacentToCell: (...args: unknown[]) => any;
-  getCellsDiagonallyAdjacentToCoords: (...args: unknown[]) => any;
-  getCellsOrthogonallyAdjacentToCell: (...args: unknown[]) => any;
-  getCellsOrthogonallyAdjacentToCoords: (...args: unknown[]) => any;
+  getCellsDiagonallyAdjacentToCell: (...args: unknown[]) => Generator<any>;
+  getCellsDiagonallyAdjacentToCoords: (...args: unknown[]) => Generator<any>;
+  getCellsOrthogonallyAdjacentToCell: (...args: unknown[]) => Generator<any>;
+  getCellsOrthogonallyAdjacentToCoords: (...args: unknown[]) => Generator<any>;
   getCellsSeeEachOther: (...args: unknown[]) => any;
   getCellsSeenByCell: (...args: unknown[]) => any;
   getColumn: (...args: unknown[]) => any;
@@ -252,7 +252,7 @@ export declare class SumsHelper {
 
 export declare class XSumsHelper {
   constructor(...args: any[]);
-  getXSumPossibilities: (...args: unknown[]) => any;
+  getXSumPossibilities: (...args: unknown[]) => Generator<any>;
   maxDigit: number;
   sumHelper: SumsHelper;
 }
@@ -279,7 +279,7 @@ export type ArrayUtils = {
 };
 
 export type CombinatoricUtils = {
-  getCombinationsForSum: (...args: unknown[]) => any;
+  getCombinationsForSum: (...args: unknown[]) => Generator<any>;
 };
 
 export type CustomComponentInstance = {
@@ -289,9 +289,9 @@ export type CustomComponentInstance = {
   get allowsEmptyCells(): boolean;
   getExclusionGroup: (...args: unknown[]) => any;
   getIsDone: (...args: unknown[]) => any;
-  initialize: (...args: unknown[]) => any;
-  onValueSet: (...args: unknown[]) => any;
-  update: (...args: unknown[]) => any;
+  initialize: (...args: unknown[]) => Generator<any>;
+  onValueSet: (...args: unknown[]) => Generator<any>;
+  update: (...args: unknown[]) => Generator<any>;
   validate: (...args: unknown[]) => any;
   get validateDuringSolve(): boolean;
 };
@@ -316,7 +316,7 @@ export type InitialCodeScopeHelpers = Helpers & {
     getSubsetsPerRegion: (...args: unknown[]) => any;
   };
   lines: {
-    getAllPairsAlongLines: (...args: unknown[]) => any;
+    getAllPairsAlongLines: (...args: unknown[]) => Generator<any>;
     getCellsBetweenLineEnds: (...args: unknown[]) => any;
     getLineEnds: (...args: unknown[]) => any;
   };
@@ -328,7 +328,7 @@ export type InitialCodeScopeHelpers = Helpers & {
     outerCellIdHelper: OuterCellIdsHelper;
     spec: PuzzleSpec;
     getCellGroupsFromLines: (...args: unknown[]) => any;
-    getEdgesForNegativeConstraint: (...args: unknown[]) => any;
+    getEdgesForNegativeConstraint: (...args: unknown[]) => Generator<any>;
   };
 };
 
@@ -339,11 +339,11 @@ export type InitializeArgs = {
 
 export type IterationUtils = {
   getBest: (...args: unknown[]) => any;
-  getCombinations: (...args: unknown[]) => any;
+  getCombinations: (...args: unknown[]) => Generator<any>;
   getCounts: (...args: unknown[]) => any;
   getOne: (...args: unknown[]) => any;
-  getRange: (...args: unknown[]) => any;
-  getRangeInclusive: (...args: unknown[]) => any;
+  getRange: (...args: unknown[]) => Generator<any>;
+  getRangeInclusive: (...args: unknown[]) => Generator<any>;
 };
 
 export type MathUtils = {
