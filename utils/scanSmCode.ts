@@ -11,7 +11,15 @@ import { ExtensionAutomationClient } from "@sitnikov/browser-automation";
 import { GenericSmCodeScanner, SmCodeScanner } from "./scanSmCode/SmCodeScanner";
 import { SmCodeEnricher } from "./scanSmCode/SmCodeEnricher";
 import { SmCodeValueResolver } from "./scanSmCode/SmCodeValueResolver";
-import type { IndexPropertiesMap, IndexReferencable, IndexValue } from "./scanSmCode/types";
+import type {
+  ArgumentDraftInfo,
+  FunctionSignatureInfo,
+  IndexFunction,
+  IndexPropertiesMap,
+  IndexReferencable,
+  IndexValue,
+} from "./scanSmCode/types";
+import { functionSignatures } from "./scanSmCode/functionSignatures";
 
 /** Runs a command, passing its output straight through, and exits if it fails. */
 const run = (command: string, args: string[]) =>
@@ -115,6 +123,44 @@ program
       }
 
       const enrichedObjectsIndex = new SmCodeEnricher(objectsIndex, new Set(roots)).process();
+
+      const functionsMap = Object.fromEntries(
+        Object.entries(enrichedObjectsIndex)
+          .map(([id, obj]) => [
+            id,
+            Object.fromEntries(
+              [
+                ...("ownProperties" in obj ? Object.entries(obj.ownProperties ?? {}) : []),
+                ...("static" in obj ? Object.entries(obj.static ?? {}) : []),
+              ]
+                .filter((pair): pair is [string, IndexFunction] => pair[1].type === "function")
+                .map(
+                  ([name, { requiredArgs = 0, optionalArgs = 0, hasRestArg = false, returnType }]): [
+                    string,
+                    FunctionSignatureInfo,
+                  ] => {
+                    const existingSignature = functionSignatures[id]?.[name];
+                    const newSignature: FunctionSignatureInfo = {
+                      processed: false,
+                      arguments: [
+                        ...Array(requiredArgs)
+                          .fill(0)
+                          .map((): ArgumentDraftInfo => ({})),
+                        ...Array(optionalArgs)
+                          .fill(0)
+                          .map((): ArgumentDraftInfo => ({ optional: true })),
+                        ...(hasRestArg ? [{ rest: true } satisfies ArgumentDraftInfo] : []),
+                      ],
+                      returnType,
+                    };
+
+                    return [name, existingSignature?.processed ? existingSignature : newSignature];
+                  },
+                ),
+            ),
+          ])
+          .filter(([, value]) => Object.keys(value).length),
+      );
 
       const mappedObjectsIndex = new SmCodeValueResolver(enrichedObjectsIndex, new Set(roots)).process();
 
@@ -325,6 +371,11 @@ program
 
       await writeFile("src/generated/standardComponents.json", JSON.stringify(standardComponents, null, 2));
 
+      await writeFile(
+        "utils/scanSmCode/functionSignatures.ts",
+        `import type { FunctionSignatureInfo } from "./types";\n\nexport const functionSignatures: Record<string, Record<string, FunctionSignatureInfo>> = ${JSON.stringify(functionsMap, null, 2)}`,
+      );
+
       await writeFile("src/generated/index.json", JSON.stringify(groupedIndex, null, 2));
 
       // Write as ".ts" initially for the prettification to kick in, then rename to ".txt" to disable false linting
@@ -355,7 +406,7 @@ program
         ),
       );
 
-      await run("npx", ["prettier", "-w", "src/generated"]);
+      await run("npx", ["prettier", "-w", "src/generated", "utils/scanSmCode/functionSignatures.ts"]);
 
       await rename("src/generated/classes.ts", "src/generated/classes.ts.txt");
 

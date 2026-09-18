@@ -122,3 +122,22 @@ export type ConvertValue<
   : Extract<IndexValue<To>, { type: T["type"] }>;
 
 export type ObjectsIndex<IsValue extends boolean> = Record<string, IndexReferencable<IsValue>>;
+
+export interface ArgumentDraftInfo {
+  optional?: true;
+  rest?: true;
+}
+export interface ArgumentProcessedInfo extends ArgumentDraftInfo {
+  type: string;
+}
+export interface FunctionSignatureDraftInfo {
+  processed: false;
+  arguments: ArgumentDraftInfo[];
+  returnType?: string;
+}
+export interface FunctionSignatureProcessedInfo {
+  processed: true;
+  arguments: ArgumentProcessedInfo[];
+  returnType?: string;
+}
+export type FunctionSignatureInfo = FunctionSignatureDraftInfo | FunctionSignatureProcessedInfo;

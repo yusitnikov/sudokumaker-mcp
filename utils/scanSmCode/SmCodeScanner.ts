@@ -613,6 +613,15 @@ export class SmCodeScanner extends GenericSmCodeScanner<false> {
       } else {
         this.indexLabel(initialCodeHelperClass ?? customComponentHelperClass, `${camelCaseKey}Helper`);
       }
+      if (initialCodeHelper) {
+        this.indexLabel(initialCodeHelper, `${SmCodeScanner.initialCodeScopeHandle}${camelCaseKey}HelperValue`);
+      }
+      if (customComponentHelper) {
+        this.indexLabel(
+          customComponentHelper,
+          `${SmCodeScanner.customComponentCodeScopeHandle}${camelCaseKey}HelperValue`,
+        );
+      }
     }
 
     this.indexLabel(initialCodeScope.helpers.misc.geometryHelper, "NestedGeometryHelperValue");

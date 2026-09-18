@@ -233,7 +233,7 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#030"
+            "id": "#009"
           },
           "references": ["CustomComponentScope.customComponents"]
         },
@@ -336,7 +336,7 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#028"
+            "id": "#007"
           },
           "references": ["InitialCodeScope.input"],
           "ownProperties": {
@@ -346,7 +346,7 @@
                 "type": "object",
                 "reference": {
                   "type": "reference",
-                  "id": "#029"
+                  "id": "#008"
                 },
                 "references": ["InitialCodeScope.input.groups[0]"],
                 "ownProperties": {
@@ -392,9 +392,9 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#008"
+            "id": "InitialCodeScopeGeometryHelperValue"
           },
-          "references": ["InitialCodeScopeHelpers.geometry"],
+          "references": ["InitialCodeScopeGeometryHelperValue", "InitialCodeScopeHelpers.geometry"],
           "ownProperties": {
             "sudoku": {
               "type": "reference",
@@ -416,9 +416,9 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#009"
+            "id": "InitialCodeScopeLinesHelperValue"
           },
-          "references": ["InitialCodeScopeHelpers.lines"],
+          "references": ["InitialCodeScopeLinesHelperValue", "InitialCodeScopeHelpers.lines"],
           "ownProperties": {
             "getAllPairsAlongLines": {
               "type": "function",
@@ -444,9 +444,9 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#010"
+            "id": "InitialCodeScopeMiscHelperValue"
           },
-          "references": ["InitialCodeScopeHelpers.misc"],
+          "references": ["InitialCodeScopeMiscHelperValue", "InitialCodeScopeHelpers.misc"],
           "ownProperties": {
             "cellIdHelper": {
               "type": "reference",
@@ -517,16 +517,18 @@
         "id": "InstanceOfCellIdsHelper"
       },
       "references": [
-        "NestedGeometryHelperValue.cellIdHelper",
-        "NestedGeometryHelperValue.cornerIdHelper.cellIdHelper",
-        "NestedGeometryHelperValue.edgeIdHelper.cellIdHelper",
+        "InitialCodeScopeCellIdsHelperValue",
+        "InitialCodeScopeEdgeIdsHelperValue.cellIdHelper",
+        "InitialCodeScopeCornerIdsHelperValue.cellIdHelper",
+        "InitialCodeScopeGeometryHelperValue.cellIdHelper",
+        "InitialCodeScopeNamingHelperValue.geometryHelper.cellIdHelper",
+        "InitialCodeScopeMiscHelperValue.cellIdHelper",
         "InitialCodeScopeHelpers.cellIds",
-        "InitialCodeScopeHelpers.geometry.cellIdHelper",
-        "InitialCodeScopeHelpers.misc.cellIdHelper",
-        "CustomComponentScopeHelpers.cellIds",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.cellIdHelper",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.cornerIdHelper.cellIdHelper",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.edgeIdHelper.cellIdHelper"
+        "CustomComponentScopeCellIdsHelperValue",
+        "CustomComponentScopeEdgeIdsHelperValue.cellIdHelper",
+        "CustomComponentScopeCornerIdsHelperValue.cellIdHelper",
+        "CustomComponentScopeGeometryHelperValue.cellIdHelper",
+        "CustomComponentScopeHelpers.cellIds"
       ],
       "class": {
         "type": "reference",
@@ -539,7 +541,12 @@
         "type": "reference",
         "id": "InstanceOfConnectivityHelper"
       },
-      "references": ["InitialCodeScopeHelpers.connectivity", "CustomComponentScopeHelpers.connectivity"],
+      "references": [
+        "InitialCodeScopeConnectivityHelperValue",
+        "InitialCodeScopeHelpers.connectivity",
+        "CustomComponentScopeConnectivityHelperValue",
+        "CustomComponentScopeHelpers.connectivity"
+      ],
       "class": {
         "type": "reference",
         "id": "ConnectivityHelper"
@@ -552,11 +559,13 @@
         "id": "InstanceOfCornerIdsHelper"
       },
       "references": [
-        "NestedGeometryHelperValue.cornerIdHelper",
+        "InitialCodeScopeCornerIdsHelperValue",
+        "InitialCodeScopeGeometryHelperValue.cornerIdHelper",
+        "InitialCodeScopeNamingHelperValue.geometryHelper.cornerIdHelper",
+        "InitialCodeScopeMiscHelperValue.cornerIdHelper",
         "InitialCodeScopeHelpers.cornerIds",
-        "InitialCodeScopeHelpers.geometry.cornerIdHelper",
-        "InitialCodeScopeHelpers.misc.cornerIdHelper",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.cornerIdHelper",
+        "CustomComponentScopeCornerIdsHelperValue",
+        "CustomComponentScopeGeometryHelperValue.cornerIdHelper",
         "CustomComponentScopeHelpers.cornerIds"
       ],
       "class": {
@@ -583,13 +592,14 @@
         "id": "InstanceOfCustomComponentScopeGeometryHelper"
       },
       "references": [
-        "NestedGeometryHelperValue",
-        "InitialCodeScopeHelpers.connectivity.geometryHelper",
-        "InitialCodeScopeHelpers.misc.geometryHelper",
-        "InitialCodeScopeHelpers.naming.geometryHelper",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper",
+        "CustomComponentScopeGeometryHelperValue",
+        "CustomComponentScopeNamingHelperValue.geometryHelper",
+        "CustomComponentScopeConnectivityHelperValue.geometryHelper",
         "CustomComponentScopeHelpers.geometry",
-        "CustomComponentScopeHelpers.naming.geometryHelper"
+        "InitialCodeScopeNamingHelperValue.geometryHelper",
+        "InitialCodeScopeConnectivityHelperValue.geometryHelper",
+        "InitialCodeScopeMiscHelperValue.geometryHelper",
+        "NestedGeometryHelperValue"
       ],
       "class": {
         "type": "reference",
@@ -603,10 +613,12 @@
         "id": "InstanceOfDigitsHelper"
       },
       "references": [
+        "InitialCodeScopeDigitsHelperValue",
+        "InitialCodeScopeNamingHelperValue.digitsHelper",
         "InitialCodeScopeHelpers.digits",
-        "InitialCodeScopeHelpers.naming.digitsHelper",
-        "CustomComponentScopeHelpers.digits",
-        "CustomComponentScopeHelpers.naming.digitsHelper"
+        "CustomComponentScopeDigitsHelperValue",
+        "CustomComponentScopeNamingHelperValue.digitsHelper",
+        "CustomComponentScopeHelpers.digits"
       ],
       "class": {
         "type": "reference",
@@ -620,14 +632,16 @@
         "id": "InstanceOfEdgeIdsHelper"
       },
       "references": [
-        "NestedGeometryHelperValue.edgeIdHelper",
+        "InitialCodeScopeEdgeIdsHelperValue",
+        "InitialCodeScopeGeometryHelperValue.edgeIdHelper",
+        "InitialCodeScopeNamingHelperValue.edgeIdHelper",
+        "InitialCodeScopeNamingHelperValue.geometryHelper.edgeIdHelper",
+        "InitialCodeScopeMiscHelperValue.edgeIdHelper",
         "InitialCodeScopeHelpers.edgeIds",
-        "InitialCodeScopeHelpers.geometry.edgeIdHelper",
-        "InitialCodeScopeHelpers.misc.edgeIdHelper",
-        "InitialCodeScopeHelpers.naming.edgeIdHelper",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.edgeIdHelper",
-        "CustomComponentScopeHelpers.edgeIds",
-        "CustomComponentScopeHelpers.naming.edgeIdHelper"
+        "CustomComponentScopeEdgeIdsHelperValue",
+        "CustomComponentScopeGeometryHelperValue.edgeIdHelper",
+        "CustomComponentScopeNamingHelperValue.edgeIdHelper",
+        "CustomComponentScopeHelpers.edgeIds"
       ],
       "class": {
         "type": "reference",
@@ -652,7 +666,12 @@
         "type": "reference",
         "id": "InstanceOfNamingHelper"
       },
-      "references": ["InitialCodeScopeHelpers.naming", "CustomComponentScopeHelpers.naming"],
+      "references": [
+        "InitialCodeScopeNamingHelperValue",
+        "InitialCodeScopeHelpers.naming",
+        "CustomComponentScopeNamingHelperValue",
+        "CustomComponentScopeHelpers.naming"
+      ],
       "class": {
         "type": "reference",
         "id": "NamingHelper"
@@ -665,13 +684,15 @@
         "id": "InstanceOfOuterCellIdsHelper"
       },
       "references": [
-        "NestedGeometryHelperValue.outerCellIdHelper",
-        "InitialCodeScopeHelpers.geometry.outerCellIdHelper",
-        "InitialCodeScopeHelpers.misc.outerCellIdHelper",
-        "InitialCodeScopeHelpers.naming.outerCellIdHelper",
+        "InitialCodeScopeOuterCellIdsHelperValue",
+        "InitialCodeScopeGeometryHelperValue.outerCellIdHelper",
+        "InitialCodeScopeNamingHelperValue.geometryHelper.outerCellIdHelper",
+        "InitialCodeScopeNamingHelperValue.outerCellIdHelper",
+        "InitialCodeScopeMiscHelperValue.outerCellIdHelper",
         "InitialCodeScopeHelpers.outerCellIds",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.outerCellIdHelper",
-        "CustomComponentScopeHelpers.naming.outerCellIdHelper",
+        "CustomComponentScopeOuterCellIdsHelperValue",
+        "CustomComponentScopeGeometryHelperValue.outerCellIdHelper",
+        "CustomComponentScopeNamingHelperValue.outerCellIdHelper",
         "CustomComponentScopeHelpers.outerCellIds"
       ],
       "class": {
@@ -687,22 +708,22 @@
       },
       "references": [
         "InitialCodePuzzleSpec",
-        "NestedGeometryHelperValue.cellIdHelper.spec",
-        "NestedGeometryHelperValue.cornerIdHelper.spec",
-        "NestedGeometryHelperValue.edgeIdHelper.spec",
-        "NestedGeometryHelperValue.spec",
-        "InitialCodeScopeHelpers.connectivity.spec",
-        "InitialCodeScopeHelpers.geometry.spec",
-        "InitialCodeScopeHelpers.misc.spec",
-        "InitialCodeScopeHelpers.naming.spec",
+        "InitialCodeScopeCellIdsHelperValue.spec",
+        "InitialCodeScopeEdgeIdsHelperValue.spec",
+        "InitialCodeScopeCornerIdsHelperValue.spec",
+        "InitialCodeScopeGeometryHelperValue.spec",
+        "InitialCodeScopeNamingHelperValue.geometryHelper.spec",
+        "InitialCodeScopeNamingHelperValue.spec",
+        "InitialCodeScopeConnectivityHelperValue.spec",
+        "InitialCodeScopeMiscHelperValue.spec",
         "InitialCodePuzzle.spec",
         "CustomComponentPuzzleSpec",
-        "CustomComponentScopeHelpers.cellIds.spec",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.cornerIdHelper.spec",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.edgeIdHelper.spec",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.spec",
-        "CustomComponentScopeHelpers.connectivity.spec",
-        "CustomComponentScopeHelpers.naming.spec",
+        "CustomComponentScopeCellIdsHelperValue.spec",
+        "CustomComponentScopeEdgeIdsHelperValue.spec",
+        "CustomComponentScopeCornerIdsHelperValue.spec",
+        "CustomComponentScopeGeometryHelperValue.spec",
+        "CustomComponentScopeNamingHelperValue.spec",
+        "CustomComponentScopeConnectivityHelperValue.spec",
         "InitializeArgs.puzzle.spec",
         "ValidateArgs.puzzle.spec",
         "UpdateArgs.puzzle.spec"
@@ -736,10 +757,12 @@
         "id": "InstanceOfSumsHelper"
       },
       "references": [
+        "InitialCodeScopeSumsHelperValue",
+        "InitialCodeScopeXSumsHelperValue.sumHelper",
         "InitialCodeScopeHelpers.sums",
-        "InitialCodeScopeHelpers.xSums.sumHelper",
-        "CustomComponentScopeHelpers.sums",
-        "CustomComponentScopeHelpers.xSums.sumHelper"
+        "CustomComponentScopeSumsHelperValue",
+        "CustomComponentScopeXSumsHelperValue.sumHelper",
+        "CustomComponentScopeHelpers.sums"
       ],
       "class": {
         "type": "reference",
@@ -752,7 +775,12 @@
         "type": "reference",
         "id": "InstanceOfXSumsHelper"
       },
-      "references": ["InitialCodeScopeHelpers.xSums", "CustomComponentScopeHelpers.xSums"],
+      "references": [
+        "InitialCodeScopeXSumsHelperValue",
+        "InitialCodeScopeHelpers.xSums",
+        "CustomComponentScopeXSumsHelperValue",
+        "CustomComponentScopeHelpers.xSums"
+      ],
       "class": {
         "type": "reference",
         "id": "XSumsHelper"
@@ -1109,8 +1137,8 @@
       },
       "references": [
         "CellIdsHelper",
-        "NestedGeometryHelperValue.cellIdHelper.class",
-        "CustomComponentScopeHelpers.cellIds.class"
+        "InitialCodeScopeCellIdsHelperValue.class",
+        "CustomComponentScopeCellIdsHelperValue.class"
       ],
       "ownProperties": {
         "areValidCoords": {
@@ -1177,8 +1205,8 @@
       },
       "references": [
         "ConnectivityHelper",
-        "InitialCodeScopeHelpers.connectivity.class",
-        "CustomComponentScopeHelpers.connectivity.class"
+        "InitialCodeScopeConnectivityHelperValue.class",
+        "CustomComponentScopeConnectivityHelperValue.class"
       ],
       "ownProperties": {
         "getOrthogonallyConnectedGroups": {
@@ -1204,8 +1232,8 @@
       },
       "references": [
         "CornerIdsHelper",
-        "NestedGeometryHelperValue.cornerIdHelper.class",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.cornerIdHelper.class"
+        "InitialCodeScopeCornerIdsHelperValue.class",
+        "CustomComponentScopeCornerIdsHelperValue.class"
       ],
       "ownProperties": {
         "getCoordsFromId": {
@@ -1340,8 +1368,8 @@
       "references": [
         "InitialCodeScopeGeometryHelper.extends",
         "CustomComponentScopeGeometryHelper",
-        "NestedGeometryHelperValue.class",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.class"
+        "CustomComponentScopeGeometryHelperValue.class",
+        "InitialCodeScopeNamingHelperValue.geometryHelper.class"
       ],
       "ownProperties": {
         "getAdjacentCells": {
@@ -1565,8 +1593,8 @@
       },
       "references": [
         "DigitsHelper",
-        "InitialCodeScopeHelpers.digits.class",
-        "CustomComponentScopeHelpers.digits.class"
+        "InitialCodeScopeDigitsHelperValue.class",
+        "CustomComponentScopeDigitsHelperValue.class"
       ],
       "ownProperties": {
         "createEvensDigitSet": {
@@ -1613,8 +1641,8 @@
       },
       "references": [
         "EdgeIdsHelper",
-        "NestedGeometryHelperValue.edgeIdHelper.class",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.edgeIdHelper.class"
+        "InitialCodeScopeEdgeIdsHelperValue.class",
+        "CustomComponentScopeEdgeIdsHelperValue.class"
       ],
       "ownProperties": {
         "getCoordsFromId": {
@@ -1763,8 +1791,8 @@
       },
       "references": [
         "NamingHelper",
-        "InitialCodeScopeHelpers.naming.class",
-        "CustomComponentScopeHelpers.naming.class"
+        "InitialCodeScopeNamingHelperValue.class",
+        "CustomComponentScopeNamingHelperValue.class"
       ],
       "ownProperties": {
         "getBranchingLineName": {
@@ -1883,8 +1911,8 @@
       },
       "references": [
         "OuterCellIdsHelper",
-        "NestedGeometryHelperValue.outerCellIdHelper.class",
-        "CustomComponentScopeHelpers.connectivity.geometryHelper.outerCellIdHelper.class"
+        "InitialCodeScopeOuterCellIdsHelperValue.class",
+        "CustomComponentScopeOuterCellIdsHelperValue.class"
       ],
       "ownProperties": {
         "getAllAttributes": {
@@ -2279,7 +2307,11 @@
         "type": "reference",
         "id": "SumsHelper"
       },
-      "references": ["SumsHelper", "InitialCodeScopeHelpers.sums.class", "CustomComponentScopeHelpers.sums.class"],
+      "references": [
+        "SumsHelper",
+        "InitialCodeScopeSumsHelperValue.class",
+        "CustomComponentScopeSumsHelperValue.class"
+      ],
       "ownProperties": {
         "getCombinationsForSumWithoutRepeat": {
           "type": "function",
@@ -2329,7 +2361,11 @@
         "type": "reference",
         "id": "XSumsHelper"
       },
-      "references": ["XSumsHelper", "InitialCodeScopeHelpers.xSums.class", "CustomComponentScopeHelpers.xSums.class"],
+      "references": [
+        "XSumsHelper",
+        "InitialCodeScopeXSumsHelperValue.class",
+        "CustomComponentScopeXSumsHelperValue.class"
+      ],
       "ownProperties": {
         "getXSumPossibilities": {
           "type": "function",
@@ -2390,7 +2426,7 @@
       },
       "references": [
         "PuzzleState",
-        "InitialCodeScopeHelpers.geometry.sudoku",
+        "InitialCodeScopeGeometryHelperValue.sudoku",
         "InitialCodePuzzle.state",
         "InitializeArgs.puzzle.state",
         "ValidateArgs.puzzle.state",
