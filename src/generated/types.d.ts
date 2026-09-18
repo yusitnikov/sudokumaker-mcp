@@ -217,7 +217,7 @@ export declare class SmallNumberSet {
   isDisjointFrom: (arg1: unknown) => any;
   isSubsetOf: (arg1: unknown) => any;
   isSupersetOf: (arg1: unknown) => any;
-  get size(): unknown;
+  get size(): number;
   subtract: (arg1: unknown) => any;
   union: (arg1: unknown) => any;
   xor: (arg1: unknown) => any;

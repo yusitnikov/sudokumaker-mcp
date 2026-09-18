@@ -564,6 +564,9 @@ export class SmCodeScanner extends GenericSmCodeScanner<false> {
 
     this.markAsInternal(initialCodeScope.puzzle.state, "PuzzleState");
 
+    // Index the value before the class to get the getter return value
+    this.indexLabel(new customComponentScope.SmallNumberSet(), "SmallNumberSetValue");
+
     for (const key of Object.keys(customComponentScope).toSorted().toReversed()) {
       if (key !== "SudokuDigitSet" && !standardComponentNames.includes(key) && key[0] === key[0].toUpperCase()) {
         this.indexRoot(customComponentScope[key], key);

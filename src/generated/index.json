@@ -208,7 +208,7 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#009"
+            "id": "#010"
           },
           "references": ["CustomComponentScope.customComponents"]
         },
@@ -307,7 +307,7 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#007"
+            "id": "#008"
           },
           "references": ["InitialCodeScope.input"],
           "ownProperties": {
@@ -317,7 +317,7 @@
                 "type": "object",
                 "reference": {
                   "type": "reference",
-                  "id": "#008"
+                  "id": "#009"
                 },
                 "references": ["InitialCodeScope.input.groups[0]"],
                 "ownProperties": {
@@ -2019,6 +2019,7 @@
         "id": "SmallNumberSet"
       },
       "references": [
+        "SmallNumberSetValue.class",
         "SmallNumberSet",
         "DigitSet.extends",
         "InitialCodeScope.SmallNumberSet",
@@ -2075,7 +2076,11 @@
         },
         "size": {
           "type": "magic",
-          "get": "get size(){return le(this.mask)}"
+          "get": "get size(){return le(this.mask)}",
+          "value": {
+            "type": "scalar",
+            "value": 0
+          }
         },
         "subtract": {
           "type": "function",
