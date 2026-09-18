@@ -148,6 +148,14 @@ describe("problems in the snippet", () => {
     expect(typecheckInitializationCode(backendResources, "noSuchComponent();")).toMatch(/Cannot find name/);
   });
 
+  test("reports an array passed to a digit set's constructor", () => {
+    // The constructor coerces its argument with `+`, so an array becomes `NaN` and the set comes
+    // out empty. `DigitSet.from` is the documented way to build one from digits.
+    expect(typecheckInitializationCode(backendResources, "const set = new DigitSet([1, 2, 3]);")).toMatch(
+      /not assignable to parameter of type 'number \| SmallNumberSet'/,
+    );
+  });
+
   test("reports a syntax error rather than throwing", () => {
     expect(typecheckInitializationCode(backendResources, "const x = ;")).toMatch(/line 1/);
   });
@@ -218,7 +226,7 @@ describe("the worker's own globals", () => {
   });
 
   test("constructing a scanned class is not a false positive", () => {
-    expect(typecheckInitializationCode(backendResources, "const set = new DigitSet([1, 2, 3]);")).toBeUndefined();
+    expect(typecheckInitializationCode(backendResources, "const set = DigitSet.from([1, 2, 3]);")).toBeUndefined();
   });
 });
 

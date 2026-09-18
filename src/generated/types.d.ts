@@ -1,7 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
 export declare class CellIdsHelper {
-  constructor(...args: any[]);
   areValidCoords: (arg1: unknown) => any;
   getAllCellIds: () => any;
   getCellCenterFromId: (arg1: unknown) => any;
@@ -16,14 +15,12 @@ export declare class CellIdsHelper {
 }
 
 export declare class ConnectivityHelper {
-  constructor(...args: any[]);
   getOrthogonallyConnectedGroups: (arg1: unknown) => any;
   spec: PuzzleSpec;
   geometryHelper: CustomComponentScopeGeometryHelper;
 }
 
 export declare class CornerIdsHelper {
-  constructor(...args: any[]);
   getCoordsFromId: (arg1: unknown) => any;
   getIdFromCornerCoords: (arg1: unknown) => any;
   spec: PuzzleSpec;
@@ -31,7 +28,6 @@ export declare class CornerIdsHelper {
 }
 
 export declare class CustomComponentPuzzleBase extends PuzzleBase {
-  constructor(...args: any[]);
   filterCandidatesInCell: (arg1: unknown, arg2: unknown) => any;
   filterCandidatesInCells: (arg1: unknown, arg2: unknown) => any;
   getCandidates: (arg1: unknown) => any;
@@ -52,7 +48,6 @@ export declare class CustomComponentPuzzleBase extends PuzzleBase {
 }
 
 export declare class CustomComponentScopeGeometryHelper {
-  constructor(...args: any[]);
   getAdjacentCells: (arg1: unknown, arg2?: unknown) => Generator<any>;
   getAllColumns: () => Generator<any>;
   getAllDiagonallyAdjacentPairs: () => Generator<any>;
@@ -87,13 +82,11 @@ export declare class CustomComponentScopeGeometryHelper {
 }
 
 export declare class DigitSet extends SmallNumberSet {
-  constructor(...args: any[]);
   getLargestDigit: () => any;
   getSmallestDigit: () => any;
 }
 
 export declare class DigitsHelper {
-  constructor(...args: any[]);
   createEvensDigitSet: () => any;
   createFilteredDigitSet: (arg1: unknown) => any;
   createFullDigitSet: () => any;
@@ -105,7 +98,6 @@ export declare class DigitsHelper {
 }
 
 export declare class EdgeIdsHelper {
-  constructor(...args: any[]);
   getCoordsFromId: (arg1: unknown) => any;
   getIdFromCoords: (arg1: unknown) => any;
   spec: PuzzleSpec;
@@ -113,12 +105,10 @@ export declare class EdgeIdsHelper {
 }
 
 export declare class Env {
-  constructor(...args: any[]);
   verboseSolving: boolean;
 }
 
 export declare class Helpers {
-  constructor(...args: any[]);
   digits: DigitsHelper;
   outerCellIds: OuterCellIdsHelper;
   sums: SumsHelper;
@@ -131,7 +121,6 @@ export declare class Helpers {
 }
 
 export declare class NamingHelper {
-  constructor(...args: any[]);
   getBranchingLineName: (arg1: unknown, arg2: unknown) => any;
   getCageName: (arg1: unknown, arg2: unknown) => any;
   getCellName: (arg1: unknown) => any;
@@ -155,7 +144,6 @@ export declare class NamingHelper {
 }
 
 export declare class OuterCellIdsHelper {
-  constructor(...args: any[]);
   getAllAttributes: (arg1: unknown) => any;
   getCellCenterFromId: (arg1: unknown) => any;
   getCoordsFromId: (arg1: unknown) => any;
@@ -169,7 +157,6 @@ export declare class OuterCellIdsHelper {
 }
 
 export declare class PuzzleBase {
-  constructor(...args: any[]);
   get digitCount(): number;
   getCellAt: (arg1: unknown, arg2: unknown) => any;
   getCellsCanHaveRepeats: (arg1: unknown) => any;
@@ -201,7 +188,6 @@ export declare class PuzzleBase {
 }
 
 export declare class PuzzleSpec {
-  constructor(...args: any[]);
   digitCount: number;
   maxDigit: number;
   minDigit: number;
@@ -210,13 +196,15 @@ export declare class PuzzleSpec {
 }
 
 export declare class PuzzleSpecSize {
-  constructor(...args: any[]);
   height: number;
   width: number;
 }
 
 export declare class SmallNumberSet {
-  constructor(...args: any[]);
+  constructor(value?: number | SmallNumberSet);
+  mask: number;
+  valueOf(): number;
+  [Symbol.iterator](): Generator<number, void, undefined>;
   add: (arg1: unknown) => any;
   clear: () => any;
   delete: (arg1: unknown) => any;
@@ -239,7 +227,6 @@ export declare class SmallNumberSet {
 }
 
 export declare class SumsHelper {
-  constructor(...args: any[]);
   getCombinationsForSumWithoutRepeat: (arg1: unknown, arg2: unknown) => any;
   getCombinationsForSumsWithoutRepeat: (arg1: unknown, arg2: unknown) => any;
   getExtremeSumsWithRepeat: (arg1: unknown, arg2: unknown) => any;
@@ -251,7 +238,6 @@ export declare class SumsHelper {
 }
 
 export declare class XSumsHelper {
-  constructor(...args: any[]);
   getXSumPossibilities: (arg1: unknown) => Generator<any>;
   maxDigit: number;
   sumHelper: SumsHelper;

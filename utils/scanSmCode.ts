@@ -251,10 +251,12 @@ program
           declarations += ` extends ${value.extends.id}`;
         }
         declarations += " {\n";
-        // TODO: recover the real constructor signature from the scanned source.
-        // Without a constructor TypeScript assumes a zero-argument one, so `new DigitSet([1, 2])`
-        // would be an error.
-        declarations += "  constructor(...args: any[]);\n";
+        if (name === "SmallNumberSet") {
+          declarations += "  constructor(value?: number | SmallNumberSet);\n";
+          declarations += "  mask: number;\n";
+          declarations += "  valueOf(): number;\n";
+          declarations += "  [Symbol.iterator](): Generator<number, void, undefined>;\n";
+        }
         declarations += formatOwnProperties(value.ownProperties, "  ");
         declarations += formatOwnProperties(value.static, "  ", true);
         declarations += "}\n\n";
