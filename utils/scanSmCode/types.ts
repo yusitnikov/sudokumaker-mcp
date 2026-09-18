@@ -20,8 +20,8 @@ export interface IndexMap<IsValue extends boolean> {
 
 export interface IndexMagicProperty<IsValue extends boolean> {
   type: "magic";
-  get?: string;
-  set?: string;
+  get?: true;
+  set?: true;
   value?: IndexValue<IsValue>;
 }
 

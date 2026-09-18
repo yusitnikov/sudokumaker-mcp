@@ -149,7 +149,7 @@
         },
         "allowsEmptyCells": {
           "type": "magic",
-          "get": "get allowsEmptyCells(){return!1}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": false
@@ -188,7 +188,7 @@
         },
         "validateDuringSolve": {
           "type": "magic",
-          "get": "get validateDuringSolve(){return!1}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": true
@@ -1818,7 +1818,7 @@
       "ownProperties": {
         "digitCount": {
           "type": "magic",
-          "get": "get digitCount(){return this.spec.digitCount}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": 9
@@ -1904,7 +1904,7 @@
         },
         "height": {
           "type": "magic",
-          "get": "get height(){return this.spec.size.height}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": 9
@@ -1912,7 +1912,7 @@
         },
         "maxDigit": {
           "type": "magic",
-          "get": "get maxDigit(){return this.spec.maxDigit}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": 9
@@ -1920,7 +1920,7 @@
         },
         "minDigit": {
           "type": "magic",
-          "get": "get minDigit(){return this.spec.minDigit}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": 1
@@ -1928,7 +1928,7 @@
         },
         "puzzleType": {
           "type": "magic",
-          "get": "get puzzleType(){return this.spec.type}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": "sudoku"
@@ -1936,7 +1936,7 @@
         },
         "size": {
           "type": "magic",
-          "get": "get size(){return this.spec.size.width}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": 9
@@ -1948,7 +1948,7 @@
         },
         "width": {
           "type": "magic",
-          "get": "get width(){return this.spec.size.width}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": 9
@@ -2076,7 +2076,7 @@
         },
         "size": {
           "type": "magic",
-          "get": "get size(){return le(this.mask)}",
+          "get": true,
           "value": {
             "type": "scalar",
             "value": 0

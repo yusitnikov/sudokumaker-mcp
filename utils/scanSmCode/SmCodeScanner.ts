@@ -140,8 +140,8 @@ export class SmCodeScanner extends GenericSmCodeScanner<false> {
         descriptor?.get || descriptor?.set
           ? {
               type: "magic",
-              get: descriptor.get?.toString(),
-              set: descriptor.set?.toString(),
+              get: descriptor.get && true,
+              set: descriptor.set && true,
               value:
                 descriptor.get && !(prototypeOptions && "isClassPrototype" in prototypeOptions)
                   ? this.indexValue((prototypeOptions?.object ?? value)[key], `${childHandle}.value`)
