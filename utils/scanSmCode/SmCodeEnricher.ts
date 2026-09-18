@@ -1,18 +1,69 @@
 import * as ts from "typescript";
-import { SmCodeMapper } from "./SmCodeMapper";
+import { SmCodeMapper, type SmCodeMapperParentInfo } from "./SmCodeMapper";
 import type { IndexClass, IndexFunction, IndexFunctionSignature } from "./types";
+
+/** A scanned class compiled on its own, so its members can be looked up and typed. */
+interface ParsedClass {
+  members: Map<string, ts.SignatureDeclaration>;
+  checker: ts.TypeChecker;
+}
 
 /**
  * Completes the raw index with everything the scanner couldn't work out for itself - it runs in
  * the page, stringified, so it can import nothing and captures only what plain JavaScript reveals.
  */
 export class SmCodeEnricher extends SmCodeMapper<false> {
-  protected mapFunction(value: IndexFunction): IndexFunction {
+  private classCache = new Map<IndexClass<false>, ParsedClass>();
+
+  protected mapFunction(value: IndexFunction, parentInfo?: SmCodeMapperParentInfo): IndexFunction {
+    /*
+     * A method typed as part of its class knows what `this` is, so anything it reads off a sibling
+     * member resolves - which is most of what the checker needs. On its own it would know nothing
+     * but its own body.
+     */
+    if (parentInfo?.parent.type === "class") {
+      const { parent, name } = parentInfo;
+
+      let parsedClass = this.classCache.get(parent);
+      if (!parsedClass) {
+        parsedClass = this.parseClass(parent.code!.replace(/^\s*class\s+\w+\s*\{/, `class ${parent.reference.id} {`));
+        this.classCache.set(parent, parsedClass);
+      }
+
+      const declaration = parsedClass.members.get(name);
+      if (declaration) {
+        return {
+          ...value,
+          ...this.getSignatureInfo(declaration, parsedClass.checker, value.isGenerator),
+          code: undefined,
+        };
+      }
+    }
+
     return {
       ...value,
-      ...this.parseFunctionSignature(value.code!),
+      ...this.parseFunctionSignature(value.code!, value.isGenerator),
       code: undefined,
     };
+  }
+
+  /** Compiles one scanned class, indexing the members that carry a parameter list by name. */
+  private parseClass(code: string): ParsedClass {
+    const parsed = this.parseSource(`(${code})`);
+    const expression = parsed && this.getParenthesizedExpression(parsed.file);
+    if (!parsed || !expression || !ts.isClassExpression(expression)) {
+      throw new Error("Failed to parse class");
+    }
+
+    const members = new Map<string, ts.SignatureDeclaration>();
+    for (const member of expression.members) {
+      // A computed name (`[Symbol.iterator]`) has no name the index could refer to it by.
+      if ((ts.isMethodDeclaration(member) || ts.isAccessor(member)) && ts.isIdentifier(member.name)) {
+        members.set(member.name.text, member);
+      }
+    }
+
+    return { members, checker: parsed.checker };
   }
 
   protected mapClass(value: IndexClass<false>): IndexClass<false> {
@@ -100,13 +151,21 @@ export class SmCodeEnricher extends SmCodeMapper<false> {
   }
 
   /** Recovers how many arguments a scanned function takes, by parsing its source. */
-  private parseFunctionSignature(code: string): IndexFunctionSignature {
+  private parseFunctionSignature(code: string, isGenerator?: boolean): IndexFunctionSignature {
     const parsed = this.parseSignatureDeclaration(code);
     if (!parsed) {
       throw new Error(`Failed to parse the signature of a scanned function:\n${code}`);
     }
-    const { declaration, checker } = parsed;
 
+    return this.getSignatureInfo(parsed.declaration, parsed.checker, isGenerator);
+  }
+
+  /** Reads the argument counts off a parsed declaration, and the return type the checker infers. */
+  private getSignatureInfo(
+    declaration: ts.SignatureDeclaration,
+    checker: ts.TypeChecker,
+    isGenerator?: boolean,
+  ): IndexFunctionSignature {
     let requiredArgs = 0;
     let optionalArgs = 0;
     let hasRestArg = false;
@@ -141,6 +200,10 @@ export class SmCodeEnricher extends SmCodeMapper<false> {
       }
     } catch {
       // The checker throws on some shapes it can't resolve at all - no return type, then.
+    }
+
+    if (returnType && isGenerator) {
+      returnType = returnType.replace(/,\s*(any|unknown|boolean)>$/, ", undefined>");
     }
 
     return {

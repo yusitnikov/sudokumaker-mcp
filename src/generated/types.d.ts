@@ -1,13 +1,13 @@
 // noinspection JSUnusedGlobalSymbols
 
 export declare class CellIdsHelper {
-  areValidCoords: (arg1: unknown) => any;
-  getAllCellIds: () => any;
-  getCellCenterFromId: (arg1: unknown) => { x: any; y: any };
-  getCoordsFromId: (arg1: unknown) => { x: any; y: any };
+  areValidCoords: (arg1: unknown) => boolean;
+  getAllCellIds: () => number[];
+  getCellCenterFromId: (arg1: unknown) => { x: number; y: number };
+  getCoordsFromId: (arg1: unknown) => { x: number; y: number };
   getIdFromCoords: (arg1: unknown) => any;
   getIdFromCoordsSafe: (arg1: unknown) => any;
-  getX: (arg1: unknown) => any;
+  getX: (arg1: unknown) => number;
   getY: (arg1: unknown) => number;
   height: number;
   width: number;
@@ -35,7 +35,7 @@ export declare class CustomComponentPuzzleBase extends PuzzleBase {
   getCellsAreFilled: (arg1: unknown) => boolean;
   getFriendlyCandidates: (arg1: unknown) => any;
   getValue: (arg1: unknown) => any;
-  hasValue: (arg1: unknown) => any;
+  hasValue: (arg1: unknown) => boolean;
   removeCandidateFromCell: (arg1: unknown, arg2: unknown) => any;
   removeCandidateFromCells: (arg1: unknown, arg2: unknown) => any;
   removeCandidatesFromCell: (arg1: unknown, arg2: unknown) => any;
@@ -50,11 +50,11 @@ export declare class CustomComponentPuzzleBase extends PuzzleBase {
 export declare class CustomComponentScopeGeometryHelper {
   getAdjacentCells: (arg1: unknown, arg2?: unknown) => Generator<any, void, undefined>;
   getAllColumns: () => Generator<any[], void, undefined>;
-  getAllDiagonallyAdjacentPairs: () => Generator<any, void, undefined>;
-  getAllDominoes: () => Generator<any, void, undefined>;
-  getAllKingsMovePairs: () => Generator<any, void, undefined>;
-  getAllKnightMovePairs: () => Generator<any, void, undefined>;
-  getAllPairsWithOffset: (arg1: unknown, arg2: unknown) => Generator<any, void, undefined>;
+  getAllDiagonallyAdjacentPairs: () => Generator<any[], void, undefined>;
+  getAllDominoes: () => Generator<any[], void, undefined>;
+  getAllKingsMovePairs: () => Generator<any[], void, undefined>;
+  getAllKnightMovePairs: () => Generator<any[], void, undefined>;
+  getAllPairsWithOffset: (arg1: unknown, arg2: unknown) => Generator<any[], void, undefined>;
   getAllQuadruples: () => Generator<any[], void, undefined>;
   getAllRows: () => Generator<any[], void, undefined>;
   getCellsAreKingsMoveApart: (arg1: unknown, arg2: unknown) => boolean;
@@ -65,10 +65,10 @@ export declare class CustomComponentScopeGeometryHelper {
   getCellsInRowOfCell: (arg1: unknown) => Generator<any, void, undefined>;
   getCellsKnightsMoveAwayFromCell: (arg1: unknown) => Generator<any, void, undefined>;
   getCellsPointedAtByOuterClue: (arg1: unknown, arg2: unknown) => Generator<any, void, undefined>;
-  getCellsTouchingCorner: (arg1: unknown) => Generator<any, void, undefined>;
+  getCellsTouchingCorner: (arg1: unknown) => Generator<any, any[], undefined>;
   getCellsTouchingEdge: (arg1: unknown) => any[];
   getCoordsInDiagonal: (arg1: unknown, arg2: unknown) => Generator<{ x: any; y: number }, void, undefined>;
-  getCoordsPointedAtByOuterClue: (arg1: unknown, arg2: unknown) => Generator<any, void, undefined>;
+  getCoordsPointedAtByOuterClue: (arg1: unknown, arg2: unknown) => Generator<{ x: any; y: any }, void, undefined>;
   getDiagonallyAdjacentCells: (arg1: unknown) => Generator<any, void, undefined>;
   getManhattanDistanceBetweenCells: (arg1: unknown, arg2: unknown) => any;
   getOrthogonallyAdjacentCells: (arg1: unknown) => Generator<any, void, undefined>;
@@ -98,8 +98,8 @@ export declare class DigitsHelper {
 }
 
 export declare class EdgeIdsHelper {
-  getCoordsFromId: (arg1: unknown) => any;
-  getIdFromCoords: (arg1: unknown) => any;
+  getCoordsFromId: (arg1: unknown) => { x: number; y: number };
+  getIdFromCoords: (arg1: unknown) => number;
   spec: PuzzleSpec;
   cellIdHelper: CellIdsHelper;
 }
@@ -123,12 +123,12 @@ export declare class Helpers {
 export declare class NamingHelper {
   getBranchingLineName: (arg1: unknown, arg2: unknown) => string;
   getCageName: (arg1: unknown, arg2: unknown) => string;
-  getCellName: (arg1: unknown) => any;
+  getCellName: (arg1: unknown) => never;
   getCellsDescription: (arg1: unknown) => any;
   getColumnName: (arg1: unknown) => string;
   getDigitFilterDescription: (arg1: unknown) => string;
   getDigitSetDescription: (arg1: unknown, arg2?: unknown) => any;
-  getEdgeClueName: (arg1: unknown, arg2: unknown) => any;
+  getEdgeClueName: (arg1: unknown, arg2: unknown) => string;
   getEdgeClueNameFromDomino: (arg1: unknown, arg2: unknown) => string;
   getLineName: (arg1: unknown, arg2: unknown) => string;
   getOuterClueName: (arg1: unknown, arg2: unknown) => string | undefined;
@@ -150,7 +150,7 @@ export declare class OuterCellIdsHelper {
   getIdFromCoords: (arg1: unknown) => any;
   getSide: (arg1: unknown) => any;
   getSideFromCoords: (arg1: unknown) => any;
-  getX: (arg1: unknown) => any;
+  getX: (arg1: unknown) => number;
   getY: (arg1: unknown) => number;
   height: number;
   width: number;
@@ -208,29 +208,35 @@ export declare class SmallNumberSet {
   add: (arg1: unknown) => void;
   clear: () => void;
   delete: (arg1: unknown) => void;
-  equals: (arg1: unknown) => any;
+  equals: (arg1: unknown) => boolean;
   getLargestNumber: () => any;
   getSmallestNumber: () => any;
-  has: (arg1: unknown) => any;
-  intersect: (arg1: unknown) => any;
-  intersects: (arg1: unknown) => any;
-  isDisjointFrom: (arg1: unknown) => any;
-  isSubsetOf: (arg1: unknown) => any;
-  isSupersetOf: (arg1: unknown) => any;
+  has: (arg1: unknown) => boolean;
+  intersect: (arg1: unknown) => this;
+  intersects: (arg1: unknown) => boolean;
+  isDisjointFrom: (arg1: unknown) => boolean;
+  isSubsetOf: (arg1: unknown) => boolean;
+  isSupersetOf: (arg1: unknown) => boolean;
   get size(): number;
-  subtract: (arg1: unknown) => any;
-  union: (arg1: unknown) => any;
-  xor: (arg1: unknown) => any;
-  static from: (arg1: unknown) => any;
-  static getIntersection: (arg1: unknown) => any;
-  static getUnion: (arg1: unknown) => any;
+  subtract: (arg1: unknown) => this;
+  union: (arg1: unknown) => this;
+  xor: (arg1: unknown) => this;
+  static from: <T extends SmallNumberSet>(this: new (...args: any[]) => T, arg1: Iterable<number>) => T;
+  static getIntersection: <T extends SmallNumberSet>(
+    this: new (...args: any[]) => T,
+    arg1: Iterable<number | SmallNumberSet>,
+  ) => T;
+  static getUnion: <T extends SmallNumberSet>(
+    this: new (...args: any[]) => T,
+    arg1: Iterable<number | SmallNumberSet>,
+  ) => T;
 }
 
 export declare class SumsHelper {
-  getCombinationsForSumWithoutRepeat: (arg1: unknown, arg2: unknown) => any;
+  getCombinationsForSumWithoutRepeat: (arg1: unknown, arg2: unknown) => any[];
   getCombinationsForSumsWithoutRepeat: (arg1: unknown, arg2: unknown) => any[];
   getExtremeSumsWithRepeat: (arg1: unknown, arg2: unknown) => { minSum: number; maxSum: number };
-  getExtremeSumsWithoutRepeat: (arg1: unknown, arg2: unknown) => any;
+  getExtremeSumsWithoutRepeat: (arg1: unknown, arg2: unknown) => { minSum: any; maxSum: any } | null;
   getMaximumSumWithoutRepeat: (arg1: unknown, arg2: unknown) => any;
   getMinimumSumWithoutRepeat: (arg1: unknown, arg2: unknown) => any;
   maxDigit: number;

@@ -97,20 +97,22 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     areValidCoords: {
       processed: false,
       arguments: [{}],
+      returnType: "boolean",
     },
     getAllCellIds: {
       processed: false,
       arguments: [],
+      returnType: "number[]",
     },
     getCellCenterFromId: {
       processed: false,
       arguments: [{}],
-      returnType: "{ x: any; y: any; }",
+      returnType: "{ x: number; y: number; }",
     },
     getCoordsFromId: {
       processed: false,
       arguments: [{}],
-      returnType: "{ x: any; y: any; }",
+      returnType: "{ x: number; y: number; }",
     },
     getIdFromCoords: {
       processed: false,
@@ -123,6 +125,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getX: {
       processed: false,
       arguments: [{}],
+      returnType: "number",
     },
     getY: {
       processed: false,
@@ -143,7 +146,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           optional: true,
         },
       ],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
   },
   ConnectivityHelper: {
@@ -176,17 +179,17 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     initialize: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
     onValueSet: {
       processed: false,
       arguments: [{}, {}, {}],
-      returnType: "Generator<never, void, unknown>",
+      returnType: "Generator<never, void, undefined>",
     },
     update: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<never, void, unknown>",
+      returnType: "Generator<never, void, undefined>",
     },
     validate: {
       processed: false,
@@ -226,6 +229,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     hasValue: {
       processed: false,
       arguments: [{}],
+      returnType: "boolean",
     },
     removeCandidateFromCell: {
       processed: false,
@@ -265,46 +269,47 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           optional: true,
         },
       ],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
     getAllColumns: {
       processed: false,
       arguments: [],
-      returnType: "Generator<any[], void, unknown>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getAllDiagonallyAdjacentPairs: {
       processed: false,
       arguments: [],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getAllDominoes: {
       processed: false,
       arguments: [],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getAllKingsMovePairs: {
       processed: false,
       arguments: [],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getAllKnightMovePairs: {
       processed: false,
       arguments: [],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getAllPairsWithOffset: {
       processed: false,
       arguments: [{}, {}],
+      returnType: "Generator<any[], void, undefined>",
     },
     getAllQuadruples: {
       processed: false,
       arguments: [],
-      returnType: "Generator<any[], void, unknown>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getAllRows: {
       processed: false,
       arguments: [],
-      returnType: "Generator<any[], void, unknown>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getCellsAreKingsMoveApart: {
       processed: false,
@@ -314,41 +319,42 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getCellsInColumn: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsInColumnOfCell: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsInDiagonal: {
       processed: false,
       arguments: [{}, {}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsInRow: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsInRowOfCell: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsKnightsMoveAwayFromCell: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsPointedAtByOuterClue: {
       processed: false,
       arguments: [{}, {}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsTouchingCorner: {
       processed: false,
       arguments: [{}],
+      returnType: "Generator<any, any[], undefined>",
     },
     getCellsTouchingEdge: {
       processed: false,
@@ -358,16 +364,17 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getCoordsInDiagonal: {
       processed: false,
       arguments: [{}, {}],
-      returnType: "Generator<{ x: any; y: number; }, void, unknown>",
+      returnType: "Generator<{ x: any; y: number; }, void, undefined>",
     },
     getCoordsPointedAtByOuterClue: {
       processed: false,
       arguments: [{}, {}],
+      returnType: "Generator<{ x: any; y: any; }, void, undefined>",
     },
     getDiagonallyAdjacentCells: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
     getManhattanDistanceBetweenCells: {
       processed: false,
@@ -376,7 +383,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getOrthogonallyAdjacentCells: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
   },
   DigitSet: {
@@ -415,10 +422,12 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getCoordsFromId: {
       processed: false,
       arguments: [{}],
+      returnType: "{ x: number; y: number; }",
     },
     getIdFromCoords: {
       processed: false,
       arguments: [{}],
+      returnType: "number",
     },
   },
   InitialCodePuzzle: {
@@ -453,7 +462,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getAllPairsAlongLines: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any[], void, unknown>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getCellsBetweenLineEnds: {
       processed: false,
@@ -484,7 +493,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getCombinations: {
       processed: false,
       arguments: [{}, {}],
-      returnType: "Generator<any[], void, unknown>",
+      returnType: "Generator<any[], void, undefined>",
     },
     getCounts: {
       processed: false,
@@ -498,12 +507,12 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getRange: {
       processed: false,
       arguments: [{}, {}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
     getRangeInclusive: {
       processed: false,
       arguments: [{}, {}],
-      returnType: "Generator<any, void, unknown>",
+      returnType: "Generator<any, void, undefined>",
     },
   },
   MathUtils: {
@@ -570,6 +579,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getCellName: {
       processed: false,
       arguments: [{}],
+      returnType: "never",
     },
     getCellsDescription: {
       processed: false,
@@ -597,6 +607,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getEdgeClueName: {
       processed: false,
       arguments: [{}, {}],
+      returnType: "string",
     },
     getEdgeClueNameFromDomino: {
       processed: false,
@@ -656,6 +667,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getX: {
       processed: false,
       arguments: [{}],
+      returnType: "number",
     },
     getY: {
       processed: false,
@@ -675,22 +687,22 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getCellsDiagonallyAdjacentToCell: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsDiagonallyAdjacentToCoords: {
       processed: false,
       arguments: [{}, {}],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsOrthogonallyAdjacentToCell: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsOrthogonallyAdjacentToCoords: {
       processed: false,
       arguments: [{}, {}],
-      returnType: "Generator<any, void, any>",
+      returnType: "Generator<any, void, undefined>",
     },
     getCellsSeeEachOther: {
       processed: false,
@@ -820,6 +832,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     equals: {
       processed: false,
       arguments: [{}],
+      returnType: "boolean",
     },
     getLargestNumber: {
       processed: false,
@@ -832,56 +845,81 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     has: {
       processed: false,
       arguments: [{}],
+      returnType: "boolean",
     },
     intersect: {
       processed: false,
       arguments: [{}],
+      returnType: "this",
     },
     intersects: {
       processed: false,
       arguments: [{}],
+      returnType: "boolean",
     },
     isDisjointFrom: {
       processed: false,
       arguments: [{}],
+      returnType: "boolean",
     },
     isSubsetOf: {
       processed: false,
       arguments: [{}],
+      returnType: "boolean",
     },
     isSupersetOf: {
       processed: false,
       arguments: [{}],
+      returnType: "boolean",
     },
     subtract: {
       processed: false,
       arguments: [{}],
+      returnType: "this",
     },
     union: {
       processed: false,
       arguments: [{}],
+      returnType: "this",
     },
     xor: {
       processed: false,
       arguments: [{}],
+      returnType: "this",
     },
     from: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          type: "Iterable<number>",
+        },
+      ],
+      returnType: "this",
     },
     getIntersection: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          type: "Iterable<number | SmallNumberSet>",
+        },
+      ],
+      returnType: "this",
     },
     getUnion: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          type: "Iterable<number | SmallNumberSet>",
+        },
+      ],
+      returnType: "this",
     },
   },
   SumsHelper: {
     getCombinationsForSumWithoutRepeat: {
       processed: false,
       arguments: [{}, {}],
+      returnType: "any[]",
     },
     getCombinationsForSumsWithoutRepeat: {
       processed: false,
@@ -896,6 +934,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getExtremeSumsWithoutRepeat: {
       processed: false,
       arguments: [{}, {}],
+      returnType: "{ minSum: any; maxSum: any; } | null",
     },
     getMaximumSumWithoutRepeat: {
       processed: false,
@@ -987,7 +1026,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     getXSumPossibilities: {
       processed: false,
       arguments: [{}],
-      returnType: "Generator<{ x: number; combinations: any[]; }, void, unknown>",
+      returnType: "Generator<{ x: number; combinations: any[]; }, void, undefined>",
     },
   },
 };

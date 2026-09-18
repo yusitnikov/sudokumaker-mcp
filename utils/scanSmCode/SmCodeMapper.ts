@@ -16,9 +16,17 @@ import type {
   ObjectsIndex,
 } from "./types";
 
+export interface SmCodeMapperParentInfo {
+  parent: IndexObject<false> | IndexClass<false>;
+  name: string;
+}
+
 export abstract class SmCodeMapper<TargetIsValue extends boolean> extends GenericSmCodeScanner<false> {
-  protected mapRecord<From, To>(record: Record<string, From>, mapper: (value: From) => To): Record<string, To> {
-    return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, mapper(value)]));
+  protected mapRecord<From, To>(
+    record: Record<string, From>,
+    mapper: (value: From, key: string) => To,
+  ): Record<string, To> {
+    return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, mapper(value, key)]));
   }
 
   protected mapReference<T extends IndexReferencable<false>>(
@@ -30,7 +38,7 @@ export abstract class SmCodeMapper<TargetIsValue extends boolean> extends Generi
   protected mapObject(value: IndexObject<false>): IndexObject<TargetIsValue> {
     return {
       ...value,
-      ownProperties: this.mapOwnProperties(value.ownProperties),
+      ownProperties: this.mapOwnProperties(value.ownProperties, value),
       class: value.class && this.mapValue(value.class),
     };
   }
@@ -38,8 +46,8 @@ export abstract class SmCodeMapper<TargetIsValue extends boolean> extends Generi
   protected mapClass(value: IndexClass<false>): IndexClass<TargetIsValue> {
     return {
       ...value,
-      ownProperties: this.mapOwnProperties(value.ownProperties),
-      static: this.mapOwnProperties(value.static),
+      ownProperties: this.mapOwnProperties(value.ownProperties, value),
+      static: this.mapOwnProperties(value.static, value),
       extends: value.extends && this.mapValue(value.extends),
     };
   }
@@ -60,11 +68,14 @@ export abstract class SmCodeMapper<TargetIsValue extends boolean> extends Generi
     }
   }
 
-  protected mapFunction(value: IndexFunction): IndexFunction {
+  protected mapFunction(value: IndexFunction, _parentInfo?: SmCodeMapperParentInfo): IndexFunction {
     return value;
   }
 
-  protected mapValue<T extends IndexValue<false>>(value: T): ConvertValue<false, TargetIsValue, T> {
+  protected mapValue<T extends IndexValue<false>>(
+    value: T,
+    parentInfo?: SmCodeMapperParentInfo,
+  ): ConvertValue<false, TargetIsValue, T> {
     type ResultT = ConvertValue<false, TargetIsValue, T>;
 
     switch (value.type) {
@@ -82,7 +93,7 @@ export abstract class SmCodeMapper<TargetIsValue extends boolean> extends Generi
           entry: value.entry && [this.mapValue(value.entry[0]), this.mapValue(value.entry[1])],
         } satisfies IndexMap<TargetIsValue> as ResultT;
       case "function":
-        return this.mapFunction(value) as ResultT;
+        return this.mapFunction(value, parentInfo) as ResultT;
       case "scalar":
         return value as ResultT;
     }
@@ -90,21 +101,23 @@ export abstract class SmCodeMapper<TargetIsValue extends boolean> extends Generi
 
   protected mapValueOrMagic(
     value: IndexValue<false> | IndexMagicProperty<false>,
+    parentInfo?: SmCodeMapperParentInfo,
   ): IndexValue<TargetIsValue> | IndexMagicProperty<TargetIsValue> {
     if (value.type === "magic") {
       return {
         ...value,
-        value: value.value && this.mapValue(value.value),
+        value: value.value && this.mapValue(value.value, parentInfo),
       };
     }
 
-    return this.mapValue(value);
+    return this.mapValue(value, parentInfo);
   }
 
   protected mapOwnProperties(
     value: IndexPropertiesMap<false> | undefined,
+    parent: IndexObject<false> | IndexClass<false>,
   ): IndexPropertiesMap<TargetIsValue> | undefined {
-    return value && this.mapRecord(value, (item) => this.mapValueOrMagic(item));
+    return value && this.mapRecord(value, (item, name) => this.mapValueOrMagic(item, { parent, name }));
   }
 
   protected mapIndexedReference(

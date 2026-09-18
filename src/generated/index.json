@@ -108,7 +108,7 @@
           "isGenerator": true,
           "requiredArgs": 2,
           "optionalArgs": 2,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         }
       }
     },
@@ -168,19 +168,19 @@
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "onValueSet": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 3,
-          "returnType": "Generator<never, void, unknown>"
+          "returnType": "Generator<never, void, undefined>"
         },
         "update": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<never, void, unknown>"
+          "returnType": "Generator<never, void, undefined>"
         },
         "validate": {
           "type": "function",
@@ -394,7 +394,7 @@
               "type": "function",
               "isGenerator": true,
               "requiredArgs": 1,
-              "returnType": "Generator<any[], void, unknown>"
+              "returnType": "Generator<any[], void, undefined>"
             },
             "getCellsBetweenLineEnds": {
               "type": "function",
@@ -767,7 +767,7 @@
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 2,
-          "returnType": "Generator<any[], void, unknown>"
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getCounts": {
           "type": "function",
@@ -782,13 +782,13 @@
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 2,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getRangeInclusive": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 2,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         }
       }
     },
@@ -1065,20 +1065,22 @@
       "ownProperties": {
         "areValidCoords": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "getAllCellIds": {
-          "type": "function"
+          "type": "function",
+          "returnType": "number[]"
         },
         "getCellCenterFromId": {
           "type": "function",
           "requiredArgs": 1,
-          "returnType": "{ x: any; y: any; }"
+          "returnType": "{ x: number; y: number; }"
         },
         "getCoordsFromId": {
           "type": "function",
           "requiredArgs": 1,
-          "returnType": "{ x: any; y: any; }"
+          "returnType": "{ x: number; y: number; }"
         },
         "getIdFromCoords": {
           "type": "function",
@@ -1090,7 +1092,8 @@
         },
         "getX": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "getY": {
           "type": "function",
@@ -1212,7 +1215,8 @@
         },
         "hasValue": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "removeCandidateFromCell": {
           "type": "function",
@@ -1273,47 +1277,48 @@
           "isGenerator": true,
           "requiredArgs": 1,
           "optionalArgs": 1,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getAllColumns": {
           "type": "function",
           "isGenerator": true,
-          "returnType": "Generator<any[], void, unknown>"
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getAllDiagonallyAdjacentPairs": {
           "type": "function",
           "isGenerator": true,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getAllDominoes": {
           "type": "function",
           "isGenerator": true,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getAllKingsMovePairs": {
           "type": "function",
           "isGenerator": true,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getAllKnightMovePairs": {
           "type": "function",
           "isGenerator": true,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getAllPairsWithOffset": {
           "type": "function",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getAllQuadruples": {
           "type": "function",
           "isGenerator": true,
-          "returnType": "Generator<any[], void, unknown>"
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getAllRows": {
           "type": "function",
           "isGenerator": true,
-          "returnType": "Generator<any[], void, unknown>"
+          "returnType": "Generator<any[], void, undefined>"
         },
         "getCellsAreKingsMoveApart": {
           "type": "function",
@@ -1324,48 +1329,49 @@
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsInColumnOfCell": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsInDiagonal": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 2,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsInRow": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsInRowOfCell": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsKnightsMoveAwayFromCell": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsPointedAtByOuterClue": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 2,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsTouchingCorner": {
           "type": "function",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, any[], undefined>"
         },
         "getCellsTouchingEdge": {
           "type": "function",
@@ -1376,18 +1382,19 @@
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 2,
-          "returnType": "Generator<{ x: any; y: number; }, void, unknown>"
+          "returnType": "Generator<{ x: any; y: number; }, void, undefined>"
         },
         "getCoordsPointedAtByOuterClue": {
           "type": "function",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<{ x: any; y: any; }, void, undefined>"
         },
         "getDiagonallyAdjacentCells": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getManhattanDistanceBetweenCells": {
           "type": "function",
@@ -1397,7 +1404,7 @@
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, unknown>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "height": {
           "type": "scalar",
@@ -1512,11 +1519,13 @@
       "ownProperties": {
         "getCoordsFromId": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "{ x: number; y: number; }"
         },
         "getIdFromCoords": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "spec": {
           "type": "reference",
@@ -1670,7 +1679,8 @@
         },
         "getCellName": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "never"
         },
         "getCellsDescription": {
           "type": "function",
@@ -1693,7 +1703,8 @@
         },
         "getEdgeClueName": {
           "type": "function",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "string"
         },
         "getEdgeClueNameFromDomino": {
           "type": "function",
@@ -1791,7 +1802,8 @@
         },
         "getX": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "getY": {
           "type": "function",
@@ -1836,25 +1848,25 @@
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsDiagonallyAdjacentToCoords": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 2,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsOrthogonallyAdjacentToCell": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsOrthogonallyAdjacentToCoords": {
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 2,
-          "returnType": "Generator<any, void, any>"
+          "returnType": "Generator<any, void, undefined>"
         },
         "getCellsSeeEachOther": {
           "type": "function",
@@ -2042,7 +2054,8 @@
         },
         "equals": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "getLargestNumber": {
           "type": "function"
@@ -2052,27 +2065,33 @@
         },
         "has": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "intersect": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "this"
         },
         "intersects": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "isDisjointFrom": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "isSubsetOf": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "isSupersetOf": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "size": {
           "type": "magic",
@@ -2084,29 +2103,35 @@
         },
         "subtract": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "this"
         },
         "union": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "this"
         },
         "xor": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "this"
         }
       },
       "static": {
         "from": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "SmallNumberSet"
         },
         "getIntersection": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "SmallNumberSet"
         },
         "getUnion": {
           "type": "function",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "SmallNumberSet"
         }
       }
     },
@@ -2124,7 +2149,8 @@
       "ownProperties": {
         "getCombinationsForSumWithoutRepeat": {
           "type": "function",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "any[]"
         },
         "getCombinationsForSumsWithoutRepeat": {
           "type": "function",
@@ -2138,7 +2164,8 @@
         },
         "getExtremeSumsWithoutRepeat": {
           "type": "function",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "{ minSum: any; maxSum: any; } | null"
         },
         "getMaximumSumWithoutRepeat": {
           "type": "function",
@@ -2174,7 +2201,7 @@
           "type": "function",
           "isGenerator": true,
           "requiredArgs": 1,
-          "returnType": "Generator<{ x: number; combinations: any[]; }, void, unknown>"
+          "returnType": "Generator<{ x: number; combinations: any[]; }, void, undefined>"
         },
         "maxDigit": {
           "type": "scalar",

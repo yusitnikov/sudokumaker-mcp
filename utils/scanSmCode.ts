@@ -209,6 +209,7 @@ program
         offset: string,
         isStatic = false,
         typePrefix = "",
+        className = "",
       ) => {
         let code = "";
         const modifiers = isStatic ? "static " : "";
@@ -223,14 +224,22 @@ program
               code += `${offset}${modifiers}set ${key}(value: ${valueTypeCode});\n`;
             }
           } else {
-            code += `${offset}${modifiers}${key}: ${format(val, offset, typePrefix)};\n`;
+            const signature = functionsMap[className]?.[key];
+            code += `${offset}${modifiers}${key}: ${format(val, offset, typePrefix, signature, className, isStatic)};\n`;
           }
         }
 
         return code;
       };
 
-      const format = (value: IndexValue<true> | undefined, offset = "", typePrefix = ""): string => {
+      const format = (
+        value: IndexValue<true> | undefined,
+        offset = "",
+        typePrefix = "",
+        signature?: FunctionSignatureInfo,
+        className = "",
+        isStatic = false,
+      ): string => {
         if (value === undefined) {
           return "unknown";
         }
@@ -255,6 +264,7 @@ program
           case "function": {
             // They stay `unknown` until then - anything is assignable to `unknown`, so only the count is enforced.
             let returnType =
+              (signature?.processed ? signature.returnType : undefined) ??
               value.returnType ??
               (value.isGenerator
                 ? value.isAsync
@@ -264,24 +274,36 @@ program
                   ? "Promise<any>"
                   : "any");
 
-            if (value.isGenerator) {
-              returnType = returnType.replace(/,\s*(any|unknown)>$/, ", undefined>");
-            }
-
             // The source is minified, so the real parameter names are single letters that would
             // tell a reader nothing - they're numbered by position instead.
             const args: string[] = [];
-            for (let i = 0; i < (value.requiredArgs ?? 0); i++) {
-              args.push(`arg${args.length + 1}: unknown`);
-            }
-            for (let i = 0; i < (value.optionalArgs ?? 0); i++) {
-              args.push(`arg${args.length + 1}?: unknown`);
-            }
-            if (value.hasRestArg) {
-              args.push("...rest: unknown[]");
+            if (signature?.processed) {
+              // A reviewed signature carries a real type per argument, so it replaces the counts.
+              for (const { type, optional, rest } of signature.arguments) {
+                args.push(rest ? `...rest: ${type}` : `arg${args.length + 1}${optional ? "?" : ""}: ${type}`);
+              }
+            } else {
+              for (let i = 0; i < (value.requiredArgs ?? 0); i++) {
+                args.push(`arg${args.length + 1}: unknown`);
+              }
+              for (let i = 0; i < (value.optionalArgs ?? 0); i++) {
+                args.push(`arg${args.length + 1}?: unknown`);
+              }
+              if (value.hasRestArg) {
+                args.push("...rest: unknown[]");
+              }
             }
 
-            return `(${args.join(", ")}) => ${returnType}`;
+            let typeArgs = "";
+            if (className && isStatic && returnType === "this") {
+              // `this` isn't a type in a static member, so the polymorphism is spelled out: the
+              // method is generic over whatever subclass it was called on.
+              typeArgs = `<T extends ${className}>`;
+              returnType = "T";
+              args.unshift("this: new (...args: any[]) => T");
+            }
+
+            return `${typeArgs}(${args.join(", ")}) => ${returnType}`;
           }
           case "object": {
             let code = "";
@@ -326,8 +348,8 @@ program
           declarations += "  valueOf(): number;\n";
           declarations += "  [Symbol.iterator](): Generator<number, void, undefined>;\n";
         }
-        declarations += formatOwnProperties(value.ownProperties, "  ");
-        declarations += formatOwnProperties(value.static, "  ", true);
+        declarations += formatOwnProperties(value.ownProperties, "  ", false, "", name);
+        declarations += formatOwnProperties(value.static, "  ", true, "", name);
         declarations += "}\n\n";
       }
 
