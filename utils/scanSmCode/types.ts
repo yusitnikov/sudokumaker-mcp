@@ -60,6 +60,7 @@ export interface IndexFunctionSignature {
   requiredArgs?: number;
   optionalArgs?: number;
   hasRestArg?: boolean;
+  returnType?: string;
 }
 
 export interface IndexFunction extends IndexFunctionSignature {

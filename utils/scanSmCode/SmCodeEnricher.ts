@@ -45,17 +45,45 @@ export class SmCodeEnricher extends SmCodeMapper<false> {
     return value as ResultT;
   }
 
-  /** Parses `source`, returning the file only if it has no syntax errors. */
-  private parseSource(source: string) {
-    const file = ts.createSourceFile("signature.ts", source, ts.ScriptTarget.ESNext, true);
-    const { parseDiagnostics } = file as ts.SourceFile & { parseDiagnostics: ts.Diagnostic[] };
+  private static readonly sourceFileName = "/signature.ts";
 
-    return parseDiagnostics.length === 0 ? file : undefined;
+  /**
+   * Compiles `source` as a one-file program, returning it only if it has no syntax errors.
+   *
+   * It's a whole program rather than a detached source file because the return type has to be
+   * inferred: the code carries no annotations, so only a checker can say what a function returns.
+   */
+  private parseSource(source: string) {
+    const options: ts.CompilerOptions = {
+      target: ts.ScriptTarget.ESNext,
+      lib: ["lib.esnext.d.ts"],
+      allowJs: true,
+      noResolve: true,
+      noLib: false,
+      types: [],
+    };
+
+    const host = ts.createCompilerHost(options);
+    const readDiskFile = host.getSourceFile.bind(host);
+    host.getSourceFile = (fileName, languageVersion, ...rest) =>
+      fileName === SmCodeEnricher.sourceFileName
+        ? ts.createSourceFile(fileName, source, languageVersion, true)
+        : readDiskFile(fileName, languageVersion, ...rest);
+    host.fileExists = (fileName) => fileName === SmCodeEnricher.sourceFileName || ts.sys.fileExists(fileName);
+    host.readFile = (fileName) => (fileName === SmCodeEnricher.sourceFileName ? source : ts.sys.readFile(fileName));
+
+    const program = ts.createProgram([SmCodeEnricher.sourceFileName], options, host);
+    const file = program.getSourceFile(SmCodeEnricher.sourceFileName);
+    if (!file || program.getSyntacticDiagnostics(file).length !== 0) {
+      return undefined;
+    }
+
+    return { file, checker: program.getTypeChecker() };
   }
 
   /** Unwraps `(<expression>)` back to the expression it parenthesizes. */
-  private getParenthesizedExpression(file: ts.SourceFile | undefined) {
-    const statement = file?.statements[0];
+  private getParenthesizedExpression(file: ts.SourceFile) {
+    const statement = file.statements[0];
 
     return statement && ts.isExpressionStatement(statement) && ts.isParenthesizedExpression(statement.expression)
       ? statement.expression.expression
@@ -64,23 +92,29 @@ export class SmCodeEnricher extends SmCodeMapper<false> {
 
   /**
    * Finds the node carrying the parameter list of a function whose source came from
-   * `Function.prototype.toString()`.
+   * `Function.prototype.toString()`, along with the checker that can type it.
    *
    * What that returns isn't a statement on its own: a standalone function or arrow needs
    * parenthesizing to become an expression, and a method shorthand or accessor (`getX(a) {}`) is
    * only valid as a member of an object literal.
    */
-  private parseSignatureDeclaration(code: string): ts.SignatureDeclaration | undefined {
-    const expression = this.getParenthesizedExpression(this.parseSource(`(${code})`));
-    if (expression && (ts.isFunctionExpression(expression) || ts.isArrowFunction(expression))) {
-      return expression;
+  private parseSignatureDeclaration(code: string) {
+    const parsedExpression = this.parseSource(`(${code})`);
+    if (parsedExpression) {
+      const expression = this.getParenthesizedExpression(parsedExpression.file);
+      if (expression && (ts.isFunctionExpression(expression) || ts.isArrowFunction(expression))) {
+        return { declaration: expression as ts.SignatureDeclaration, checker: parsedExpression.checker };
+      }
     }
 
-    const literal = this.getParenthesizedExpression(this.parseSource(`({${code}})`));
-    if (literal && ts.isObjectLiteralExpression(literal) && literal.properties.length === 1) {
-      const property = literal.properties[0];
-      if (ts.isMethodDeclaration(property) || ts.isAccessor(property)) {
-        return property;
+    const parsedMember = this.parseSource(`({${code}})`);
+    if (parsedMember) {
+      const literal = this.getParenthesizedExpression(parsedMember.file);
+      if (literal && ts.isObjectLiteralExpression(literal) && literal.properties.length === 1) {
+        const property = literal.properties[0];
+        if (ts.isMethodDeclaration(property) || ts.isAccessor(property)) {
+          return { declaration: property as ts.SignatureDeclaration, checker: parsedMember.checker };
+        }
       }
     }
 
@@ -89,10 +123,11 @@ export class SmCodeEnricher extends SmCodeMapper<false> {
 
   /** Recovers how many arguments a scanned function takes, by parsing its source. */
   private parseFunctionSignature(code: string): IndexFunctionSignature {
-    const declaration = this.parseSignatureDeclaration(code);
-    if (!declaration) {
+    const parsed = this.parseSignatureDeclaration(code);
+    if (!parsed) {
       throw new Error(`Failed to parse the signature of a scanned function:\n${code}`);
     }
+    const { declaration, checker } = parsed;
 
     let requiredArgs = 0;
     let optionalArgs = 0;
@@ -110,10 +145,31 @@ export class SmCodeEnricher extends SmCodeMapper<false> {
       }
     }
 
+    /*
+     * The code has no type annotations, so this is what the checker infers from the body. Most of
+     * it resolves to nothing - a minified body calls minified internals that were never part of
+     * the scan - and those come back as `any`, which the emitter treats as "unknown" anyway.
+     */
+    let returnType: string | undefined;
+    try {
+      const signature = checker.getSignatureFromDeclaration(declaration);
+      const inferred = signature && checker.getReturnTypeOfSignature(signature);
+      if (inferred) {
+        const text = checker.typeToString(inferred, undefined, ts.TypeFormatFlags.NoTruncation);
+        // An unresolved internal infers as `any` or `error`, which says nothing worth recording.
+        if (text !== "any" && text !== "error") {
+          returnType = text;
+        }
+      }
+    } catch {
+      // The checker throws on some shapes it can't resolve at all - no return type, then.
+    }
+
     return {
       requiredArgs: requiredArgs || undefined,
       optionalArgs: optionalArgs || undefined,
       hasRestArg: hasRestArg || undefined,
+      returnType,
     };
   }
 }

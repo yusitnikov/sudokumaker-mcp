@@ -195,17 +195,20 @@ program
           case "map":
             return `Map<${format(value.entry?.[0], offset, typePrefix)}, ${format(value.entry?.[1], offset, typePrefix)}>`;
           case "function": {
-            // TODO: recover the parameter types from the scanned source.
-            // They stay `unknown` until then - anything is assignable to `unknown`, so only the
-            // count is enforced. The return has to be `any`: `unknown` would make every use of a
-            // result an error, so correct code would get rejected.
-            const returnType = value.isGenerator
-              ? value.isAsync
-                ? "AsyncGenerator<any>"
-                : "Generator<any>"
-              : value.isAsync
-                ? "Promise<any>"
-                : "any";
+            // They stay `unknown` until then - anything is assignable to `unknown`, so only the count is enforced.
+            let returnType =
+              value.returnType ??
+              (value.isGenerator
+                ? value.isAsync
+                  ? "AsyncGenerator<any, void, undefined>"
+                  : "Generator<any, void, undefined>"
+                : value.isAsync
+                  ? "Promise<any>"
+                  : "any");
+
+            if (value.isGenerator) {
+              returnType = returnType.replace(/,\s*(any|unknown)>$/, ", undefined>");
+            }
 
             // The source is minified, so the real parameter names are single letters that would
             // tell a reader nothing - they're numbered by position instead.

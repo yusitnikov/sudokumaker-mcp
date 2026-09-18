@@ -11,12 +11,14 @@
         "areSameLength": {
           "type": "function",
           "code": "function Vt(...s){return s.length===0?!0:s.every(e=>e.length===s[0].length)}",
-          "hasRestArg": true
+          "hasRestArg": true,
+          "returnType": "boolean"
         },
         "chunk": {
           "type": "function",
           "code": "function vn(s,e){const t=[];let n;for(let i=0;i<s.length;i++)i%e===0&&(n=[],t.push(n)),n.push(s[i]);return t}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "any[][]"
         },
         "count": {
           "type": "function",
@@ -32,12 +34,14 @@
         "createFilledArray": {
           "type": "function",
           "code": "function X(s,e){return new Array(s).fill(e)}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "any[]"
         },
         "ensureArray": {
           "type": "function",
           "code": "function E(s){return Array.isArray(s)?s:[s]}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "any[]"
         },
         "hasDuplicates": {
           "type": "function",
@@ -47,17 +51,20 @@
         "includesEvery": {
           "type": "function",
           "code": "function gn(s,e,t){if(t?.comparator){for(const n of e)if(!s.some(i=>t.comparator(n,i)))return!1;return!0}for(const n of e)if(!s.includes(n))return!1;return!0}",
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "boolean"
         },
         "includesSome": {
           "type": "function",
           "code": "function fn(s,e,t){if(t?.comparator){for(const n of e)if(s.some(i=>t.comparator(n,i)))return!0;return!1}for(const n of e)if(s.includes(n))return!0;return!1}",
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "boolean"
         },
         "mapIterable": {
           "type": "function",
           "code": "function Cn(s,e){const t=[];for(const n of s)t.push(e(n));return t}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "any[]"
         },
         "remove": {
           "type": "function",
@@ -87,7 +94,8 @@
         "sliceWrapped": {
           "type": "function",
           "code": "function pn(s,e,t){if(s.length===0)return[];const n=[];for(let i=e;i<t;i++)n.push(s[Gt(i,s.length)]);return n}",
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "any[]"
         },
         "withoutAll": {
           "type": "function",
@@ -118,7 +126,8 @@
           "code": "function*$s(s,e,t=1,n=1/0){const i=[...s].sort((o,l)=>o-l);function*r(o,l,a){if(a===0){l.length>=t&&(yield[...l]);return}if(l.length!==n)for(let c=o;c<i.length;c++){if(c>o&&i[c]===i[c-1])continue;const h=i[c];if(h>a)break;l.push(h),yield*r(c+1,l,a-h),l.pop()}}yield*r(0,[],e)}",
           "isGenerator": true,
           "requiredArgs": 2,
-          "optionalArgs": 2
+          "optionalArgs": 2,
+          "returnType": "Generator<any, void, any>"
         }
       }
     },
@@ -168,7 +177,8 @@
         "getExclusionGroup": {
           "type": "function",
           "code": "getExclusionGroup(e){return[]}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "never[]"
         },
         "getIsDone": {
           "type": "function",
@@ -179,19 +189,22 @@
           "type": "function",
           "code": "*initialize(e){if(this.getExclusionGroup!==D.prototype.getExclusionGroup||this.onValueSet!==D.prototype.onValueSet)for(const t of this.cellIds){const n=e.cells[t].value;if(n!==void 0){yield*this.onValueSet(e,t,n);const i=Ne([...this.getExclusionGroup(t)],t);yield me(n,i)}}yield*this.update(e)}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, any>"
         },
         "onValueSet": {
           "type": "function",
           "code": "*onValueSet(e,t,n){}",
           "isGenerator": true,
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "Generator<never, void, unknown>"
         },
         "update": {
           "type": "function",
           "code": "*update(e){}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<never, void, unknown>"
         },
         "validate": {
           "type": "function",
@@ -281,7 +294,8 @@
         "addConstraintComponent": {
           "type": "function",
           "code": "addConstraintComponent(e){this.state.addConstraintComponent(e)}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "void"
         },
         "getConstraintComponentsAt": {
           "type": "function",
@@ -291,12 +305,14 @@
         "removeConstraintComponent": {
           "type": "function",
           "code": "removeConstraintComponent(e){this.state.removeConstraintComponent(e)}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "void"
         },
         "setRegions": {
           "type": "function",
           "code": "setRegions(e){this.state.setRegions(e)}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "void"
         }
       },
       "class": {
@@ -387,7 +403,8 @@
             "getSubsetsPerRegion": {
               "type": "function",
               "code": "getSubsetsPerRegion(e){const t=new Map;for(const n of new Set(e)){const i=this.sudoku.getRegionIdAt(n);t.has(i)||t.set(i,[]),t.get(i).push(n)}return t}",
-              "requiredArgs": 1
+              "requiredArgs": 1,
+              "returnType": "Map<any, any>"
             }
           },
           "class": {
@@ -407,7 +424,8 @@
               "type": "function",
               "code": "*getAllPairsAlongLines(e){for(const t of e)for(let n=0;n<t.length-1;n++)yield[t[n],t[n+1]]}",
               "isGenerator": true,
-              "requiredArgs": 1
+              "requiredArgs": 1,
+              "returnType": "Generator<any[], void, unknown>"
             },
             "getCellsBetweenLineEnds": {
               "type": "function",
@@ -417,7 +435,8 @@
             "getLineEnds": {
               "type": "function",
               "code": "getLineEnds(e){return[e[0],e.at(-1)]}",
-              "requiredArgs": 1
+              "requiredArgs": 1,
+              "returnType": "any[]"
             }
           }
         },
@@ -456,7 +475,8 @@
             "getCellGroupsFromLines": {
               "type": "function",
               "code": "getCellGroupsFromLines(e){const t=[],n=new Q(e),i=new Set(n.getPoints());for(;i.size>0;){const r=Y(i),l=n.getComponentContainingPoint(r).getPoints();t.push(l);for(const a of l)i.delete(a)}return t}",
-              "requiredArgs": 1
+              "requiredArgs": 1,
+              "returnType": "any[]"
             },
             "getEdgesForNegativeConstraint": {
               "type": "function",
@@ -755,12 +775,14 @@
           "type": "function",
           "code": "function*Qt(s,e){const t=[...s],n=t.length;if(e>n)return;const i=Array.from({length:e},(r,o)=>o);for(yield i.map(r=>t[r]);;){let r=e-1;for(;r>=0&&i[r]===r+n-e;)r--;if(r===-1)return;i[r]++;for(let o=r+1;o<e;o++)i[o]=i[o-1]+1;yield i.map(o=>t[o])}}",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<any[], void, unknown>"
         },
         "getCounts": {
           "type": "function",
           "code": "function rt(s){const e=new Map;for(const t of s)e.set(t,(e.get(t)||0)+1);return e}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Map<any, any>"
         },
         "getOne": {
           "type": "function",
@@ -771,13 +793,15 @@
           "type": "function",
           "code": "function*On(s,e){for(let t=s;t<e;t++)yield t}",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<any, void, unknown>"
         },
         "getRangeInclusive": {
           "type": "function",
           "code": "function*j(s,e){for(let t=s;t<=e;t++)yield t}",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<any, void, unknown>"
         }
       }
     },
@@ -792,12 +816,14 @@
         "clamp": {
           "type": "function",
           "code": "function tt(s,e,t){return Math.min(Math.max(e,s),t)}",
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "number"
         },
         "getFactors": {
           "type": "function",
           "code": "function nn(s){if(s%1!==0)throw new Error(\"Cannot factorize non-integers\");const e=[];let t=0;for(;t<he.length;){const n=he[t];for(;s%n===0;)e.push(n),s/=n;if(Math.abs(s)===1)return e;t++}for(let n=he[he.length-1]+2;;n+=2)if(jt(n)){for(;s%n===0;)e.push(n),s/=n;if(Math.abs(s)===1)return e}}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "any[]"
         },
         "isPrime": {
           "type": "function",
@@ -812,32 +838,38 @@
         "mod": {
           "type": "function",
           "code": "function Gt(s,e){return(s%e+e)%e}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "number"
         },
         "product": {
           "type": "function",
           "code": "function en(s){let e=1;for(const t of s)e*=t;return e}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "sum": {
           "type": "function",
           "code": "function zs(s){let e=0;for(const t of s)e+=t;return e}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "toDegrees": {
           "type": "function",
           "code": "function rn(s){return s/Math.PI*180}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "toRadians": {
           "type": "function",
           "code": "function on(s){return s/180*Math.PI}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "triangularNumber": {
           "type": "function",
           "code": "function de(s){return s*(s+1)/2}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         }
       }
     },
@@ -876,7 +908,8 @@
         "difference": {
           "type": "function",
           "code": "function it(s,e,t){const n=new Set(s);if(t?.comparator)for(const i of e)for(const r of n)t?.comparator(r,i)&&n.delete(r);else for(const i of e)n.delete(i);return n}",
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "Set<unknown>"
         },
         "filter": {
           "type": "function",
@@ -886,22 +919,26 @@
         "hasAll": {
           "type": "function",
           "code": "function Kt(s,e,t){if(t?.comparator){const n=t.comparator;for(const i of e){let r=!1;for(const o of s)if(n(o,i)){r=!0;break}if(!r)return!1}return!0}for(const n of e)if(!s.has(n))return!1;return!0}",
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "boolean"
         },
         "hasSome": {
           "type": "function",
           "code": "function Yt(s,e,t){if(t?.comparator){const n=t.comparator;for(const i of e)for(const r of s)if(n(r,i))return!0;return!1}for(const n of e)if(s.has(n))return!0;return!1}",
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "boolean"
         },
         "hasSomeWhere": {
           "type": "function",
           "code": "function An(s,e){for(const t of s)if(e(t))return!0;return!1}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "boolean"
         },
         "intersection": {
           "type": "function",
           "code": "function bn(s,e){const t=new Set(s);for(const n of s)e.has(n)||t.delete(n);return t}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Set<unknown>"
         },
         "isEqual": {
           "type": "function",
@@ -921,7 +958,8 @@
         "union": {
           "type": "function",
           "code": "function Tt(s,e){const t=new Set(s);for(const n of e)t.add(n);return t}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Set<unknown>"
         }
       }
     },
@@ -972,77 +1010,92 @@
         "compareVectors": {
           "type": "function",
           "code": "function is(s,e){return s.y<e.y?-1:s.y>e.y?1:Math.sign(s.x-e.x)}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "number"
         },
         "difference": {
           "type": "function",
           "code": "function Wn(s,e){return{x:s.x-e.x,y:s.y-e.y}}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "{ x: number; y: number; }"
         },
         "getAngle": {
           "type": "function",
           "code": "function qn(s,e){return Math.acos(ss(new ae(s.x,s.y).normalize(),new ae(e.x,e.y).normalize()))}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "number"
         },
         "getAverage": {
           "type": "function",
           "code": "function Tn(s){const e={x:0,y:0};let t=0;for(const n of s)e.x+=n.x,e.y+=n.y,t++;return e.x/=t,e.y/=t,e}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "{ x: number; y: number; }"
         },
         "getClamped": {
           "type": "function",
           "code": "function Xn(s,e){return{x:tt(s.x,e.x,e.x+e.width),y:tt(s.y,e.y,e.y+e.height)}}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "{ x: any; y: any; }"
         },
         "getDistance": {
           "type": "function",
           "code": "function jn(s,e){return Math.hypot(s.x-e.x,s.y-e.y)}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "number"
         },
         "getDotProduct": {
           "type": "function",
           "code": "function ss(s,e){return s.x*e.x+s.y*e.y}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "number"
         },
         "getMagnitude": {
           "type": "function",
           "code": "function ts(s){return Math.hypot(s.x,s.y)}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "getManhattanDistance": {
           "type": "function",
           "code": "function ns(s,e){return Math.abs(s.x-e.x)+Math.abs(s.y-e.y)}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "number"
         },
         "getRotated": {
           "type": "function",
           "code": "function Vn(s,e){const t=Math.cos(e),n=Math.sin(e);return{x:s.x*t-s.y*n,y:s.x*n+s.y*t}}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "{ x: number; y: number; }"
         },
         "isVectorGreaterThan": {
           "type": "function",
           "code": "function Un(s,e){return is(s,e)>0}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "boolean"
         },
         "normalized": {
           "type": "function",
           "code": "function Bn(s){const e=1/ts(s);return{x:s.x*e,y:s.y*e}}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "{ x: number; y: number; }"
         },
         "scaled": {
           "type": "function",
           "code": "function En(s,e){return{x:s.x*e,y:s.y*e}}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "{ x: number; y: number; }"
         },
         "scaledSum": {
           "type": "function",
           "code": "function Gn(s,e,t){return{x:s.x+e.x*t,y:s.y+e.y*t}}",
-          "requiredArgs": 3
+          "requiredArgs": 3,
+          "returnType": "{ x: any; y: any; }"
         },
         "sum": {
           "type": "function",
           "code": "function Hn(s,e){return{x:s.x+e.x,y:s.y+e.y}}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "{ x: any; y: any; }"
         }
       }
     }
@@ -1072,12 +1125,14 @@
         "getCellCenterFromId": {
           "type": "function",
           "code": "getCellCenterFromId(e){return{x:this.getX(e)+.5,y:this.getY(e)+.5}}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "{ x: any; y: any; }"
         },
         "getCoordsFromId": {
           "type": "function",
           "code": "getCoordsFromId(e){return{x:this.getX(e),y:this.getY(e)}}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "{ x: any; y: any; }"
         },
         "getIdFromCoords": {
           "type": "function",
@@ -1097,7 +1152,8 @@
         "getY": {
           "type": "function",
           "code": "getY(e){return Math.floor(e/this.width)}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "height": {
           "type": "scalar",
@@ -1155,7 +1211,8 @@
         "getCoordsFromId": {
           "type": "function",
           "code": "getCoordsFromId(e){return{x:e%(this.spec.size.width+1),y:Math.floor(e/(this.spec.size.width+1))}}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "{ x: number; y: number; }"
         },
         "getIdFromCornerCoords": {
           "type": "function",
@@ -1208,7 +1265,8 @@
         "getCellsAreFilled": {
           "type": "function",
           "code": "getCellsAreFilled(e){for(const t of e)if(!this.hasValue(t))return!1;return!0}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "boolean"
         },
         "getFriendlyCandidates": {
           "type": "function",
@@ -1291,32 +1349,38 @@
           "code": "*getAdjacentCells(e,t=!1){yield*this.getOrthogonallyAdjacentCells(e),t&&(yield*this.getDiagonallyAdjacentCells(e))}",
           "isGenerator": true,
           "requiredArgs": 1,
-          "optionalArgs": 1
+          "optionalArgs": 1,
+          "returnType": "Generator<any, void, any>"
         },
         "getAllColumns": {
           "type": "function",
           "code": "*getAllColumns(){for(let e=0;e<this.width;e++)yield[...this.getCellsInColumn(e)]}",
-          "isGenerator": true
+          "isGenerator": true,
+          "returnType": "Generator<any[], void, unknown>"
         },
         "getAllDiagonallyAdjacentPairs": {
           "type": "function",
           "code": "*getAllDiagonallyAdjacentPairs(){yield*this.getAllPairsWithOffset(1,-1),yield*this.getAllPairsWithOffset(1,1)}",
-          "isGenerator": true
+          "isGenerator": true,
+          "returnType": "Generator<any, void, any>"
         },
         "getAllDominoes": {
           "type": "function",
           "code": "*getAllDominoes(){yield*this.getAllPairsWithOffset(1,0),yield*this.getAllPairsWithOffset(0,1)}",
-          "isGenerator": true
+          "isGenerator": true,
+          "returnType": "Generator<any, void, any>"
         },
         "getAllKingsMovePairs": {
           "type": "function",
           "code": "*getAllKingsMovePairs(){yield*this.getAllPairsWithOffset(1,0),yield*this.getAllPairsWithOffset(0,1),yield*this.getAllPairsWithOffset(1,-1),yield*this.getAllPairsWithOffset(1,1)}",
-          "isGenerator": true
+          "isGenerator": true,
+          "returnType": "Generator<any, void, any>"
         },
         "getAllKnightMovePairs": {
           "type": "function",
           "code": "*getAllKnightMovePairs(){yield*this.getAllPairsWithOffset(1,-2),yield*this.getAllPairsWithOffset(1,2),yield*this.getAllPairsWithOffset(2,-1),yield*this.getAllPairsWithOffset(2,1)}",
-          "isGenerator": true
+          "isGenerator": true,
+          "returnType": "Generator<any, void, any>"
         },
         "getAllPairsWithOffset": {
           "type": "function",
@@ -1327,59 +1391,69 @@
         "getAllQuadruples": {
           "type": "function",
           "code": "*getAllQuadruples(){for(let e=0;e<this.height-1;e++)for(let t=0;t<this.width-1;t++)yield[this.cellIdHelper.getIdFromCoords({x:t,y:e}),this.cellIdHelper.getIdFromCoords({x:t+1,y:e}),this.cellIdHelper.getIdFromCoords({x:t,y:e+1}),this.cellIdHelper.getIdFromCoords({x:t+1,y:e+1})]}",
-          "isGenerator": true
+          "isGenerator": true,
+          "returnType": "Generator<any[], void, unknown>"
         },
         "getAllRows": {
           "type": "function",
           "code": "*getAllRows(){for(let e=0;e<this.height;e++)yield[...this.getCellsInRow(e)]}",
-          "isGenerator": true
+          "isGenerator": true,
+          "returnType": "Generator<any[], void, unknown>"
         },
         "getCellsAreKingsMoveApart": {
           "type": "function",
           "code": "getCellsAreKingsMoveApart(e,t){const n=this.cellIdHelper.getCoordsFromId(e),i=this.cellIdHelper.getCoordsFromId(t),r=Math.abs(n.x-i.x),o=Math.abs(n.y-i.y);return r===0&&o===0?!1:r<=1&&o<=1}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "boolean"
         },
         "getCellsInColumn": {
           "type": "function",
           "code": "*getCellsInColumn(e){for(let t=0;t<this.height;t++)yield this.cellIdHelper.getIdFromCoords({x:e,y:t})}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, unknown>"
         },
         "getCellsInColumnOfCell": {
           "type": "function",
           "code": "*getCellsInColumnOfCell(e){yield*this.getCellsInColumn(this.cellIdHelper.getX(e))}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, any>"
         },
         "getCellsInDiagonal": {
           "type": "function",
           "code": "*getCellsInDiagonal(e,t){for(const n of this.getCoordsInDiagonal(e,t))yield this.cellIdHelper.getIdFromCoords(n)}",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<any, void, unknown>"
         },
         "getCellsInRow": {
           "type": "function",
           "code": "*getCellsInRow(e){for(let t=0;t<this.width;t++)yield this.cellIdHelper.getIdFromCoords({x:t,y:e})}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, unknown>"
         },
         "getCellsInRowOfCell": {
           "type": "function",
           "code": "*getCellsInRowOfCell(e){yield*this.getCellsInRow(this.cellIdHelper.getY(e))}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, any>"
         },
         "getCellsKnightsMoveAwayFromCell": {
           "type": "function",
           "code": "*getCellsKnightsMoveAwayFromCell(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>=1&&n>=2&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n-2})),t<this.width-1&&n>=2&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n-2})),t>=2&&n>=1&&(yield this.cellIdHelper.getIdFromCoords({x:t-2,y:n-1})),t<this.width-2&&n>=1&&(yield this.cellIdHelper.getIdFromCoords({x:t+2,y:n-1})),t>=2&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t-2,y:n+1})),t<this.width-2&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+2,y:n+1})),t>=1&&n<this.height-2&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n+2})),t<this.width-1&&n<this.height-2&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n+2}))}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, unknown>"
         },
         "getCellsPointedAtByOuterClue": {
           "type": "function",
           "code": "*getCellsPointedAtByOuterClue(e,t){for(const n of this.getCoordsPointedAtByOuterClue(e,t))yield this.cellIdHelper.getIdFromCoords(n)}",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<any, void, unknown>"
         },
         "getCellsTouchingCorner": {
           "type": "function",
@@ -1390,13 +1464,15 @@
         "getCellsTouchingEdge": {
           "type": "function",
           "code": "getCellsTouchingEdge(e){const{x:t,y:n}=this.edgeIdHelper.getCoordsFromId(e);return[{x:Math.floor(t-.5),y:Math.floor(n-.5)},{x:Math.ceil(t-.5),y:Math.ceil(n-.5)}].map(i=>this.cellIdHelper.getIdFromCoords(i))}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "any[]"
         },
         "getCoordsInDiagonal": {
           "type": "function",
           "code": "*getCoordsInDiagonal(e,t){const n=e===$.NegativeDiagonal?1:-1;t===void 0&&(t=e===$.NegativeDiagonal?0:this.width-1);for(let i=0;i<this.height;i++){const r=t+i*n;if(r<0||r>=this.width)break;yield{x:r,y:i}}}",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<{ x: any; y: number; }, void, unknown>"
         },
         "getCoordsPointedAtByOuterClue": {
           "type": "function",
@@ -1408,7 +1484,8 @@
           "type": "function",
           "code": "*getDiagonallyAdjacentCells(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>0&&n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n-1})),t<this.width-1&&n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n-1})),t>0&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n+1})),t<this.width-1&&n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n+1}))}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, unknown>"
         },
         "getManhattanDistanceBetweenCells": {
           "type": "function",
@@ -1419,7 +1496,8 @@
           "type": "function",
           "code": "*getOrthogonallyAdjacentCells(e){const{x:t,y:n}=this.cellIdHelper.getCoordsFromId(e);t>0&&(yield this.cellIdHelper.getIdFromCoords({x:t-1,y:n})),n>0&&(yield this.cellIdHelper.getIdFromCoords({x:t,y:n-1})),t<this.width-1&&(yield this.cellIdHelper.getIdFromCoords({x:t+1,y:n})),n<this.height-1&&(yield this.cellIdHelper.getIdFromCoords({x:t,y:n+1}))}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, unknown>"
         },
         "height": {
           "type": "scalar",
@@ -1692,12 +1770,14 @@
         "getBranchingLineName": {
           "type": "function",
           "code": "getBranchingLineName(e,t){return`the ${e} containing ${this.getCellName(Math.min(...t))}`}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "string"
         },
         "getCageName": {
           "type": "function",
           "code": "getCageName(e,t){return`the ${e} at ${this.getCellName(Math.min(...t))}`}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "string"
         },
         "getCellName": {
           "type": "function",
@@ -1712,12 +1792,14 @@
         "getColumnName": {
           "type": "function",
           "code": "getColumnName(e){return`C${e+1}`}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "string"
         },
         "getDigitFilterDescription": {
           "type": "function",
           "code": "getDigitFilterDescription(e){return e=this.digitsHelper.createFullDigitSet().intersect(e),this.digitsHelper.createOddsDigitSet().equals(e)?\"an odd digit\":this.digitsHelper.createEvensDigitSet().equals(e)?\"an even digit\":le(+e)===1?`a ${_(+e).toString()}`:`a ${this.getDigitSetDescription(e,\"or\")}`}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "string"
         },
         "getDigitSetDescription": {
           "type": "function",
@@ -1733,22 +1815,26 @@
         "getEdgeClueNameFromDomino": {
           "type": "function",
           "code": "getEdgeClueNameFromDomino(e,t){return`the ${e} between ${this.getCellsDescription(t)}`}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "string"
         },
         "getLineName": {
           "type": "function",
           "code": "getLineName(e,t){return`the ${e} from ${this.getCellName(t[0])} to ${this.getCellName(t.at(-1))}`}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "string"
         },
         "getOuterClueName": {
           "type": "function",
           "code": "getOuterClueName(e,t){const n=this.outerCellIdHelper.getAllAttributes(t);switch(n.side){case p.TopLeft:return`the top-left ${e}`;case p.TopRight:return`the top-right ${e}`;case p.Top:return`the top ${e} in ${this.getColumnName(n.x)}`;case p.BottomLeft:return`the bottom-left ${e}`;case p.BottomRight:return`the bottom-right ${e}`;case p.Bottom:return`the bottom ${e} in ${this.getColumnName(n.x)}`;case p.Right:return`the right ${e} in ${this.getRowName(n.y)}`;case p.Left:return`the left ${e} in ${this.getRowName(n.y)}`}}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "string | undefined"
         },
         "getRowName": {
           "type": "function",
           "code": "getRowName(e){return`R${e+1}`}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "string"
         },
         "getTupleName": {
           "type": "function",
@@ -1804,7 +1890,8 @@
         "getAllAttributes": {
           "type": "function",
           "code": "getAllAttributes(e){const t=this.getCoordsFromId(e);return{x:t.x,y:t.y,side:this.getSideFromCoords(t)}}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "{ x: any; y: any; side: any; }"
         },
         "getCellCenterFromId": {
           "type": "function",
@@ -1839,7 +1926,8 @@
         "getY": {
           "type": "function",
           "code": "getY(e){return Math.floor(e/(this.width+2))-1}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "number"
         },
         "height": {
           "type": "scalar",
@@ -1881,25 +1969,29 @@
           "type": "function",
           "code": "*getCellsDiagonallyAdjacentToCell(e){yield*this.helpers.geometry.getDiagonallyAdjacentCells(e)}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, any>"
         },
         "getCellsDiagonallyAdjacentToCoords": {
           "type": "function",
           "code": "*getCellsDiagonallyAdjacentToCoords(e,t){yield*this.getCellsDiagonallyAdjacentToCell(this.helpers.cellIds.getIdFromCoords({x:e,y:t}))}",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<any, void, any>"
         },
         "getCellsOrthogonallyAdjacentToCell": {
           "type": "function",
           "code": "*getCellsOrthogonallyAdjacentToCell(e){yield*this.helpers.geometry.getOrthogonallyAdjacentCells(e)}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<any, void, any>"
         },
         "getCellsOrthogonallyAdjacentToCoords": {
           "type": "function",
           "code": "*getCellsOrthogonallyAdjacentToCoords(e,t){yield*this.getCellsOrthogonallyAdjacentToCell(this.helpers.cellIds.getIdFromCoords({x:e,y:t}))}",
           "isGenerator": true,
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "Generator<any, void, any>"
         },
         "getCellsSeeEachOther": {
           "type": "function",
@@ -2086,16 +2178,19 @@
         "add": {
           "type": "function",
           "code": "add(e){this.mask|=1<<e}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "void"
         },
         "clear": {
           "type": "function",
-          "code": "clear(){this.mask=0}"
+          "code": "clear(){this.mask=0}",
+          "returnType": "void"
         },
         "delete": {
           "type": "function",
           "code": "delete(e){this.mask&=~(1<<e)}",
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "void"
         },
         "equals": {
           "type": "function",
@@ -2194,12 +2289,14 @@
         "getCombinationsForSumsWithoutRepeat": {
           "type": "function",
           "code": "getCombinationsForSumsWithoutRepeat(e,t){if(t===0)return[];const n=[];for(const i of e)n.push(...this.getCombinationsForSumWithoutRepeat(i,t));return n}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "any[]"
         },
         "getExtremeSumsWithRepeat": {
           "type": "function",
           "code": "getExtremeSumsWithRepeat(e,t){let n=0,i=0;for(let r=0;r<e.length;r++){const o=e[r],l=t?.[r]??1,a=_(o),c=N(o);n+=(a??0)*l,i+=(c??0)*l}return{minSum:n,maxSum:i}}",
-          "requiredArgs": 2
+          "requiredArgs": 2,
+          "returnType": "{ minSum: number; maxSum: number; }"
         },
         "getExtremeSumsWithoutRepeat": {
           "type": "function",
@@ -2238,7 +2335,8 @@
           "type": "function",
           "code": "*getXSumPossibilities(e){if(e===1){yield{x:1,combinations:[2]};return}else if(e===2||e===4||e>de(this.maxDigit))return;for(let t=2;t<=this.maxDigit;t++)if(e>=de(t)&&e<=this.#e(t)){const n=[];for(const i of this.sumHelper.getCombinationsForSumWithoutRepeat(e-t,t-1))i.includes(t)||n.push(lt(i));n.length>0&&(yield{x:t,combinations:n})}}",
           "isGenerator": true,
-          "requiredArgs": 1
+          "requiredArgs": 1,
+          "returnType": "Generator<{ x: number; combinations: any[]; }, void, unknown>"
         },
         "maxDigit": {
           "type": "scalar",
