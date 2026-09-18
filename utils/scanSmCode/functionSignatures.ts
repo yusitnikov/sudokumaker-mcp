@@ -3,1030 +3,2404 @@ import type { FunctionSignatureInfo } from "./types";
 export const functionSignatures: Record<string, Record<string, FunctionSignatureInfo>> = {
   ArrayUtils: {
     areSameLength: {
-      processed: false,
+      processed: true,
+      typeParams: ["T"],
       arguments: [
         {
+          name: "arrays",
+          type: "T[][]",
           rest: true,
         },
       ],
       returnType: "boolean",
     },
     chunk: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "any[][]",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "size",
+          type: "number",
+        },
+      ],
+      returnType: "T[][]",
     },
     count: {
-      processed: false,
+      processed: true,
+      typeParams: ["T"],
       arguments: [
-        {},
-        {},
         {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "value",
+          type: "T",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
           optional: true,
         },
       ],
+      returnType: "number",
     },
     countWhere: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "predicate",
+          type: "(item: T) => boolean",
+        },
+      ],
+      returnType: "number",
     },
     createFilledArray: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "any[]",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "length",
+          type: "number",
+        },
+        {
+          name: "value",
+          type: "T",
+        },
+      ],
+      returnType: "T[]",
     },
     ensureArray: {
-      processed: false,
-      arguments: [{}],
-      returnType: "any[]",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "value",
+          type: "T | T[]",
+        },
+      ],
+      returnType: "T[]",
     },
     hasDuplicates: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
+      returnType: "boolean",
     },
     includesEvery: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
       returnType: "boolean",
     },
     includesSome: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
       returnType: "boolean",
     },
     mapIterable: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "any[]",
+      processed: true,
+      typeParams: ["T", "R"],
+      arguments: [
+        {
+          name: "items",
+          type: "Iterable<T>",
+        },
+        {
+          name: "map",
+          type: "(item: T) => R",
+        },
+      ],
+      returnType: "R[]",
     },
     remove: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
+      returnType: "T[]",
     },
     removeFirst: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "value",
+          type: "T",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
+      returnType: "T[]",
     },
     removeFirstWhere: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "predicate",
+          type: "(item: T) => boolean",
+        },
+      ],
+      returnType: "T[]",
     },
     removeWhere: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "predicate",
+          type: "(item: T) => boolean",
+        },
+      ],
+      returnType: "T[]",
     },
     shuffled: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+      ],
+      returnType: "T[]",
     },
     sliceWrapped: {
-      processed: false,
-      arguments: [{}, {}, {}],
-      returnType: "any[]",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "from",
+          type: "number",
+        },
+        {
+          name: "to",
+          type: "number",
+        },
+      ],
+      returnType: "T[]",
     },
     withoutAll: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
+      returnType: "T[]",
     },
     withoutDuplicates: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "T[]",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
+      returnType: "T[]",
     },
   },
   CellIdsHelper: {
     areValidCoords: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "coords",
+          type: "Vector2",
+        },
+      ],
       returnType: "boolean",
     },
     getAllCellIds: {
-      processed: false,
+      processed: true,
       arguments: [],
-      returnType: "number[]",
+      returnType: "CellId[]",
     },
     getCellCenterFromId: {
-      processed: false,
-      arguments: [{}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Vector2",
     },
     getCoordsFromId: {
-      processed: false,
-      arguments: [{}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Vector2",
     },
     getIdFromCoords: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "coords",
+          type: "Vector2",
+        },
+      ],
+      returnType: "CellId",
     },
     getIdFromCoordsSafe: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "coords",
+          type: "Vector2",
+        },
+      ],
+      returnType: "CellId | undefined",
     },
     getX: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
       returnType: "number",
     },
     getY: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
       returnType: "number",
     },
   },
   CombinatoricUtils: {
     getCombinationsForSum: {
-      processed: false,
+      processed: true,
       arguments: [
-        {},
-        {},
         {
+          name: "values",
+          type: "Iterable<number>",
+        },
+        {
+          name: "sum",
+          type: "number",
+        },
+        {
+          name: "minCount",
+          type: "number",
           optional: true,
         },
         {
+          name: "maxCount",
+          type: "number",
           optional: true,
         },
       ],
-      returnType: "Generator<any, void, undefined>",
+      returnType: "Generator<number[], void, undefined>",
     },
   },
   ConnectivityHelper: {
     getOrthogonallyConnectedGroups: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
+      returnType: "Generator<CellGraph, void, undefined>",
     },
   },
   CornerIdsHelper: {
     getCoordsFromId: {
-      processed: false,
-      arguments: [{}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "cornerId",
+          type: "CornerId",
+        },
+      ],
+      returnType: "Vector2",
     },
     getIdFromCornerCoords: {
-      processed: false,
-      arguments: [{}],
-    },
-  },
-  CustomComponentInstance: {
-    getExclusionGroup: {
-      processed: false,
-      arguments: [{}],
-      returnType: "never[]",
-    },
-    getIsDone: {
-      processed: false,
-      arguments: [{}],
-    },
-    initialize: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
-    },
-    onValueSet: {
-      processed: false,
-      arguments: [{}, {}, {}],
-      returnType: "Generator<never, void, undefined>",
-    },
-    update: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<never, void, undefined>",
-    },
-    validate: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "coords",
+          type: "Vector2",
+        },
+      ],
+      returnType: "CornerId",
     },
   },
   CustomComponentPuzzleBase: {
     filterCandidatesInCell: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "candidates",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "SolverAction",
     },
     filterCandidatesInCells: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "candidates",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
+      returnType: "SolverAction",
     },
     getCandidates: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "DigitSet",
     },
     getCandidatesBitMask: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "DigitSetMask",
     },
     getCellsAreFilled: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
       returnType: "boolean",
     },
     getFriendlyCandidates: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "DigitSet",
     },
     getValue: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Digit | undefined",
     },
     hasValue: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
       returnType: "boolean",
     },
     removeCandidateFromCell: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "digit",
+          type: "Digit",
+        },
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "SolverAction",
     },
     removeCandidateFromCells: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "digit",
+          type: "Digit",
+        },
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
+      returnType: "SolverAction",
     },
     removeCandidatesFromCell: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "candidates",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "SolverAction",
     },
     removeCandidatesFromCells: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "candidates",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
+      returnType: "SolverAction",
     },
     removeComponent: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "SolverAction",
     },
     replaceComponent: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "currentOrReplacement",
+          type: "CustomComponentInstance | Component | Component[]",
+        },
+        {
+          name: "replacement",
+          type: "Component | Component[]",
+          optional: true,
+        },
+      ],
+      returnType: "SolverAction",
     },
     stop: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "message",
+          type: "string",
+          optional: true,
+        },
+        {
+          name: "cellIds",
+          type: "CellId[]",
+          optional: true,
+        },
+      ],
+      returnType: "SolverAction",
     },
   },
   CustomComponentScopeGeometryHelper: {
     getAdjacentCells: {
-      processed: false,
+      processed: true,
       arguments: [
-        {},
         {
+          name: "cellId",
+          type: "CellId",
+        },
+        {
+          name: "includeDiagonal",
+          type: "boolean",
           optional: true,
         },
       ],
-      returnType: "Generator<any, void, undefined>",
+      returnType: "Generator<CellId, void, undefined>",
     },
     getAllColumns: {
-      processed: false,
+      processed: true,
       arguments: [],
-      returnType: "Generator<any[], void, undefined>",
+      returnType: "Generator<CellId[], void, undefined>",
     },
     getAllDiagonallyAdjacentPairs: {
-      processed: false,
+      processed: true,
       arguments: [],
-      returnType: "Generator<any[], void, undefined>",
+      returnType: "Generator<[CellId, CellId], void, undefined>",
     },
     getAllDominoes: {
-      processed: false,
+      processed: true,
       arguments: [],
-      returnType: "Generator<any[], void, undefined>",
+      returnType: "Generator<[CellId, CellId], void, undefined>",
     },
     getAllKingsMovePairs: {
-      processed: false,
+      processed: true,
       arguments: [],
-      returnType: "Generator<any[], void, undefined>",
+      returnType: "Generator<[CellId, CellId], void, undefined>",
     },
     getAllKnightMovePairs: {
-      processed: false,
+      processed: true,
       arguments: [],
-      returnType: "Generator<any[], void, undefined>",
+      returnType: "Generator<[CellId, CellId], void, undefined>",
     },
     getAllPairsWithOffset: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<any[], void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "offsetX",
+          type: "number",
+        },
+        {
+          name: "offsetY",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<[CellId, CellId], void, undefined>",
     },
     getAllQuadruples: {
-      processed: false,
+      processed: true,
       arguments: [],
-      returnType: "Generator<any[], void, undefined>",
+      returnType: "Generator<[CellId, CellId, CellId, CellId], void, undefined>",
     },
     getAllRows: {
-      processed: false,
+      processed: true,
       arguments: [],
-      returnType: "Generator<any[], void, undefined>",
+      returnType: "Generator<CellId[], void, undefined>",
     },
     getCellsAreKingsMoveApart: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId1",
+          type: "CellId",
+        },
+        {
+          name: "cellId2",
+          type: "CellId",
+        },
+      ],
       returnType: "boolean",
     },
     getCellsInColumn: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "columnIndex",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsInColumnOfCell: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsInDiagonal: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "diagonalType",
+          type: "DiagonalType",
+        },
+        {
+          name: "startX",
+          type: "number",
+          optional: true,
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsInRow: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "rowIndex",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsInRowOfCell: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsKnightsMoveAwayFromCell: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsPointedAtByOuterClue: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+        {
+          name: "diagonalType",
+          type: "DiagonalType",
+          optional: true,
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsTouchingCorner: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, any[], undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "cornerId",
+          type: "CornerId",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsTouchingEdge: {
-      processed: false,
-      arguments: [{}],
-      returnType: "any[]",
+      processed: true,
+      arguments: [
+        {
+          name: "edgeId",
+          type: "EdgeId",
+        },
+      ],
+      returnType: "CellId[]",
     },
     getCoordsInDiagonal: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<{ x: any; y: number; }, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "diagonalType",
+          type: "DiagonalType",
+        },
+        {
+          name: "startX",
+          type: "number",
+          optional: true,
+        },
+      ],
+      returnType: "Generator<Vector2, void, undefined>",
     },
     getCoordsPointedAtByOuterClue: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<{ x: any; y: any; }, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+        {
+          name: "diagonalType",
+          type: "DiagonalType",
+          optional: true,
+        },
+      ],
+      returnType: "Generator<Vector2, void, undefined>",
     },
     getDiagonallyAdjacentCells: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getManhattanDistanceBetweenCells: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId1",
+          type: "CellId",
+        },
+        {
+          name: "cellId2",
+          type: "CellId",
+        },
+      ],
+      returnType: "number",
     },
     getOrthogonallyAdjacentCells: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
   },
   DigitSet: {
     getLargestDigit: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "Digit | undefined",
     },
     getSmallestDigit: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "Digit | undefined",
     },
   },
   DigitsHelper: {
     createEvensDigitSet: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "DigitSet",
     },
     createFilteredDigitSet: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "predicate",
+          type: "(digit: Digit) => boolean",
+        },
+      ],
+      returnType: "DigitSet",
     },
     createFullDigitSet: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "DigitSet",
     },
     createModuloDigitSet: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "modulus",
+          type: "number",
+        },
+        {
+          name: "remainder",
+          type: "number",
+        },
+      ],
+      returnType: "DigitSet",
     },
     createOddsDigitSet: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "DigitSet",
     },
   },
   EdgeIdsHelper: {
     getCoordsFromId: {
-      processed: false,
-      arguments: [{}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "edgeId",
+          type: "EdgeId",
+        },
+      ],
+      returnType: "Vector2",
     },
     getIdFromCoords: {
-      processed: false,
-      arguments: [{}],
-      returnType: "number",
+      processed: true,
+      arguments: [
+        {
+          name: "coords",
+          type: "Vector2",
+        },
+      ],
+      returnType: "EdgeId",
     },
   },
   InitialCodePuzzle: {
     addConstraintComponent: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "component",
+          type: "Component",
+        },
+      ],
       returnType: "void",
     },
     getConstraintComponentsAt: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Set<Component>",
     },
     removeConstraintComponent: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "component",
+          type: "Component",
+        },
+      ],
       returnType: "void",
     },
     setRegions: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "regionIdsByCellId",
+          type: "number[]",
+        },
+      ],
       returnType: "void",
     },
   },
   InitialCodeScopeGeometryHelperValue: {
     getSubsetsPerRegion: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Map<any, any>",
+      processed: true,
+      arguments: [
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
+      returnType: "Map<number, CellId[]>",
     },
   },
   InitialCodeScopeLinesHelperValue: {
     getAllPairsAlongLines: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any[], void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "lines",
+          type: "Iterable<CellId[]>",
+        },
+      ],
+      returnType: "Generator<[CellId, CellId], void, undefined>",
     },
     getCellsBetweenLineEnds: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "line",
+          type: "CellId[]",
+        },
+      ],
+      returnType: "CellId[]",
     },
     getLineEnds: {
-      processed: false,
-      arguments: [{}],
-      returnType: "any[]",
+      processed: true,
+      arguments: [
+        {
+          name: "line",
+          type: "CellId[]",
+        },
+      ],
+      returnType: "[CellId, CellId]",
     },
   },
   InitialCodeScopeMiscHelperValue: {
     getCellGroupsFromLines: {
-      processed: false,
-      arguments: [{}],
-      returnType: "any[]",
+      processed: true,
+      arguments: [
+        {
+          name: "lines",
+          type: "Iterable<CellId[]>",
+        },
+      ],
+      returnType: "CellId[][]",
     },
     getEdgesForNegativeConstraint: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "clues",
+          type: "Iterable<{ edge: EdgeId }>",
+        },
+      ],
+      returnType: "Generator<EdgeId, void, undefined>",
     },
   },
   IterationUtils: {
     getBest: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "Iterable<T>",
+        },
+        {
+          name: "getScore",
+          type: "(item: T) => number",
+        },
+        {
+          name: "fallback",
+          type: "T",
+        },
+      ],
+      returnType: "T",
     },
     getCombinations: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<any[], void, undefined>",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "Iterable<T>",
+        },
+        {
+          name: "count",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<T[], void, undefined>",
     },
     getCounts: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Map<any, any>",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "Iterable<T>",
+        },
+      ],
+      returnType: "Map<T, number>",
     },
     getOne: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "items",
+          type: "Iterable<T>",
+        },
+      ],
+      returnType: "T | undefined",
     },
     getRange: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "from",
+          type: "number",
+        },
+        {
+          name: "to",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<number, void, undefined>",
     },
     getRangeInclusive: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "from",
+          type: "number",
+        },
+        {
+          name: "to",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<number, void, undefined>",
     },
   },
   MathUtils: {
     clamp: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "value",
+          type: "number",
+        },
+        {
+          name: "min",
+          type: "number",
+        },
+        {
+          name: "max",
+          type: "number",
+        },
+      ],
       returnType: "number",
     },
     getFactors: {
-      processed: false,
-      arguments: [{}],
-      returnType: "any[]",
+      processed: true,
+      arguments: [
+        {
+          name: "value",
+          type: "number",
+        },
+      ],
+      returnType: "number[]",
     },
     isPrime: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "value",
+          type: "number",
+        },
+      ],
+      returnType: "boolean",
     },
     lerp: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "from",
+          type: "number",
+        },
+        {
+          name: "to",
+          type: "number",
+        },
+        {
+          name: "ratio",
+          type: "number",
+        },
+      ],
+      returnType: "number",
     },
     mod: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "value",
+          type: "number",
+        },
+        {
+          name: "modulus",
+          type: "number",
+        },
+      ],
       returnType: "number",
     },
     product: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "values",
+          type: "Iterable<number>",
+        },
+      ],
       returnType: "number",
     },
     sum: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "values",
+          type: "Iterable<number>",
+        },
+      ],
       returnType: "number",
     },
     toDegrees: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "radians",
+          type: "number",
+        },
+      ],
       returnType: "number",
     },
     toRadians: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "degrees",
+          type: "number",
+        },
+      ],
       returnType: "number",
     },
     triangularNumber: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "n",
+          type: "number",
+        },
+      ],
       returnType: "number",
     },
   },
   NamingHelper: {
     getBranchingLineName: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "clueName",
+          type: "string",
+        },
+        {
+          name: "cellIds",
+          type: "CellId[]",
+        },
+      ],
       returnType: "string",
     },
     getCageName: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "clueName",
+          type: "string",
+        },
+        {
+          name: "cellIds",
+          type: "CellId[]",
+        },
+      ],
       returnType: "string",
     },
     getCellName: {
-      processed: false,
-      arguments: [{}],
-      returnType: "never",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "string",
     },
     getCellsDescription: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
+      returnType: "string",
     },
     getColumnName: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "columnIndex",
+          type: "number",
+        },
+      ],
       returnType: "string",
     },
     getDigitFilterDescription: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "digits",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "string",
     },
     getDigitSetDescription: {
-      processed: false,
+      processed: true,
       arguments: [
-        {},
         {
+          name: "digits",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+        {
+          name: "conjunction",
+          type: "string",
           optional: true,
         },
       ],
+      returnType: "string",
     },
     getEdgeClueName: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "clueName",
+          type: "string",
+        },
+        {
+          name: "edgeId",
+          type: "EdgeId",
+        },
+      ],
       returnType: "string",
     },
     getEdgeClueNameFromDomino: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "clueName",
+          type: "string",
+        },
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
       returnType: "string",
     },
     getLineName: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "clueName",
+          type: "string",
+        },
+        {
+          name: "cellIds",
+          type: "CellId[]",
+        },
+      ],
       returnType: "string",
     },
     getOuterClueName: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "clueName",
+          type: "string",
+        },
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+      ],
       returnType: "string | undefined",
     },
     getRowName: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "rowIndex",
+          type: "number",
+        },
+      ],
       returnType: "string",
     },
     getTupleName: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellIds",
+          type: "CellId[]",
+        },
+      ],
+      returnType: "string",
     },
     getTupleNameBySize: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "size",
+          type: "number",
+        },
+      ],
+      returnType: "string",
     },
   },
   OuterCellIdsHelper: {
     getAllAttributes: {
-      processed: false,
-      arguments: [{}],
-      returnType: "{ x: any; y: any; side: any; }",
+      processed: true,
+      arguments: [
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+      ],
+      returnType: "{ x: number; y: number; side: OuterPosition }",
     },
     getCellCenterFromId: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+      ],
+      returnType: "Vector2Class",
     },
     getCoordsFromId: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+      ],
+      returnType: "Vector2Class",
     },
     getIdFromCoords: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "coords",
+          type: "Vector2",
+        },
+      ],
+      returnType: "OuterCellId",
     },
     getSide: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+      ],
+      returnType: "OuterPosition",
     },
     getSideFromCoords: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "coords",
+          type: "Vector2",
+        },
+      ],
+      returnType: "OuterPosition",
     },
     getX: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+      ],
       returnType: "number",
     },
     getY: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "outerCellId",
+          type: "OuterCellId",
+        },
+      ],
       returnType: "number",
     },
   },
   PuzzleBase: {
     getCellAt: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "x",
+          type: "number",
+        },
+        {
+          name: "y",
+          type: "number",
+        },
+      ],
+      returnType: "CellId | undefined",
     },
     getCellsCanHaveRepeats: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
+      returnType: "boolean",
     },
     getCellsDiagonallyAdjacentToCell: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsDiagonallyAdjacentToCoords: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "x",
+          type: "number",
+        },
+        {
+          name: "y",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsOrthogonallyAdjacentToCell: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsOrthogonallyAdjacentToCoords: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Generator<any, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "x",
+          type: "number",
+        },
+        {
+          name: "y",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<CellId, void, undefined>",
     },
     getCellsSeeEachOther: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellIds",
+          type: "Iterable<CellId>",
+        },
+      ],
+      returnType: "boolean",
     },
     getCellsSeenByCell: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+        {
+          name: "includeClones",
+          type: "boolean",
+          optional: true,
+        },
+      ],
+      returnType: "Set<CellId>",
     },
     getColumn: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "number",
     },
     getFriendlyDigitsForCell: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "DigitSet",
     },
     getRegion: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "number",
     },
     getRegionAt: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "x",
+          type: "number",
+        },
+        {
+          name: "y",
+          type: "number",
+        },
+      ],
+      returnType: "number",
     },
     getRegionCells: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "regionId",
+          type: "number",
+        },
+      ],
+      returnType: "CellId[]",
     },
     getRegions: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "CellId[][]",
     },
     getRow: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "number",
     },
     getX: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "number",
     },
     getY: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "cellId",
+          type: "CellId",
+        },
+      ],
+      returnType: "number",
     },
     hasRegions: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "boolean",
     },
     unsafeGetCellAt: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "x",
+          type: "number",
+        },
+        {
+          name: "y",
+          type: "number",
+        },
+      ],
+      returnType: "CellId",
     },
   },
   SetUtils: {
     addAll: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set",
+          type: "Set<T>",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+      ],
+      returnType: "Set<T>",
     },
     deleteAll: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set",
+          type: "Set<T>",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
+      returnType: "Set<T>",
     },
     difference: {
-      processed: false,
-      arguments: [{}, {}, {}],
-      returnType: "Set<unknown>",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set",
+          type: "Set<T>",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
+      returnType: "Set<T>",
     },
     filter: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set",
+          type: "Set<T>",
+        },
+        {
+          name: "keep",
+          type: "Set<T>",
+        },
+      ],
+      returnType: "Set<T>",
     },
     hasAll: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set",
+          type: "Set<T>",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
       returnType: "boolean",
     },
     hasSome: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set",
+          type: "Set<T>",
+        },
+        {
+          name: "values",
+          type: "Iterable<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
       returnType: "boolean",
     },
     hasSomeWhere: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set",
+          type: "Iterable<T>",
+        },
+        {
+          name: "predicate",
+          type: "(item: T) => boolean",
+        },
+      ],
       returnType: "boolean",
     },
     intersection: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Set<unknown>",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set1",
+          type: "Set<T>",
+        },
+        {
+          name: "set2",
+          type: "Set<T>",
+        },
+      ],
+      returnType: "Set<T>",
     },
     isEqual: {
-      processed: false,
-      arguments: [{}, {}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set1",
+          type: "Set<T>",
+        },
+        {
+          name: "set2",
+          type: "Set<T>",
+        },
+        {
+          name: "options",
+          type: "{ comparator?: (a: T, b: T) => boolean }",
+          optional: true,
+        },
+      ],
+      returnType: "boolean",
     },
     symmetricDifference: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set1",
+          type: "Iterable<T>",
+        },
+        {
+          name: "set2",
+          type: "Iterable<T>",
+        },
+      ],
+      returnType: "Set<T>",
     },
     takeOne: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set",
+          type: "Set<T>",
+        },
+      ],
+      returnType: "T | undefined",
     },
     union: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "Set<unknown>",
+      processed: true,
+      typeParams: ["T"],
+      arguments: [
+        {
+          name: "set1",
+          type: "Set<T>",
+        },
+        {
+          name: "set2",
+          type: "Iterable<T>",
+        },
+      ],
+      returnType: "Set<T>",
     },
   },
   SmallNumberSet: {
     add: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "value",
+          type: "number",
+        },
+      ],
       returnType: "void",
     },
     clear: {
-      processed: false,
+      processed: true,
       arguments: [],
       returnType: "void",
     },
     delete: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "value",
+          type: "number",
+        },
+      ],
       returnType: "void",
     },
     equals: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "boolean",
     },
     getLargestNumber: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "number | undefined",
     },
     getSmallestNumber: {
-      processed: false,
+      processed: true,
       arguments: [],
+      returnType: "number | undefined",
     },
     has: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "value",
+          type: "number",
+        },
+      ],
       returnType: "boolean",
     },
     intersect: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "this",
     },
     intersects: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "boolean",
     },
     isDisjointFrom: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "boolean",
     },
     isSubsetOf: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "boolean",
     },
     isSupersetOf: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "boolean",
     },
     subtract: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "this",
     },
     union: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "this",
     },
     xor: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "other",
+          type: "DigitSetMask | SmallNumberSet",
+        },
+      ],
       returnType: "this",
     },
     from: {
       processed: true,
+      typeParams: ["T extends SmallNumberSet"],
       arguments: [
         {
+          name: "this",
+          type: "new (...args: any[]) => T",
+        },
+        {
+          name: "values",
           type: "Iterable<number>",
         },
       ],
-      returnType: "this",
+      returnType: "T",
     },
     getIntersection: {
       processed: true,
+      typeParams: ["T extends SmallNumberSet"],
       arguments: [
         {
-          type: "Iterable<number | SmallNumberSet>",
+          name: "this",
+          type: "new (...args: any[]) => T",
+        },
+        {
+          name: "sets",
+          type: "Iterable<DigitSetMask | SmallNumberSet>",
         },
       ],
-      returnType: "this",
+      returnType: "T",
     },
     getUnion: {
       processed: true,
+      typeParams: ["T extends SmallNumberSet"],
       arguments: [
         {
-          type: "Iterable<number | SmallNumberSet>",
+          name: "this",
+          type: "new (...args: any[]) => T",
+        },
+        {
+          name: "sets",
+          type: "Iterable<DigitSetMask | SmallNumberSet>",
         },
       ],
-      returnType: "this",
+      returnType: "T",
     },
   },
   SumsHelper: {
     getCombinationsForSumWithoutRepeat: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "any[]",
+      processed: true,
+      arguments: [
+        {
+          name: "sum",
+          type: "number",
+        },
+        {
+          name: "count",
+          type: "number",
+        },
+      ],
+      returnType: "Digit[][]",
     },
     getCombinationsForSumsWithoutRepeat: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "any[]",
+      processed: true,
+      arguments: [
+        {
+          name: "sums",
+          type: "Iterable<number>",
+        },
+        {
+          name: "count",
+          type: "number",
+        },
+      ],
+      returnType: "Digit[][]",
     },
     getExtremeSumsWithRepeat: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "{ minSum: number; maxSum: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "candidates",
+          type: "(DigitSetMask | SmallNumberSet)[]",
+        },
+        {
+          name: "multipliers",
+          type: "number[]",
+          optional: true,
+        },
+      ],
+      returnType: "{ minSum: number; maxSum: number }",
     },
     getExtremeSumsWithoutRepeat: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "{ minSum: any; maxSum: any; } | null",
+      processed: true,
+      arguments: [
+        {
+          name: "candidates",
+          type: "(DigitSetMask | SmallNumberSet)[]",
+        },
+        {
+          name: "multipliers",
+          type: "number[]",
+          optional: true,
+        },
+      ],
+      returnType: "{ minSum: number; maxSum: number | null } | null",
     },
     getMaximumSumWithoutRepeat: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "candidates",
+          type: "(DigitSetMask | SmallNumberSet)[]",
+        },
+        {
+          name: "multipliers",
+          type: "number[]",
+          optional: true,
+        },
+      ],
+      returnType: "number | null",
     },
     getMinimumSumWithoutRepeat: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "candidates",
+          type: "(DigitSetMask | SmallNumberSet)[]",
+        },
+        {
+          name: "multipliers",
+          type: "number[]",
+          optional: true,
+        },
+      ],
+      returnType: "number | null",
     },
   },
   Vector2Funcs: {
     compareVectors: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+      ],
       returnType: "number",
     },
     difference: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+      ],
+      returnType: "Vector2",
     },
     getAngle: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+      ],
       returnType: "number",
     },
     getAverage: {
-      processed: false,
-      arguments: [{}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "vectors",
+          type: "Iterable<Vector2>",
+        },
+      ],
+      returnType: "Vector2",
     },
     getClamped: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "{ x: any; y: any; }",
+      processed: true,
+      arguments: [
+        {
+          name: "vector",
+          type: "Vector2",
+        },
+        {
+          name: "rect",
+          type: "{ x: number; y: number; width: number; height: number }",
+        },
+      ],
+      returnType: "Vector2",
     },
     getDistance: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+      ],
       returnType: "number",
     },
     getDotProduct: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+      ],
       returnType: "number",
     },
     getMagnitude: {
-      processed: false,
-      arguments: [{}],
+      processed: true,
+      arguments: [
+        {
+          name: "vector",
+          type: "Vector2",
+        },
+      ],
       returnType: "number",
     },
     getManhattanDistance: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+      ],
       returnType: "number",
     },
     getRotated: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "vector",
+          type: "Vector2",
+        },
+        {
+          name: "angle",
+          type: "number",
+        },
+      ],
+      returnType: "Vector2",
     },
     isVectorGreaterThan: {
-      processed: false,
-      arguments: [{}, {}],
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+      ],
       returnType: "boolean",
     },
     normalized: {
-      processed: false,
-      arguments: [{}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "vector",
+          type: "Vector2",
+        },
+      ],
+      returnType: "Vector2",
     },
     scaled: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "{ x: number; y: number; }",
+      processed: true,
+      arguments: [
+        {
+          name: "vector",
+          type: "Vector2",
+        },
+        {
+          name: "factor",
+          type: "number",
+        },
+      ],
+      returnType: "Vector2",
     },
     scaledSum: {
-      processed: false,
-      arguments: [{}, {}, {}],
-      returnType: "{ x: any; y: any; }",
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+        {
+          name: "factor",
+          type: "number",
+        },
+      ],
+      returnType: "Vector2",
     },
     sum: {
-      processed: false,
-      arguments: [{}, {}],
-      returnType: "{ x: any; y: any; }",
+      processed: true,
+      arguments: [
+        {
+          name: "vector1",
+          type: "Vector2",
+        },
+        {
+          name: "vector2",
+          type: "Vector2",
+        },
+      ],
+      returnType: "Vector2",
     },
   },
   XSumsHelper: {
     getXSumPossibilities: {
-      processed: false,
-      arguments: [{}],
-      returnType: "Generator<{ x: number; combinations: any[]; }, void, undefined>",
+      processed: true,
+      arguments: [
+        {
+          name: "sum",
+          type: "number",
+        },
+      ],
+      returnType: "Generator<{ x: Digit; combinations: DigitSetMask[] }, void, undefined>",
     },
   },
 };

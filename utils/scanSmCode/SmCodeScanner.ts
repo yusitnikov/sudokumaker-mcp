@@ -563,6 +563,7 @@ export class SmCodeScanner extends GenericSmCodeScanner<false> {
     this.ignoreComponentHandles(standardComponentNames, customComponentScope);
 
     this.markAsInternal(initialCodeScope.puzzle.state, "PuzzleState");
+    this.markAsInternal(updateArgs.instance, "CustomComponentInstance");
 
     // Index the value before the class to get the getter return value
     this.indexLabel(new customComponentScope.SmallNumberSet(), "SmallNumberSetValue");
@@ -634,7 +635,6 @@ export class SmCodeScanner extends GenericSmCodeScanner<false> {
       this.indexLabel(updateArgs.puzzle.helpers, `${SmCodeScanner.customComponentCodeScopeHandle}Helpers`),
     );
     this.indexLabel(initialCodeScope.puzzle, "InitialCodePuzzle");
-    this.indexLabel(updateArgs.instance, "CustomComponentInstance");
     this.indexLabel(this.getClass(Object.getPrototypeOf(updateArgs.puzzle)), "PuzzleBase");
     this.indexLabel(this.getClass(updateArgs.puzzle), "CustomComponentPuzzleBase");
     this.fakeBaseClass(

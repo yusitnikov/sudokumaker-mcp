@@ -128,6 +128,7 @@ export interface ArgumentDraftInfo {
   rest?: true;
 }
 export interface ArgumentProcessedInfo extends ArgumentDraftInfo {
+  name: string;
   type: string;
 }
 export interface FunctionSignatureDraftInfo {
@@ -137,6 +138,8 @@ export interface FunctionSignatureDraftInfo {
 }
 export interface FunctionSignatureProcessedInfo {
   processed: true;
+  /** Type parameters, without the angle brackets - e.g. `["T"]` or `["T extends number"]`. */
+  typeParams?: string[];
   arguments: ArgumentProcessedInfo[];
   returnType?: string;
 }

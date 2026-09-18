@@ -42,6 +42,10 @@ Node) are the two ends of that range.
 Tool bodies run as methods of the page-side instance, so **a tool body that touches the tab is a
 `function`, never an arrow**.
 
+Anything a backend step needs that must stay out of the page arrives as a `BackendResources`
+argument threaded through every `...OnBackend` method, never as an import - importing it from a tool
+would inline it into the page bundle (`src/BackendResources.ts`).
+
 The **real** schema runs page-side, in `validateParams`: `inputSchema.parse(params)` then
 `inputSchema.encode(...)`, so the tool body always receives encoded (public-format) values.
 
@@ -205,6 +209,11 @@ Solver and check responses close with a blind-spot warning naming the elements t
 see, an overwrite reminder on the runs that write, and a pointer to the `solving` topic - each
 carried only by the tools it applies to, and only once the run has actually finished.
 
+`edit_initialization_code` typechecks what it wrote against the generated declarations and appends
+the diagnostics as a `[WARNING]` - the edit lands either way, since the declarations are recovered
+from a minified app and a false positive must never block a real edit. The element's own custom
+components are declared per call: they're named by the user, so no generated file can know them.
+
 `runOnFrontend` catches whatever a tool throws and returns it as an `isError: true` result, so a
 failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace through
 the minified bundle; `runOnBackend` does the same for a failed round trip. That is the only way a
@@ -255,6 +264,20 @@ original schema.
 
 `ZodDeepPartial` (`src/DeepPartial.ts`) derives the partial-update variant of any schema, used by the
 `*Updates` fields. Arrays are never made partial - an array-valued field replaces the whole array.
+
+## The scanned worker scope (`utils/scanSmCode.ts` → `src/generated/`)
+
+Custom-constraint code runs in SudokuMaker's own worker scope, which has no published types. The
+scanner reads that scope out of a live tab - so regenerating needs one open - and emits the
+declarations `edit_initialization_code` typechecks snippets against. Everything under
+`src/generated/` is output; never edit it.
+
+The app is minified, so what a scanned body reveals is limited and often wrong in the details.
+**`utils/scanSmCode/functionSignatures.ts` is the hand-reviewed correction layer**: entries marked
+`processed: true` survive regeneration, everything else is overwritten each run by what the scanner
+inferred. Whatever can't be expressed there - members `getOwnPropertyNames` can't see, internals
+only reachable through minified aliases, the `number` aliases that separate a cell id from a digit
+from a bitmask - is hardcoded in the emitter alongside them.
 
 ## Working on this repo
 

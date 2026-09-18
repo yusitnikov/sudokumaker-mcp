@@ -22,10 +22,10 @@ export const snippetFileName = "/snippet.ts";
 const buildCustomComponentDeclarations = (customComponentNames: string[], globalsDts: string) => {
   const declarations = customComponentNames
     .filter((name) => !new RegExp(`^  class ${RegExp.escape(name)} \\{`, "m").test(globalsDts))
-    .map((name) => `  class ${name} { constructor(...args: any[]); }\n`)
+    .map((name) => `  class ${name} extends Component { constructor(...args: any[]); }\n`)
     .join("");
 
-  return `declare global {\n${declarations}}\nexport {};\n`;
+  return `import { Component } from "./types";\n\ndeclare global {\n${declarations}}\n`;
 };
 
 /** Renders one diagnostic as `line N: message`, followed by the offending source line. */

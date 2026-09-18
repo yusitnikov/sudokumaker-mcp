@@ -4,7 +4,7 @@
  * scope object for a given SudokuMaker tab - the same object source #3 of the CodeMirror
  * `autocomplete` language data resolves property completions against.
  */
-import { writeFile, rename } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { program } from "commander";
 import { ExtensionAutomationClient } from "@sitnikov/browser-automation";
@@ -119,10 +119,12 @@ program
 
       const header = "// noinspection JSUnusedGlobalSymbols\n\n";
 
-      let classesCode = header;
+      let classesCode =
+        "/* eslint-disable @typescript-eslint/no-unused-expressions,@typescript-eslint/no-unused-vars,no-undef */\n" +
+        "// noinspection JSUnusedGlobalSymbols,CommaExpressionJS,JSUnresolvedReference,JSValidateTypes\n\n";
       for (const [id, object] of Object.entries(objectsIndex)) {
-        if (object.type === "class") {
-          classesCode += `const ${id} = ${object.code}\n\n`;
+        if (object.type === "class" && object.code !== "class {}") {
+          classesCode += `// ${id}:\n${object.code}\n\n`;
         }
       }
 
@@ -133,10 +135,10 @@ program
       const getFunctionsMap = <ResultT>(
         objectsIndex: ObjectsIndex<false>,
         mapper: (id: string, name: string, value: IndexFunction) => ResultT,
-      ) =>
+      ): Record<string, Record<string, ResultT>> =>
         Object.fromEntries(
           Object.entries(objectsIndex)
-            .map(([id, obj]) => [
+            .map(([id, obj]): [string, Record<string, ResultT>] => [
               id,
               Object.fromEntries(
                 [
@@ -191,6 +193,80 @@ program
 
       let declarations = header;
 
+      declarations += "export type PuzzleState = never;\n\n";
+      declarations += "export type Vector2 = { x: number; y: number };\n\n";
+      declarations += "export type CellId = number;\n";
+      declarations += "export type CornerId = number;\n";
+      declarations += "export type EdgeId = number;\n";
+      declarations += "export type OuterCellId = number;\n";
+      declarations += "export type Digit = number;\n";
+      declarations += "export type DigitSetMask = number;\n\n";
+      declarations += 'export type SolverAction = { readonly __brand: "SolverAction" };\n\n';
+
+      /** A constraint the solver can hold - one of the standard components, or a custom one. */
+      declarations += 'export declare class Component {\n  readonly __brand: "Component";\n}\n\n';
+
+      /*
+       * The app's own vector class, which a few helpers return in place of a plain `{x, y}`. Every
+       * operation mutates the receiver and returns it, so chaining works but sharing one around
+       * does not.
+       */
+      declarations +=
+        "export declare class Vector2Class {\n" +
+        "  constructor(x?: number, y?: number);\n" +
+        "  x: number;\n" +
+        "  y: number;\n" +
+        "  get magnitude(): number;\n" +
+        "  get magnitudeSqr(): number;\n" +
+        "  add(vector: Vector2): this;\n" +
+        "  addScaled(vector: Vector2, factor: number): this;\n" +
+        "  subtract(vector: Vector2): this;\n" +
+        "  rotate(angle: number): this;\n" +
+        "  scale(factor: number): this;\n" +
+        "  normalize(): this;\n" +
+        "  copy(vector: Vector2): this;\n" +
+        "  static from(vector: Vector2): Vector2Class;\n" +
+        "}\n\n";
+
+      /*
+       * An undirected graph of cells, used for connectivity questions. Edges are symmetric, and the
+       * comparator only decides which way round a pair is reported by `getEdges`.
+       */
+      declarations +=
+        "export declare class CellGraph {\n" +
+        "  constructor(lines?: Iterable<CellId[]>, isGreaterThan?: (a: CellId, b: CellId) => boolean);\n" +
+        "  addLine(cellIds: CellId[]): this;\n" +
+        "  addPoint(cellId: CellId): void;\n" +
+        "  addPoints(cellIds: Iterable<CellId>): void;\n" +
+        "  addEdge(a: CellId, b: CellId): this;\n" +
+        "  removeEdge(a: CellId, b: CellId, dropIsolated?: boolean): this;\n" +
+        "  removePoint(cellId: CellId): this;\n" +
+        "  hasEdge(a: CellId, b: CellId): boolean;\n" +
+        "  hasPoint(cellId: CellId): boolean;\n" +
+        "  getPoints(): CellId[];\n" +
+        "  getEdges(): Generator<[CellId, CellId], void, undefined>;\n" +
+        "  getPointsAdjacentTo(cellId: CellId): Set<CellId>;\n" +
+        "  getPointCount(): number;\n" +
+        "  isEmpty(): boolean;\n" +
+        "  getAllComponents(): Generator<CellGraph, void, undefined>;\n" +
+        "  getConnectedPointSets(cellIds?: Iterable<CellId>): Generator<CellId[], void, undefined>;\n" +
+        "  getPointsConnectedTo(cellId: CellId): Set<CellId>;\n" +
+        "  getComponentContainingPoint(cellId: CellId): CellGraph;\n" +
+        "  getComponentsContainingPoints(cellIds: Iterable<CellId>): CellGraph;\n" +
+        "  isSimpleLines(): boolean;\n" +
+        "  hasCycles(): boolean;\n" +
+        "  toArrays(): CellId[][];\n" +
+        "  clone(): CellGraph;\n" +
+        "}\n\n";
+
+      declarations +=
+        "export type CustomComponentInstance = {\n" +
+        '  readonly __brand: "CustomComponent";\n' +
+        "  cellIds: CellId[];\n" +
+        "  cells: CellId[];\n" +
+        "  name: string;\n" +
+        "};\n\n";
+
       const { initialCodeScopeHandle, customComponentCodeScopeHandle, globalScopeHandle } = SmCodeScanner;
       const typesNamespace = "types";
       // The two scopes and their shared base become global bindings (see below), not types.
@@ -202,6 +278,17 @@ program
           return object.class.id;
         }
         return id;
+      };
+
+      /*
+       * Properties whose name says what kind of number they hold. The scan only sees `number`, and
+       * these are the same value under several classes, so they're keyed by name rather than by
+       * owner.
+       */
+      const scalarPropertyTypes: Record<string, string> = {
+        allDigitsMask: "DigitSetMask",
+        maxDigit: "Digit",
+        minDigit: "Digit",
       };
 
       const formatOwnProperties = (
@@ -216,7 +303,9 @@ program
 
         for (const [key, val] of Object.entries(props ?? {})) {
           if (val.type === "magic") {
-            const valueTypeCode = format(val.value, offset, typePrefix);
+            const valueTypeCode =
+              (val.value?.type === "scalar" ? scalarPropertyTypes[key] : undefined) ??
+              format(val.value, offset, typePrefix);
             if (val.get) {
               code += `${offset}${modifiers}get ${key}(): ${valueTypeCode};\n`;
             }
@@ -225,7 +314,10 @@ program
             }
           } else {
             const signature = functionsMap[className]?.[key];
-            code += `${offset}${modifiers}${key}: ${format(val, offset, typePrefix, signature, className, isStatic)};\n`;
+            const valueTypeCode =
+              (val.type === "scalar" ? scalarPropertyTypes[key] : undefined) ??
+              format(val, offset, typePrefix, signature);
+            code += `${offset}${modifiers}${key}: ${valueTypeCode};\n`;
           }
         }
 
@@ -237,8 +329,6 @@ program
         offset = "",
         typePrefix = "",
         signature?: FunctionSignatureInfo,
-        className = "",
-        isStatic = false,
       ): string => {
         if (value === undefined) {
           return "unknown";
@@ -263,7 +353,7 @@ program
             return `Map<${format(value.entry?.[0], offset, typePrefix)}, ${format(value.entry?.[1], offset, typePrefix)}>`;
           case "function": {
             // They stay `unknown` until then - anything is assignable to `unknown`, so only the count is enforced.
-            let returnType =
+            const returnType =
               (signature?.processed ? signature.returnType : undefined) ??
               value.returnType ??
               (value.isGenerator
@@ -278,9 +368,9 @@ program
             // tell a reader nothing - they're numbered by position instead.
             const args: string[] = [];
             if (signature?.processed) {
-              // A reviewed signature carries a real type per argument, so it replaces the counts.
-              for (const { type, optional, rest } of signature.arguments) {
-                args.push(rest ? `...rest: ${type}` : `arg${args.length + 1}${optional ? "?" : ""}: ${type}`);
+              // A reviewed signature carries a real name and type per argument, so it replaces the counts.
+              for (const { name, type, optional, rest } of signature.arguments) {
+                args.push(rest ? `...${name}: ${type}` : `${name}${optional ? "?" : ""}: ${type}`);
               }
             } else {
               for (let i = 0; i < (value.requiredArgs ?? 0); i++) {
@@ -294,14 +384,7 @@ program
               }
             }
 
-            let typeArgs = "";
-            if (className && isStatic && returnType === "this") {
-              // `this` isn't a type in a static member, so the polymorphism is spelled out: the
-              // method is generic over whatever subclass it was called on.
-              typeArgs = `<T extends ${className}>`;
-              returnType = "T";
-              args.unshift("this: new (...args: any[]) => T");
-            }
+            const typeArgs = signature?.processed && signature.typeParams ? `<${signature.typeParams.join(", ")}>` : "";
 
             return `${typeArgs}(${args.join(", ")}) => ${returnType}`;
           }
@@ -319,8 +402,12 @@ program
               code += ` & `;
             }
 
+            /*
+             * An inlined object still has its own id in the index, and that's what its members'
+             * signatures are keyed by - not the name of whatever contains it.
+             */
             code += "{\n";
-            code += formatOwnProperties(value.ownProperties, `  ${offset}`, false, typePrefix);
+            code += formatOwnProperties(value.ownProperties, `  ${offset}`, false, typePrefix, value.reference.id);
             code += `${offset}}`;
 
             return code;
@@ -343,9 +430,9 @@ program
         }
         declarations += " {\n";
         if (name === "SmallNumberSet") {
-          declarations += "  constructor(value?: number | SmallNumberSet);\n";
-          declarations += "  mask: number;\n";
-          declarations += "  valueOf(): number;\n";
+          declarations += "  constructor(value?: DigitSetMask | SmallNumberSet);\n";
+          declarations += "  mask: DigitSetMask;\n";
+          declarations += "  valueOf(): DigitSetMask;\n";
           declarations += "  [Symbol.iterator](): Generator<number, void, undefined>;\n";
         }
         declarations += formatOwnProperties(value.ownProperties, "  ", false, "", name);
@@ -369,10 +456,6 @@ program
           declarations += `  ${key} = ${val},\n`;
         }
         declarations += "}\n\n";
-      }
-
-      for (const name of Object.keys(groupedIndex.internal)) {
-        declarations += `export type ${name} = never;\n\n`;
       }
 
       const customComponentsListHandle = "CustomComponents";
@@ -400,7 +483,10 @@ program
           [name, ...aliases].map((componentName) => ({ componentName, definition })),
         )
         .sort((a, b) => a.componentName.localeCompare(b.componentName))
-        .map(({ componentName, definition }) => `  class ${componentName} {\n    constructor${definition};\n  }\n`)
+        .map(
+          ({ componentName, definition }) =>
+            `  class ${componentName} extends ${typesNamespace}.Component {\n    constructor${definition};\n  }\n`,
+        )
         .join("");
 
       console.log("Writing the files...");
@@ -415,8 +501,7 @@ program
 
       await writeFile("src/generated/index.json", JSON.stringify(groupedIndex, null, 2));
 
-      // Write as ".ts" initially for the prettification to kick in, then rename to ".txt" to disable false linting
-      await writeFile("src/generated/classes.ts", classesCode);
+      await writeFile("src/generated/classes.js", classesCode);
 
       await writeFile("src/generated/types.d.ts", declarations);
 
@@ -424,7 +509,7 @@ program
         "src/generated/globals.d.ts",
         formatGlobals(
           groupedIndex.class[globalScopeHandle].ownProperties,
-          `type CellId = number;\ntype DigitSet = ${typesNamespace}.DigitSet;\n\n`,
+          `type CellId = ${typesNamespace}.CellId;\ntype DigitSet = ${typesNamespace}.DigitSet;\n\n`,
           componentDeclarations,
         ),
       );
@@ -444,8 +529,6 @@ program
       );
 
       await run("npx", ["prettier", "-w", "src/generated", "utils/scanSmCode/functionSignatures.ts"]);
-
-      await rename("src/generated/classes.ts", "src/generated/classes.ts.txt");
 
       console.log("Checking typescript...");
       /*

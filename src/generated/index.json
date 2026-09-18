@@ -112,90 +112,6 @@
         }
       }
     },
-    "CustomComponentInstance": {
-      "type": "object",
-      "reference": {
-        "type": "reference",
-        "id": "CustomComponentInstance"
-      },
-      "references": [
-        "CustomComponentInstance",
-        "SetParamsArgs.instance",
-        "InitializeArgs.instance",
-        "InitializeArgs.puzzle.instance",
-        "ValidateArgs.instance",
-        "ValidateArgs.puzzle.instance",
-        "UpdateArgs.instance",
-        "UpdateArgs.puzzle.instance"
-      ],
-      "ownProperties": {
-        "cellIds": {
-          "type": "array",
-          "item": {
-            "type": "scalar",
-            "value": 23
-          }
-        },
-        "cells": {
-          "type": "array",
-          "item": {
-            "type": "scalar",
-            "value": 23
-          }
-        },
-        "name": {
-          "type": "scalar",
-          "value": "DebuggerName"
-        },
-        "allowsEmptyCells": {
-          "type": "magic",
-          "get": true,
-          "value": {
-            "type": "scalar",
-            "value": false
-          }
-        },
-        "getExclusionGroup": {
-          "type": "function",
-          "requiredArgs": 1,
-          "returnType": "never[]"
-        },
-        "getIsDone": {
-          "type": "function",
-          "requiredArgs": 1
-        },
-        "initialize": {
-          "type": "function",
-          "isGenerator": true,
-          "requiredArgs": 1,
-          "returnType": "Generator<any, void, undefined>"
-        },
-        "onValueSet": {
-          "type": "function",
-          "isGenerator": true,
-          "requiredArgs": 3,
-          "returnType": "Generator<never, void, undefined>"
-        },
-        "update": {
-          "type": "function",
-          "isGenerator": true,
-          "requiredArgs": 1,
-          "returnType": "Generator<never, void, undefined>"
-        },
-        "validate": {
-          "type": "function",
-          "requiredArgs": 1
-        },
-        "validateDuringSolve": {
-          "type": "magic",
-          "get": true,
-          "value": {
-            "type": "scalar",
-            "value": true
-          }
-        }
-      }
-    },
     "CustomComponentScope": {
       "type": "object",
       "reference": {
@@ -208,7 +124,7 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#010"
+            "id": "#008"
           },
           "references": ["CustomComponentScope.customComponents"]
         },
@@ -307,7 +223,7 @@
           "type": "object",
           "reference": {
             "type": "reference",
-            "id": "#008"
+            "id": "#006"
           },
           "references": ["InitialCodeScope.input"],
           "ownProperties": {
@@ -317,7 +233,7 @@
                 "type": "object",
                 "reference": {
                   "type": "reference",
-                  "id": "#009"
+                  "id": "#007"
                 },
                 "references": ["InitialCodeScope.input.groups[0]"],
                 "ownProperties": {
@@ -2247,6 +2163,23 @@
     }
   },
   "internal": {
+    "CustomComponentInstance": {
+      "type": "internal",
+      "reference": {
+        "type": "reference",
+        "id": "CustomComponentInstance"
+      },
+      "references": [
+        "CustomComponentInstance",
+        "SetParamsArgs.instance",
+        "InitializeArgs.instance",
+        "InitializeArgs.puzzle.instance",
+        "ValidateArgs.instance",
+        "ValidateArgs.puzzle.instance",
+        "UpdateArgs.instance",
+        "UpdateArgs.puzzle.instance"
+      ]
+    },
     "PuzzleState": {
       "type": "internal",
       "reference": {
