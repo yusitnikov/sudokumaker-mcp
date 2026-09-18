@@ -9,6 +9,7 @@ import { spawn } from "node:child_process";
 import { program } from "commander";
 import { ExtensionAutomationClient } from "@sitnikov/browser-automation";
 import { GenericSmCodeScanner, SmCodeScanner } from "./scanSmCode/SmCodeScanner";
+import { SmCodeEnricher } from "./scanSmCode/SmCodeEnricher";
 import { SmCodeValueResolver } from "./scanSmCode/SmCodeValueResolver";
 import type { IndexPropertiesMap, IndexReferencable, IndexValue } from "./scanSmCode/types";
 
@@ -104,7 +105,9 @@ program
       const { standardComponents, objectsIndex, roots }: Awaited<ReturnType<SmCodeScanner["processOnMainThread"]>> =
         JSON.parse(response.result);
 
-      const mappedObjectsIndex = new SmCodeValueResolver(objectsIndex, new Set(roots)).process();
+      const enrichedObjectsIndex = new SmCodeEnricher(objectsIndex, new Set(roots)).process();
+
+      const mappedObjectsIndex = new SmCodeValueResolver(enrichedObjectsIndex, new Set(roots)).process();
 
       const groupedIndex: {
         [T in IndexReferencable<true>["type"]]: Record<string, Extract<IndexReferencable<true>, { type: T }>>;
@@ -184,10 +187,10 @@ program
           case "map":
             return `Map<${format(value.entry?.[0], offset, typePrefix)}, ${format(value.entry?.[1], offset, typePrefix)}>`;
           case "function": {
-            // TODO: recover the real signature from the scanned source.
-            // The return has to be `any` until then - `unknown` makes every use of a result an
-            // error, so correct code gets rejected. The parameters stay `unknown[]`: anything is
-            // assignable to `unknown`, so that costs no call site anything.
+            // TODO: recover the parameter types from the scanned source.
+            // They stay `unknown` until then - anything is assignable to `unknown`, so only the
+            // count is enforced. The return has to be `any`: `unknown` would make every use of a
+            // result an error, so correct code would get rejected.
             const returnType = value.isGenerator
               ? value.isAsync
                 ? "AsyncGenerator<any>"
@@ -195,7 +198,21 @@ program
               : value.isAsync
                 ? "Promise<any>"
                 : "any";
-            return `(...args: unknown[]) => ${returnType}`;
+
+            // The source is minified, so the real parameter names are single letters that would
+            // tell a reader nothing - they're numbered by position instead.
+            const args: string[] = [];
+            for (let i = 0; i < (value.requiredArgs ?? 0); i++) {
+              args.push(`arg${args.length + 1}: unknown`);
+            }
+            for (let i = 0; i < (value.optionalArgs ?? 0); i++) {
+              args.push(`arg${args.length + 1}?: unknown`);
+            }
+            if (value.hasRestArg) {
+              args.push("...rest: unknown[]");
+            }
+
+            return `(${args.join(", ")}) => ${returnType}`;
           }
           case "object": {
             let code = "";

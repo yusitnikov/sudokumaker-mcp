@@ -48,7 +48,20 @@ export interface IndexClass<IsValue extends boolean> extends IndexBaseReference 
   static?: IndexPropertiesMap<IsValue>;
 }
 
-export interface IndexFunction {
+/**
+ * A function's parameter list, recovered by parsing its source.
+ *
+ * A parameter with a default makes every parameter after it optional too, so the counts describe
+ * one list: `requiredArgs` come first, then `optionalArgs` more, then the rest parameter if there
+ * is one.
+ */
+export interface IndexFunctionSignature {
+  requiredArgs?: number;
+  optionalArgs?: number;
+  hasRestArg?: boolean;
+}
+
+export interface IndexFunction extends IndexFunctionSignature {
   type: "function";
   code: string;
   isGenerator?: boolean;
