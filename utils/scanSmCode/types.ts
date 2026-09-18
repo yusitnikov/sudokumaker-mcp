@@ -65,7 +65,7 @@ export interface IndexFunctionSignature {
 
 export interface IndexFunction extends IndexFunctionSignature {
   type: "function";
-  code: string;
+  code?: string;
   isGenerator?: boolean;
   isAsync?: boolean;
 }

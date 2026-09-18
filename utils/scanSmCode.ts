@@ -18,6 +18,7 @@ import type {
   IndexPropertiesMap,
   IndexReferencable,
   IndexValue,
+  ObjectsIndex,
 } from "./scanSmCode/types";
 import { functionSignatures } from "./scanSmCode/functionSignatures";
 
@@ -124,42 +125,48 @@ program
 
       const enrichedObjectsIndex = new SmCodeEnricher(objectsIndex, new Set(roots)).process();
 
-      const functionsMap = Object.fromEntries(
-        Object.entries(enrichedObjectsIndex)
-          .map(([id, obj]) => [
-            id,
-            Object.fromEntries(
-              [
-                ...("ownProperties" in obj ? Object.entries(obj.ownProperties ?? {}) : []),
-                ...("static" in obj ? Object.entries(obj.static ?? {}) : []),
-              ]
-                .filter((pair): pair is [string, IndexFunction] => pair[1].type === "function")
-                .map(
-                  ([name, { requiredArgs = 0, optionalArgs = 0, hasRestArg = false, returnType }]): [
-                    string,
-                    FunctionSignatureInfo,
-                  ] => {
-                    const existingSignature = functionSignatures[id]?.[name];
-                    const newSignature: FunctionSignatureInfo = {
-                      processed: false,
-                      arguments: [
-                        ...Array(requiredArgs)
-                          .fill(0)
-                          .map((): ArgumentDraftInfo => ({})),
-                        ...Array(optionalArgs)
-                          .fill(0)
-                          .map((): ArgumentDraftInfo => ({ optional: true })),
-                        ...(hasRestArg ? [{ rest: true } satisfies ArgumentDraftInfo] : []),
-                      ],
-                      returnType,
-                    };
+      const getFunctionsMap = <ResultT>(
+        objectsIndex: ObjectsIndex<false>,
+        mapper: (id: string, name: string, value: IndexFunction) => ResultT,
+      ) =>
+        Object.fromEntries(
+          Object.entries(objectsIndex)
+            .map(([id, obj]) => [
+              id,
+              Object.fromEntries(
+                [
+                  ...("ownProperties" in obj ? Object.entries(obj.ownProperties ?? {}) : []),
+                  ...("static" in obj ? Object.entries(obj.static ?? {}) : []),
+                ]
+                  .filter((pair): pair is [string, IndexFunction] => pair[1].type === "function")
+                  .map(([name, value]) => [name, mapper(id, name, value)]),
+              ),
+            ])
+            .filter(([, value]) => Object.keys(value).length),
+        );
 
-                    return [name, existingSignature?.processed ? existingSignature : newSignature];
-                  },
-                ),
-            ),
-          ])
-          .filter(([, value]) => Object.keys(value).length),
+      const functionsCode = getFunctionsMap(objectsIndex, (_id, _name, { code }) => code);
+
+      const functionsMap = getFunctionsMap(
+        enrichedObjectsIndex,
+        (id, name, { requiredArgs = 0, optionalArgs = 0, hasRestArg = false, returnType }): FunctionSignatureInfo => {
+          const existingSignature = functionSignatures[id]?.[name];
+          const newSignature: FunctionSignatureInfo = {
+            processed: false,
+            arguments: [
+              ...Array(requiredArgs)
+                .fill(0)
+                .map((): ArgumentDraftInfo => ({})),
+              ...Array(optionalArgs)
+                .fill(0)
+                .map((): ArgumentDraftInfo => ({ optional: true })),
+              ...(hasRestArg ? [{ rest: true } satisfies ArgumentDraftInfo] : []),
+            ],
+            returnType,
+          };
+
+          return existingSignature?.processed ? existingSignature : newSignature;
+        },
       );
 
       const mappedObjectsIndex = new SmCodeValueResolver(enrichedObjectsIndex, new Set(roots)).process();
@@ -370,6 +377,8 @@ program
         .join("");
 
       await writeFile("src/generated/standardComponents.json", JSON.stringify(standardComponents, null, 2));
+
+      await writeFile("src/generated/functions.json", JSON.stringify(functionsCode, null, 2));
 
       await writeFile(
         "utils/scanSmCode/functionSignatures.ts",

@@ -10,7 +10,8 @@ export class SmCodeEnricher extends SmCodeMapper<false> {
   protected mapFunction(value: IndexFunction): IndexFunction {
     return {
       ...value,
-      ...this.parseFunctionSignature(value.code),
+      ...this.parseFunctionSignature(value.code!),
+      code: undefined,
     };
   }
 
