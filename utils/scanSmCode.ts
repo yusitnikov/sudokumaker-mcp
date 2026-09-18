@@ -47,6 +47,8 @@ program
       extensionConnectionIdArg: string | undefined,
       tabId: number | undefined,
     ) => {
+      console.log("Initializing...");
+
       const client = new ExtensionAutomationClient("ws://localhost:3004");
 
       let sessionToken = "";
@@ -96,6 +98,7 @@ program
         console.log(formatCommand(tabId));
       }
 
+      console.log("Scanning the types in the browser...");
       const response = await client.executeJs(
         sessionToken,
         extensionConnectionId,
@@ -123,8 +126,10 @@ program
         }
       }
 
+      console.log("Enriching the results in Node...");
       const enrichedObjectsIndex = new SmCodeEnricher(objectsIndex, new Set(roots)).process();
 
+      console.log("Processing the results...");
       const getFunctionsMap = <ResultT>(
         objectsIndex: ObjectsIndex<false>,
         mapper: (id: string, name: string, value: IndexFunction) => ResultT,
@@ -376,6 +381,7 @@ program
         .map(({ componentName, definition }) => `  class ${componentName} {\n    constructor${definition};\n  }\n`)
         .join("");
 
+      console.log("Writing the files...");
       await writeFile("src/generated/standardComponents.json", JSON.stringify(standardComponents, null, 2));
 
       await writeFile("src/generated/functions.json", JSON.stringify(functionsCode, null, 2));
@@ -419,6 +425,7 @@ program
 
       await rename("src/generated/classes.ts", "src/generated/classes.ts.txt");
 
+      console.log("Checking typescript...");
       /*
        * The generated files are excluded from the project's own compilation - they declare the
        * worker's globals, which don't exist here - so check them separately. `skipLibCheck` would
