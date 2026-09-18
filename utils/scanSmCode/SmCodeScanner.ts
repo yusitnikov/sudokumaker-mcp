@@ -265,7 +265,12 @@ export class SmCodeScanner extends GenericSmCodeScanner<false> {
       }
 
       const reference = this.registerReference(value, handle, isRoot);
-      const definition: IndexClass<false> = { type: "class", reference, references: [handle] };
+      const definition: IndexClass<false> = {
+        type: "class",
+        reference,
+        references: [handle],
+        code: value.toString(),
+      };
       this.registerObject(reference, definition);
       this.indexObject(definition, value.prototype, handle, prototypeOptions ?? { isClassPrototype: true });
       definition.static = this.indexObjectOwnProperties(value, handle, { object: value }, [

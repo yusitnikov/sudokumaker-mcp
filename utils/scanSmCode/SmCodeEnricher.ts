@@ -1,6 +1,14 @@
 import * as ts from "typescript";
 import { SmCodeMapper } from "./SmCodeMapper";
-import type { ConvertValue, IndexFunction, IndexFunctionSignature, IndexValue } from "./types";
+import type {
+  ConvertReferencable,
+  ConvertValue,
+  IndexClass,
+  IndexFunction,
+  IndexFunctionSignature,
+  IndexReferencable,
+  IndexValue,
+} from "./types";
 
 /**
  * Completes the raw index with everything the scanner couldn't work out for itself - it runs in
@@ -19,6 +27,22 @@ export class SmCodeEnricher extends SmCodeMapper<false> {
     }
 
     return super.mapValue(value);
+  }
+
+  protected mapReferencable<T extends IndexReferencable<false>>(value: T): ConvertReferencable<false, false, T> {
+    type ResultT = ConvertReferencable<false, false, T>;
+
+    value = super.mapReferencable(value);
+
+    if (value.type === "class") {
+      // index.json doesn't need the class code
+      return {
+        ...value,
+        code: undefined,
+      } satisfies IndexClass<false> as ResultT;
+    }
+
+    return value as ResultT;
   }
 
   /** Parses `source`, returning the file only if it has no syntax errors. */

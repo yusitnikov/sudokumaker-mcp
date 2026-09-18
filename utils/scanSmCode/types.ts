@@ -43,6 +43,7 @@ export interface IndexObject<IsValue extends boolean> extends IndexBaseReference
 
 export interface IndexClass<IsValue extends boolean> extends IndexBaseReference {
   type: "class";
+  code?: string;
   ownProperties?: IndexPropertiesMap<IsValue>;
   extends?: IndexReference<IsValue, IndexClass<IsValue>> | IndexFunction;
   static?: IndexPropertiesMap<IsValue>;

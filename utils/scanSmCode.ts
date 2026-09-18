@@ -4,7 +4,7 @@
  * scope object for a given SudokuMaker tab - the same object source #3 of the CodeMirror
  * `autocomplete` language data resolves property completions against.
  */
-import { writeFile } from "node:fs/promises";
+import { writeFile, rename } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { program } from "commander";
 import { ExtensionAutomationClient } from "@sitnikov/browser-automation";
@@ -105,6 +105,15 @@ program
       const { standardComponents, objectsIndex, roots }: Awaited<ReturnType<SmCodeScanner["processOnMainThread"]>> =
         JSON.parse(response.result);
 
+      const header = "// noinspection JSUnusedGlobalSymbols\n\n";
+
+      let classesCode = header;
+      for (const [id, object] of Object.entries(objectsIndex)) {
+        if (object.type === "class") {
+          classesCode += `const ${id} = ${object.code}\n\n`;
+        }
+      }
+
       const enrichedObjectsIndex = new SmCodeEnricher(objectsIndex, new Set(roots)).process();
 
       const mappedObjectsIndex = new SmCodeValueResolver(enrichedObjectsIndex, new Set(roots)).process();
@@ -122,7 +131,6 @@ program
         groupedIndex[type][id] = object;
       }
 
-      const header = "// noinspection JSUnusedGlobalSymbols\n\n";
       let declarations = header;
 
       const { initialCodeScopeHandle, customComponentCodeScopeHandle, globalScopeHandle } = SmCodeScanner;
@@ -316,6 +324,9 @@ program
 
       await writeFile("src/generated/index.json", JSON.stringify(groupedIndex, null, 2));
 
+      // Write as ".ts" initially for the prettification to kick in, then rename to ".txt" to disable false linting
+      await writeFile("src/generated/classes.ts", classesCode);
+
       await writeFile("src/generated/types.d.ts", declarations);
 
       await writeFile(
@@ -342,6 +353,8 @@ program
       );
 
       await run("npx", ["prettier", "-w", "src/generated"]);
+
+      await rename("src/generated/classes.ts", "src/generated/classes.ts.txt");
 
       /*
        * The generated files are excluded from the project's own compilation - they declare the
