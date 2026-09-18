@@ -1,48 +1,25 @@
 import * as ts from "typescript";
 import { SmCodeMapper } from "./SmCodeMapper";
-import type {
-  ConvertReferencable,
-  ConvertValue,
-  IndexClass,
-  IndexFunction,
-  IndexFunctionSignature,
-  IndexReferencable,
-  IndexValue,
-} from "./types";
+import type { IndexClass, IndexFunction, IndexFunctionSignature } from "./types";
 
 /**
  * Completes the raw index with everything the scanner couldn't work out for itself - it runs in
  * the page, stringified, so it can import nothing and captures only what plain JavaScript reveals.
  */
 export class SmCodeEnricher extends SmCodeMapper<false> {
-  protected mapValue<T extends IndexValue<false>>(value: T): ConvertValue<false, false, T> {
-    type ResultT = ConvertValue<false, false, T>;
-
-    if (value.type === "function") {
-      // All the scanner could take of a function is its source text.
-      return {
-        ...value,
-        ...this.parseFunctionSignature(value.code),
-      } satisfies IndexFunction as ResultT;
-    }
-
-    return super.mapValue(value);
+  protected mapFunction(value: IndexFunction): IndexFunction {
+    return {
+      ...value,
+      ...this.parseFunctionSignature(value.code),
+    };
   }
 
-  protected mapReferencable<T extends IndexReferencable<false>>(value: T): ConvertReferencable<false, false, T> {
-    type ResultT = ConvertReferencable<false, false, T>;
-
-    value = super.mapReferencable(value);
-
-    if (value.type === "class") {
-      // index.json doesn't need the class code
-      return {
-        ...value,
-        code: undefined,
-      } satisfies IndexClass<false> as ResultT;
-    }
-
-    return value as ResultT;
+  protected mapClass(value: IndexClass<false>): IndexClass<false> {
+    // index.json doesn't need the class code
+    return {
+      ...super.mapClass(value),
+      code: undefined,
+    };
   }
 
   private static readonly sourceFileName = "/signature.ts";

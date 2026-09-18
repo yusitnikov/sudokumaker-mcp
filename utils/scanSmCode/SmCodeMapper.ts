@@ -11,7 +11,6 @@ import type {
   IndexPropertiesMap,
   IndexReferencable,
   IndexReference,
-  IndexScalar,
   IndexSet,
   IndexValue,
   ObjectsIndex,
@@ -28,6 +27,23 @@ export abstract class SmCodeMapper<TargetIsValue extends boolean> extends Generi
     return value;
   }
 
+  protected mapObject(value: IndexObject<false>): IndexObject<TargetIsValue> {
+    return {
+      ...value,
+      ownProperties: this.mapOwnProperties(value.ownProperties),
+      class: value.class && this.mapValue(value.class),
+    };
+  }
+
+  protected mapClass(value: IndexClass<false>): IndexClass<TargetIsValue> {
+    return {
+      ...value,
+      ownProperties: this.mapOwnProperties(value.ownProperties),
+      static: this.mapOwnProperties(value.static),
+      extends: value.extends && this.mapValue(value.extends),
+    };
+  }
+
   protected mapReferencable<T extends IndexReferencable<false>>(
     value: T,
   ): ConvertReferencable<false, TargetIsValue, T> {
@@ -35,22 +51,17 @@ export abstract class SmCodeMapper<TargetIsValue extends boolean> extends Generi
 
     switch (value.type) {
       case "object":
-        return {
-          ...value,
-          ownProperties: this.mapOwnProperties(value.ownProperties),
-          class: value.class && this.mapValue(value.class),
-        } satisfies IndexObject<TargetIsValue> as ResultT;
+        return this.mapObject(value) as ResultT;
       case "class":
-        return {
-          ...value,
-          ownProperties: this.mapOwnProperties(value.ownProperties),
-          static: this.mapOwnProperties(value.static),
-          extends: value.extends && this.mapValue(value.extends),
-        } satisfies IndexClass<TargetIsValue> as ResultT;
+        return this.mapClass(value) as ResultT;
       case "numericEnum":
       case "internal":
         return value as ResultT;
     }
+  }
+
+  protected mapFunction(value: IndexFunction): IndexFunction {
+    return value;
   }
 
   protected mapValue<T extends IndexValue<false>>(value: T): ConvertValue<false, TargetIsValue, T> {
@@ -70,9 +81,11 @@ export abstract class SmCodeMapper<TargetIsValue extends boolean> extends Generi
           ...value,
           entry: value.entry && [this.mapValue(value.entry[0]), this.mapValue(value.entry[1])],
         } satisfies IndexMap<TargetIsValue> as ResultT;
+      case "function":
+        return this.mapFunction(value) as ResultT;
+      case "scalar":
+        return value as ResultT;
     }
-
-    return value satisfies IndexScalar | IndexFunction as ResultT;
   }
 
   protected mapValueOrMagic(
