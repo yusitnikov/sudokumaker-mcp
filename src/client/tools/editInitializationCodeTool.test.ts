@@ -135,24 +135,33 @@ describe("problems in the snippet", () => {
     // becomes `any` and this passes silently.
     expect(typecheckInitializationCode(backendResources, "helpers.naming.thisDoesNotExist();")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: Property 'thisDoesNotExist' does not exist on type 'NamingHelper'.
-  helpers.naming.thisDoesNotExist();`,
+
+line 1 - error TS2339: Property 'thisDoesNotExist' does not exist on type 'NamingHelper'.
+
+1 helpers.naming.thisDoesNotExist();
+                 ~~~~~~~~~~~~~~~~`,
     );
   });
 
   test("reports a standard component called with too few arguments", () => {
     expect(typecheckInitializationCode(backendResources, `new BetweenComponent("b", [1, 2]);`)).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: Expected 3 arguments, but got 2.
-  new BetweenComponent("b", [1, 2]);`,
+
+line 1 - error TS2554: Expected 3 arguments, but got 2.
+
+1 new BetweenComponent("b", [1, 2]);
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`,
     );
   });
 
   test("reports an unknown name", () => {
     expect(typecheckInitializationCode(backendResources, "noSuchComponent();")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: Cannot find name 'noSuchComponent'. Did you mean 'SumComponent'?
-  noSuchComponent();`,
+
+line 1 - error TS2552: Cannot find name 'noSuchComponent'. Did you mean 'SumComponent'?
+
+1 noSuchComponent();
+  ~~~~~~~~~~~~~~~`,
     );
   });
 
@@ -161,8 +170,11 @@ line 1: Cannot find name 'noSuchComponent'. Did you mean 'SumComponent'?
     // out empty. `DigitSet.from` is the documented way to build one from digits.
     expect(typecheckInitializationCode(backendResources, "const set = new DigitSet([1, 2, 3]);")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: Argument of type 'number[]' is not assignable to parameter of type 'number | SmallNumberSet'.   Type 'number[]' is missing the following properties from type 'SmallNumberSet': mask, add, clear, delete, and 13 more.
-  const set = new DigitSet([1, 2, 3]);`,
+
+line 1 - error TS2345: Argument of type 'number[]' is not assignable to parameter of type 'number | SmallNumberSet'.   Type 'number[]' is missing the following properties from type 'SmallNumberSet': mask, add, clear, delete, and 13 more.
+
+1 const set = new DigitSet([1, 2, 3]);
+                           ~~~~~~~~~`,
     );
   });
 });

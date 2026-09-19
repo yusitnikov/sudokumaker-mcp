@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { formatSnippetProblems, getSnippetProblems, typecheckSnippet } from "./typecheckSnippet";
+import { formatSnippetProblems, getSnippetProblems, type SnippetProblem, typecheckSnippet } from "./typecheckSnippet";
 import { backendResources } from "../../backendResourcesImpl";
 
 /*
@@ -20,24 +20,33 @@ describe("what the worker environment provides", () => {
   test("reports DOM globals, which the worker does not have", () => {
     expect(typecheck(`document.querySelector("div");`)).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: Cannot find name 'document'. Do you need to change your target library? Try changing the 'lib' compiler option to include 'dom'.
-  document.querySelector("div");`,
+
+line 1 - error TS2584: Cannot find name 'document'. Do you need to change your target library? Try changing the 'lib' compiler option to include 'dom'.
+
+1 document.querySelector("div");
+  ~~~~~~~~`,
     );
   });
 
   test("reports top-level await exactly once", () => {
     expect(typecheck("const x = await Promise.resolve(1);")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: 'await' expressions are only allowed at the top level of a file when that file is a module, but this file has no imports or exports. Consider adding an empty 'export {}' to make this file a module.
-  const x = await Promise.resolve(1);`,
+
+line 1 - error TS1375: 'await' expressions are only allowed at the top level of a file when that file is a module, but this file has no imports or exports. Consider adding an empty 'export {}' to make this file a module.
+
+1 const x = await Promise.resolve(1);
+            ~~~~~`,
     );
   });
 
   test("reports top-level return", () => {
     expect(typecheck("return 5;")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: A 'return' statement can only be used within a function body.
-  return 5;`,
+
+line 1 - error TS1108: A 'return' statement can only be used within a function body.
+
+1 return 5;
+  ~~~~~~`,
     );
   });
 
@@ -50,24 +59,33 @@ describe("how a problem is reported", () => {
   test("reports a syntax error rather than throwing", () => {
     expect(typecheck("const x = ;")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: Expression expected.
-  const x = ;`,
+
+line 1 - error TS1109: Expression expected.
+
+1 const x = ;
+            ~`,
     );
   });
 
   test("reports an unclosed brace at the end of the snippet", () => {
     expect(typecheck("if (true) {\n  const x = 1;\n")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 3: '}' expected.
-  `,
+
+line 3 - error TS1005: '}' expected.
+
+3 
+  ~`,
     );
   });
 
   test("reports a stray closing brace", () => {
     expect(typecheck("const x = 1;\n}\n")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 2: Declaration or statement expected.
-  }`,
+
+line 2 - error TS1128: Declaration or statement expected.
+
+2 }
+  ~`,
     );
   });
 
@@ -75,26 +93,38 @@ line 2: Declaration or statement expected.
   test("a syntax error is reported ahead of a type error further down", () => {
     expect(typecheck("const x = ;\nnoSuchName();\n")).toBe(
       `[WARNING] TypeScript found 2 problem(s) in the new initialization code. The change WAS applied.
-line 1: Expression expected.
-  const x = ;
-line 2: Cannot find name 'noSuchName'.
-  noSuchName();`,
+
+line 1 - error TS1109: Expression expected.
+
+1 const x = ;
+            ~
+
+line 2 - error TS2304: Cannot find name 'noSuchName'.
+
+2 noSuchName();
+  ~~~~~~~~~~`,
     );
   });
 
   test("reports the author's own line number, and echoes that line", () => {
     expect(typecheck("const a = 1;\nconst b = 2;\nnoSuchName();\n")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 3: Cannot find name 'noSuchName'.
-  noSuchName();`,
+
+line 3 - error TS2304: Cannot find name 'noSuchName'.
+
+3 noSuchName();
+  ~~~~~~~~~~`,
     );
   });
 
   test("names whatever the caller says was edited", () => {
     expect(typecheckSnippet(backendResources, scope, "noSuchName();", "left-handed widget")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new left-handed widget. The change WAS applied.
-line 1: Cannot find name 'noSuchName'.
-  noSuchName();`,
+
+line 1 - error TS2304: Cannot find name 'noSuchName'.
+
+1 noSuchName();
+  ~~~~~~~~~~`,
     );
   });
 });
@@ -110,14 +140,152 @@ describe("mapping lines back to the author's", () => {
 
     const problems = getSnippetProblems(backendResources, scope, authorCode, {
       compiled: annotated,
-      toAuthorLine: (line) => Math.max(line - 1, 0),
+      toAuthorSpan: ({ start, end }) => ({
+        start: { ...start, line: Math.max(start.line - 1, 0) },
+        end: { ...end, line: Math.max(end.line - 1, 0) },
+      }),
     });
 
     expect(formatSnippetProblems(problems, authorCode, "initialization code")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 1: Cannot find name 'noSuchName'.
-  noSuchName();`,
+
+line 1 - error TS2304: Cannot find name 'noSuchName'.
+
+1 noSuchName();
+  ~~~~~~~~~~`,
     );
+  });
+});
+
+/*
+ * A problem spanning many lines is echoed only so far - past that the reader learns nothing from
+ * more underlined source, and a long one would bury every problem after it. These are written
+ * against `formatSnippetProblems` directly, with the span given rather than provoked: what is under
+ * test is the rendering, and a compiler message would only add a sentence to predict.
+ */
+describe("how much of a long problem is echoed", () => {
+  /** A snippet of `count` lines, each `aaa`, for a span to cover. */
+  const sourceOf = (count: number) => Array.from({ length: count }, () => "aaa").join("\n");
+
+  /** One problem covering whole lines `1` through `count`. */
+  const spanning = (count: number): SnippetProblem => ({
+    start: { line: 0, character: 0 },
+    end: { line: count - 1, character: 3 },
+    message: "Something is wrong.",
+    code: 9999,
+  });
+
+  test("a span of ten lines is echoed whole", () => {
+    expect(formatSnippetProblems([spanning(10)], sourceOf(10), "initialization code")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+lines 1-10 - error TS9999: Something is wrong.
+
+ 1 aaa
+   ~~~
+ 2 aaa
+   ~~~
+ 3 aaa
+   ~~~
+ 4 aaa
+   ~~~
+ 5 aaa
+   ~~~
+ 6 aaa
+   ~~~
+ 7 aaa
+   ~~~
+ 8 aaa
+   ~~~
+ 9 aaa
+   ~~~
+10 aaa
+   ~~~`,
+    );
+  });
+
+  /* The header still names the whole span - only the echo is cut. */
+  test("a longer span is cut after ten lines, with the rest counted", () => {
+    expect(formatSnippetProblems([spanning(13)], sourceOf(13), "initialization code")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+lines 1-13 - error TS9999: Something is wrong.
+
+ 1 aaa
+   ~~~
+ 2 aaa
+   ~~~
+ 3 aaa
+   ~~~
+ 4 aaa
+   ~~~
+ 5 aaa
+   ~~~
+ 6 aaa
+   ~~~
+ 7 aaa
+   ~~~
+ 8 aaa
+   ~~~
+ 9 aaa
+   ~~~
+10 aaa
+   ~~~
+   ... 3 more line(s)`,
+    );
+  });
+
+  /* The gutter is as wide as the widest line number shown, so single digits are padded to match. */
+  test("a span of nine lines needs no gutter padding", () => {
+    expect(formatSnippetProblems([spanning(9)], sourceOf(9), "initialization code")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+lines 1-9 - error TS9999: Something is wrong.
+
+1 aaa
+  ~~~
+2 aaa
+  ~~~
+3 aaa
+  ~~~
+4 aaa
+  ~~~
+5 aaa
+  ~~~
+6 aaa
+  ~~~
+7 aaa
+  ~~~
+8 aaa
+  ~~~
+9 aaa
+  ~~~`,
+    );
+  });
+});
+
+/*
+ * Every problem past the cap is dropped rather than printed, so one broken line near the top cannot
+ * push a response to any length. The count in the header is still the true one.
+ */
+describe("how many problems are reported", () => {
+  test("past twenty, the rest are counted and not shown", () => {
+    const problems: SnippetProblem[] = Array.from({ length: 23 }, (_, line) => ({
+      start: { line, character: 0 },
+      end: { line, character: 1 },
+      message: "Something is wrong.",
+      code: 9999,
+    }));
+
+    const formatted = formatSnippetProblems(problems, Array.from({ length: 23 }, () => "a").join("\n"), "widget");
+
+    expect(formatted).toContain("TypeScript found 23 problem(s) in the new widget.");
+    expect(formatted).toContain(`line 20 - error TS9999: Something is wrong.
+
+20 a
+   ~`);
+    expect(formatted).not.toContain("line 21 -");
+    expect(formatted?.endsWith("(... and 3 more)")).toBe(true);
   });
 });
 
@@ -147,8 +315,11 @@ describe("checked as JavaScript", () => {
   test("reassigning a variable to another type is reported", () => {
     expect(typecheck(`var v = 1;\nv = "two";`)).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 2: Type 'string' is not assignable to type 'number'.
-  v = "two";`,
+
+line 2 - error TS2322: Type 'string' is not assignable to type 'number'.
+
+2 v = "two";
+  ~`,
     );
   });
 
@@ -159,8 +330,11 @@ line 2: Type 'string' is not assignable to type 'number'.
   test("a value outside the JSDoc type is still reported", () => {
     expect(typecheck(`/** @type {number | string} */\nvar v = 1;\nv = true;`)).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
-line 3: Type 'boolean' is not assignable to type 'string | number'.
-  v = true;`,
+
+line 3 - error TS2322: Type 'boolean' is not assignable to type 'string | number'.
+
+3 v = true;
+  ~`,
     );
   });
 });

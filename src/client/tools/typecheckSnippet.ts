@@ -11,8 +11,14 @@ import type * as ts from "typescript";
  */
 export const snippetFileName = "/snippet.js";
 
-/** Maps a line of the compiled snippet back to the line the author wrote. */
-export type ToAuthorLine = (snippetLine: number) => number;
+/**
+ * Maps a span of the compiled snippet back to the author's own source.
+ *
+ * A scope that compiles the code verbatim needs none of this; one that injects lines supplies its
+ * own, and may widen a span as well as move it - a diagnostic landing on an injected line has no
+ * meaningful columns in the author's source, so the scope reports whatever that line belongs to.
+ */
+export type ToAuthorSpan = (span: SnippetSpan) => SnippetSpan;
 
 /** What one scope adds to the program the two of them share. */
 export interface SnippetScope {
@@ -38,25 +44,42 @@ const buildFiles = ({ declarations }: BackendResources, { globals, extraDeclarat
     [snippetFileName, code],
   ]);
 
-/**
- * One thing wrong with the snippet, at a line of the author's own source.
- *
- * A scope that finds problems of its own reports them in this shape, so they are counted, ordered
- * and rendered exactly as the compiler's are.
- */
-export interface SnippetProblem {
+/** One end of a problem's span, in the author's own source. */
+export interface SnippetPosition {
   line: number;
-  message: string;
+  character: number;
 }
 
-/** One diagnostic located in the snippet, as a problem on the author's own line. */
+/** The stretch of source a problem covers. */
+export interface SnippetSpan {
+  start: SnippetPosition;
+  end: SnippetPosition;
+}
+
+/**
+ * One thing wrong with the snippet, spanning part of the author's own source.
+ *
+ * A scope that finds problems of its own reports them in this shape, so they are counted, ordered
+ * and rendered exactly as the compiler's are. Those carry no `code`, having no TypeScript error
+ * number to name.
+ */
+export interface SnippetProblem extends SnippetSpan {
+  message: string;
+  code?: number;
+}
+
+/** One diagnostic located in the snippet, as a problem spanning the author's own source. */
 const toProblem = (
   typescript: BackendResources["typescript"],
-  { file, start, messageText }: ts.DiagnosticWithLocation,
-  toAuthorLine: ToAuthorLine,
+  { file, start, length, messageText, code }: ts.DiagnosticWithLocation,
+  toAuthorSpan: ToAuthorSpan,
 ): SnippetProblem => ({
-  line: toAuthorLine(file.getLineAndCharacterOfPosition(start).line),
+  ...toAuthorSpan({
+    start: file.getLineAndCharacterOfPosition(start),
+    end: file.getLineAndCharacterOfPosition(start + length),
+  }),
   message: typescript.flattenDiagnosticMessageText(messageText, " "),
+  code,
 });
 
 /** Diagnostics for `code` checked in `scope`, including those of the declarations themselves. */
@@ -124,13 +147,13 @@ export const getSnippetDiagnostics = (backendResources: BackendResources, scope:
  * are at runtime.
  *
  * A scope that annotates the code before compiling it passes the annotated text as `compiled` and
- * its own `toAuthorLine`, so every reported line stays the author's.
+ * its own `toAuthorSpan`, so every reported line stays the author's.
  */
 export const getSnippetProblems = (
   backendResources: BackendResources,
   scope: SnippetScope,
   code: string,
-  { compiled = code, toAuthorLine = (line) => line }: { compiled?: string; toAuthorLine?: ToAuthorLine } = {},
+  { compiled = code, toAuthorSpan = (span) => span }: { compiled?: string; toAuthorSpan?: ToAuthorSpan } = {},
 ): SnippetProblem[] => {
   const { typescript } = backendResources;
 
@@ -139,7 +162,58 @@ export const getSnippetProblems = (
       (diagnostic): diagnostic is ts.DiagnosticWithLocation =>
         diagnostic.category === typescript.DiagnosticCategory.Error && diagnostic.file?.fileName === snippetFileName,
     )
-    .map((diagnostic) => toProblem(typescript, diagnostic, toAuthorLine));
+    .map((diagnostic) => toProblem(typescript, diagnostic, toAuthorSpan));
+};
+
+/** How many source lines of one problem are shown before the rest are cut. */
+const maxEchoedLines = 10;
+
+/**
+ * The part of one line the problem covers, as the `~` run under it.
+ *
+ * A span that reaches past a line's end is clamped to it, and one that covers nothing visible - an
+ * error at the very end of a line, where the compiler reports a zero-width span - still gets a
+ * single `~`, so the underline never comes out empty.
+ */
+const squiggle = (text: string, from: number, to: number) => {
+  const start = Math.min(from, text.length);
+  const end = Math.min(Math.max(to, start + 1), Math.max(text.length, start + 1));
+
+  return " ".repeat(start) + "~".repeat(end - start);
+};
+
+/**
+ * One problem as the block `tsc` prints: the location and message, then the source it covers with
+ * each line underlined beneath it.
+ *
+ * The location names the author's lines rather than a file position, the code being the only thing
+ * the reader has. Line numbers are right-aligned in a gutter as wide as the widest of them, so the
+ * source lines stay aligned with each other the way they are in the editor.
+ */
+const formatProblem = ({ start, end, message, code }: SnippetProblem, lines: string[]) => {
+  const location = start.line === end.line ? `line ${start.line + 1}` : `lines ${start.line + 1}-${end.line + 1}`;
+  const error = code === undefined ? "error" : `error TS${code}`;
+
+  const shown = Math.min(end.line - start.line + 1, maxEchoedLines);
+  const gutterWidth = String(start.line + shown).length;
+
+  const echoed: string[] = [];
+  for (let offset = 0; offset < shown; offset++) {
+    const line = start.line + offset;
+    const text = lines[line] ?? "";
+    const gutter = String(line + 1).padStart(gutterWidth);
+
+    echoed.push(`${gutter} ${text}`);
+    echoed.push(
+      `${" ".repeat(gutterWidth)} ${squiggle(text, line === start.line ? start.character : 0, line === end.line ? end.character : text.length)}`,
+    );
+  }
+
+  if (end.line - start.line + 1 > shown) {
+    echoed.push(`${" ".repeat(gutterWidth)} ... ${end.line - start.line + 1 - shown} more line(s)`);
+  }
+
+  return [`${location} - ${error}: ${message}`, "", ...echoed].join("\n");
 };
 
 /**
@@ -150,7 +224,7 @@ export const getSnippetProblems = (
  */
 export const formatSnippetProblems = (
   problems: SnippetProblem[],
-  /** What the author wrote - the offending line is echoed from this. */
+  /** What the author wrote - the offending lines are echoed from this. */
   code: string,
   /** Names the edited thing in the warning, e.g. "initialization code". */
   subject: string,
@@ -159,13 +233,11 @@ export const formatSnippetProblems = (
     return undefined;
   }
 
-  const ordered = [...problems].sort((a, b) => a.line - b.line);
+  const ordered = [...problems].sort((a, b) => a.start.line - b.start.line || a.start.character - b.start.character);
 
   const maxReported = 20;
   const lines = code.split("\n");
-  const reported = ordered
-    .slice(0, maxReported)
-    .map(({ line, message }) => `line ${line + 1}: ${message}\n  ${lines[line]?.trim() ?? ""}`);
+  const reported = ordered.slice(0, maxReported).map((problem) => formatProblem(problem, lines));
   if (ordered.length > maxReported) {
     reported.push(`(... and ${ordered.length - maxReported} more)`);
   }
@@ -173,7 +245,7 @@ export const formatSnippetProblems = (
   return [
     `[WARNING] TypeScript found ${ordered.length} problem(s) in the new ${subject}. The change WAS applied.`,
     ...reported,
-  ].join("\n");
+  ].join("\n\n");
 };
 
 /** Typechecks a snippet against the declarations scanned out of the app, as text for a response. */

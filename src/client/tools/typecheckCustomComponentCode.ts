@@ -3,9 +3,10 @@ import {
   formatSnippetProblems,
   getSnippetDiagnostics,
   getSnippetProblems,
+  type SnippetPosition,
   type SnippetProblem,
   type SnippetScope,
-  type ToAuthorLine,
+  type ToAuthorSpan,
 } from "./typecheckSnippet";
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
@@ -115,7 +116,7 @@ const buildJsDoc = (typescript: BackendResources["typescript"], { name, fn }: De
 };
 
 /**
- * Parameters the author declared that the app will never pass.
+ * Parameters the author declared that the app will never pass, as one problem over all of them.
  *
  * TypeScript cannot report these: the hook is a declaration, not a call, so nothing checks it
  * against the app's argument list - and a `@param` tag naming a parameter that should not exist
@@ -127,12 +128,18 @@ const findExtraParameters = (sourceFile: ts.SourceFile, { name, fn }: DeclaredHo
     return [];
   }
 
-  return fn.parameters.slice(params.length).map((parameter) => ({
-    line: sourceFile.getLineAndCharacterOfPosition(parameter.getStart(sourceFile)).line,
-    message:
-      `'${name}' is called with ${params.length} argument(s), so '${parameter.getText(sourceFile)}' ` +
-      `is always undefined.`,
-  }));
+  const extra = fn.parameters.slice(params.length);
+  if (!extra.length) {
+    return [];
+  }
+
+  return [
+    {
+      start: sourceFile.getLineAndCharacterOfPosition(extra[0].getStart(sourceFile)),
+      end: sourceFile.getLineAndCharacterOfPosition(extra[extra.length - 1].getEnd()),
+      message: `'${name}' must have exactly ${params.length} arguments`,
+    },
+  ];
 };
 
 /**
@@ -146,21 +153,27 @@ const annotate = (typescript: BackendResources["typescript"], code: string) => {
   const sourceFile = typescript.createSourceFile("/component.js", code, typescript.ScriptTarget.ESNext, true);
 
   const jsDocByLine = new Map<number, string>();
+  /** The hook each annotation line belongs to, spanning the author's source. */
+  const hookRangeByLine = new Map<number, { start: SnippetPosition; end: SnippetPosition }>();
   const problems: SnippetProblem[] = [];
 
   for (const hook of findHooks(typescript, sourceFile)) {
-    const { line } = sourceFile.getLineAndCharacterOfPosition(hook.statement.getStart(sourceFile));
-    jsDocByLine.set(line, buildJsDoc(typescript, hook));
+    const start = sourceFile.getLineAndCharacterOfPosition(hook.statement.getStart(sourceFile));
+    jsDocByLine.set(start.line, buildJsDoc(typescript, hook));
+    hookRangeByLine.set(start.line, { start, end: sourceFile.getLineAndCharacterOfPosition(hook.statement.getEnd()) });
     problems.push(...findExtraParameters(sourceFile, hook));
   }
 
   const annotated: string[] = [];
   /** The author's line for each annotated line - an injected line maps to the hook it annotates. */
   const authorLines: number[] = [];
+  /** Which annotated lines are ours, so a diagnostic on one is reported over the whole hook. */
+  const injected = new Set<number>();
 
   code.split("\n").forEach((text, authorLine) => {
     const jsDoc = jsDocByLine.get(authorLine);
     if (jsDoc !== undefined) {
+      injected.add(annotated.length);
       annotated.push(jsDoc);
       /*
        * An annotation carries the hook's declared types, so TypeScript reports anything about the
@@ -178,9 +191,26 @@ const annotate = (typescript: BackendResources["typescript"], code: string) => {
     authorLines.push(authorLine);
   });
 
-  const toAuthorLine: ToAuthorLine = (line) => authorLines[line];
+  /**
+   * A compiled span as the author's own.
+   *
+   * A span starting on an annotation becomes the whole hook that annotation belongs to: the
+   * generated line's columns mean nothing in the author's source, and what the compiler is
+   * describing is the declaration below it. Every other span keeps its columns and moves to the
+   * lines the author wrote.
+   */
+  const toAuthorSpan: ToAuthorSpan = ({ start, end }) => {
+    const hookRange = injected.has(start.line) ? hookRangeByLine.get(authorLines[start.line]) : undefined;
 
-  return { annotated: annotated.join("\n"), toAuthorLine, problems };
+    return (
+      hookRange ?? {
+        start: { line: authorLines[start.line] ?? start.line, character: start.character },
+        end: { line: authorLines[end.line] ?? end.line, character: end.character },
+      }
+    );
+  };
+
+  return { annotated: annotated.join("\n"), toAuthorSpan, problems };
 };
 
 /** What a custom component is checked against - its scope's `helpers`, and nothing else. */
@@ -207,11 +237,11 @@ export const getCustomComponentCodeDiagnostics = (backendResources: BackendResou
  * compiler's, since the two are equally the author's business.
  */
 export const typecheckCustomComponentCode = (backendResources: BackendResources, code: string): string | undefined => {
-  const { annotated, toAuthorLine, problems } = annotate(backendResources.typescript, code);
+  const { annotated, toAuthorSpan, problems } = annotate(backendResources.typescript, code);
 
   const compilerProblems = getSnippetProblems(backendResources, scope(backendResources), code, {
     compiled: annotated,
-    toAuthorLine,
+    toAuthorSpan,
   });
 
   return formatSnippetProblems([...problems, ...compilerProblems], code, "component code");
