@@ -138,13 +138,10 @@ describe("mapping lines back to the author's", () => {
     const authorCode = "noSuchName();";
     const annotated = `// generated\n${authorCode}`;
 
-    const problems = getSnippetProblems(backendResources, scope, authorCode, {
-      compiled: annotated,
-      toAuthorSpan: ({ start, end }) => ({
-        start: { ...start, line: Math.max(start.line - 1, 0) },
-        end: { ...end, line: Math.max(end.line - 1, 0) },
-      }),
-    });
+    const problems = getSnippetProblems(backendResources, scope, annotated, ({ start, end }) => ({
+      start: { ...start, line: Math.max(start.line - 1, 0) },
+      end: { ...end, line: Math.max(end.line - 1, 0) },
+    }));
 
     expect(formatSnippetProblems(problems, authorCode, "initialization code")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.

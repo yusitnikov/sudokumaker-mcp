@@ -219,11 +219,7 @@ const scope = ({ declarations }: BackendResources): SnippetScope => ({
 });
 
 export const getCustomComponentCodeDiagnostics = (backendResources: BackendResources, code: string) =>
-  getSnippetDiagnostics(
-    backendResources,
-    scope(backendResources),
-    annotate(backendResources.typescript, code).annotated,
-  );
+  getSnippetDiagnostics(backendResources, scope(backendResources), code);
 
 /**
  * Typechecks a custom component's code against the declarations scanned out of the app, returning
@@ -239,10 +235,7 @@ export const getCustomComponentCodeDiagnostics = (backendResources: BackendResou
 export const typecheckCustomComponentCode = (backendResources: BackendResources, code: string): string | undefined => {
   const { annotated, toAuthorSpan, problems } = annotate(backendResources.typescript, code);
 
-  const compilerProblems = getSnippetProblems(backendResources, scope(backendResources), code, {
-    compiled: annotated,
-    toAuthorSpan,
-  });
+  const compilerProblems = getSnippetProblems(backendResources, scope(backendResources), annotated, toAuthorSpan);
 
   return formatSnippetProblems([...problems, ...compilerProblems], code, "component code");
 };

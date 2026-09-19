@@ -153,11 +153,11 @@ export const getSnippetProblems = (
   backendResources: BackendResources,
   scope: SnippetScope,
   code: string,
-  { compiled = code, toAuthorSpan = (span) => span }: { compiled?: string; toAuthorSpan?: ToAuthorSpan } = {},
+  toAuthorSpan: ToAuthorSpan = (span) => span,
 ): SnippetProblem[] => {
   const { typescript } = backendResources;
 
-  return getSnippetDiagnostics(backendResources, scope, compiled)
+  return getSnippetDiagnostics(backendResources, scope, code)
     .filter(
       (diagnostic): diagnostic is ts.DiagnosticWithLocation =>
         diagnostic.category === typescript.DiagnosticCategory.Error && diagnostic.file?.fileName === snippetFileName,
