@@ -1,9 +1,3 @@
-import { z } from "zod";
-import { CustomElementToolImplementation } from "./CustomElementToolImplementation";
-import { editInitializationCodeToolName } from "./toolNames";
-import { CustomElement } from "../../elements/CustomElement";
-import { customConstraintsTopicName } from "./docs/topicNames";
-import { editText, editTextOperation } from "./editText";
 import type { BackendResources } from "../../BackendResources";
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
@@ -17,44 +11,55 @@ import type * as ts from "typescript";
  */
 export const snippetFileName = "/snippet.js";
 
-/**
- * Declares the element's own components, which the initialization code constructs by bare name.
- *
- * Their constructor parameters can't be recovered - the real signature is only discoverable by
- * analyzing user code this doesn't parse, and `unknown[]` would reject every real call site.
- */
-const buildCustomComponentDeclarations = (customComponentNames: string[]) => {
-  const declarations = customComponentNames
-    .map((name) => `  class ${name} extends Component { constructor(...args: any[]); }\n`)
-    .join("");
+/** Maps a line of the compiled snippet back to the line the author wrote. */
+export type ToAuthorLine = (snippetLine: number) => number;
 
-  return `import { Component } from "./types";\n\ndeclare global {\n${declarations}}\n`;
-};
+/** What one scope adds to the program the two of them share. */
+export interface SnippetScope {
+  /**
+   * The scope's own globals - `initialCodeGlobals` or `customComponentGlobals`. They declare
+   * different `helpers`, so a program takes one or the other, never both.
+   */
+  globals: string;
+  /** Anything else the scope declares, by file name - e.g. the element's own components. */
+  extraDeclarations?: Record<string, string>;
+}
+
+/**
+ * The virtual program a snippet is checked in: the declarations every scope shares, the scope's own,
+ * and the snippet itself.
+ */
+const buildFiles = ({ declarations }: BackendResources, { globals, extraDeclarations }: SnippetScope, code: string) =>
+  new Map([
+    ["/types.d.ts", declarations.types],
+    ["/globals.d.ts", declarations.globals],
+    ["/scopeGlobals.d.ts", globals],
+    ...Object.entries(extraDeclarations ?? {}),
+    [snippetFileName, code],
+  ]);
 
 /** Renders one diagnostic as `line N: message`, followed by the offending source line. */
-const formatDiagnostic = (typescript: BackendResources["typescript"], diagnostic: ts.Diagnostic, code: string) => {
+const formatDiagnostic = (
+  typescript: BackendResources["typescript"],
+  diagnostic: ts.Diagnostic,
+  code: string,
+  toAuthorLine: ToAuthorLine,
+) => {
   const message = typescript.flattenDiagnosticMessageText(diagnostic.messageText, " ");
   if (!diagnostic.file || diagnostic.start === undefined) {
     return message;
   }
 
   const { line } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+  const authorLine = toAuthorLine(line);
 
-  return `line ${line + 1}: ${message}\n  ${code.split("\n")[line]?.trim() ?? ""}`;
+  return `line ${authorLine + 1}: ${message}\n  ${code.split("\n")[authorLine]?.trim() ?? ""}`;
 };
 
-export const getInitializationCodeDiagnostics = (
-  { typescript, declarations }: BackendResources,
-  code: string,
-  customComponentNames: string[] = [],
-) => {
-  const files = new Map([
-    ["/types.d.ts", declarations.types],
-    ["/globals.d.ts", declarations.globals],
-    ["/initialCodeGlobals.d.ts", declarations.initialCodeGlobals],
-    ["/components.d.ts", buildCustomComponentDeclarations(customComponentNames)],
-    [snippetFileName, code],
-  ]);
+/** Diagnostics for `code` checked in `scope`, including those of the declarations themselves. */
+export const getSnippetDiagnostics = (backendResources: BackendResources, scope: SnippetScope, code: string) => {
+  const { typescript } = backendResources;
+  const files = buildFiles(backendResources, scope, code);
 
   const options: ts.CompilerOptions = {
     target: typescript.ScriptTarget.ESNext,
@@ -109,21 +114,28 @@ export const getInitializationCodeDiagnostics = (
 };
 
 /**
- * Typechecks initialization code against the declarations scanned out of the app, returning the
- * problems as text - or `undefined` when there are none.
+ * Typechecks a snippet against the declarations scanned out of the app, returning the problems as
+ * text - or `undefined` when there are none.
  *
- * The snippet is compiled verbatim as its own file, and as a *script* rather than a module: that is
- * what the worker runs it as, so the augmented globals are in scope, top-level `await` and `return`
- * are errors exactly as they are at runtime, and every diagnostic's line number is the user's own.
+ * The snippet is compiled as a *script* rather than a module: that is what the worker runs it as, so
+ * the augmented globals are in scope and top-level `await` and `return` are errors exactly as they
+ * are at runtime.
+ *
+ * A scope that annotates the code before compiling it passes the annotated text as `compiled` and
+ * its own `toAuthorLine`, so every reported number and echoed line stays the author's.
  */
-export const typecheckInitializationCode = (
+export const typecheckSnippet = (
   backendResources: BackendResources,
+  scope: SnippetScope,
+  /** What the author wrote - the offending line is echoed from this. */
   code: string,
-  customComponentNames: string[] = [],
+  /** Names the edited thing in the warning, e.g. "initialization code". */
+  subject: string,
+  { compiled = code, toAuthorLine = (line) => line }: { compiled?: string; toAuthorLine?: ToAuthorLine } = {},
 ): string | undefined => {
   const { typescript } = backendResources;
 
-  const diagnostics = getInitializationCodeDiagnostics(backendResources, code, customComponentNames).filter(
+  const diagnostics = getSnippetDiagnostics(backendResources, scope, compiled).filter(
     ({ category }) => category === typescript.DiagnosticCategory.Error,
   );
 
@@ -135,45 +147,13 @@ export const typecheckInitializationCode = (
   const maxReported = 20;
   const reported = snippetDiagnostics
     .slice(0, maxReported)
-    .map((diagnostic) => formatDiagnostic(typescript, diagnostic, code));
+    .map((diagnostic) => formatDiagnostic(typescript, diagnostic, code, toAuthorLine));
   if (snippetDiagnostics.length > maxReported) {
     reported.push(`(... and ${snippetDiagnostics.length - maxReported} more)`);
   }
 
   return [
-    `[WARNING] TypeScript found ${snippetDiagnostics.length} problem(s) in the new initialization code. The change WAS applied.`,
+    `[WARNING] TypeScript found ${snippetDiagnostics.length} problem(s) in the new ${subject}. The change WAS applied.`,
     ...reported,
   ].join("\n");
 };
-
-export const editInitializationCodeTool = new CustomElementToolImplementation(
-  {
-    name: editInitializationCodeToolName,
-    title: "Edit Custom element's initialization code",
-    description:
-      // language=markdown
-      `
-Change a \`${CustomElement.typeName}\` element's \`initializationCode\`.
-See the \`operation\` parameter for the available ways to change it.
-
-Read the \`${customConstraintsTopicName}\` docs topic before using this tool -
-its API and conventions cannot be guessed.
-`.trim(),
-    inputSchema: z.object({ operation: editTextOperation }),
-  },
-
-  function (targetElement, { operation }, elementName, puzzleName) {
-    targetElement.config.initializationCode = editText(targetElement.config.initializationCode, operation);
-
-    return `Updated "${elementName}"'s initialization code in puzzle "${puzzleName}".`;
-  },
-
-  function (targetElement, _params, resources) {
-    // TODO: do the same typecheck when creating a new custom element
-    return typecheckInitializationCode(
-      resources,
-      targetElement.config.initializationCode,
-      Object.keys(targetElement.config.customComponents),
-    );
-  },
-);

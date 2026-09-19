@@ -3,6 +3,7 @@ import { CustomElementToolImplementation } from "./CustomElementToolImplementati
 import { addCustomComponentToolName } from "./toolNames";
 import { CustomElement } from "../../elements/CustomElement";
 import { customComponentsTopicName } from "./docs/topicNames";
+import { typecheckCustomComponentCode } from "./typecheckCustomComponentCode";
 
 export const addCustomComponentTool = new CustomElementToolImplementation(
   {
@@ -29,5 +30,9 @@ the component's API cannot be guessed.
     targetElement.config.customComponents[name] = code;
 
     return `Added custom component "${name}" to "${elementName}" in puzzle "${puzzleName}".`;
+  },
+
+  function (targetElement, { name }, resources) {
+    return typecheckCustomComponentCode(resources, targetElement.config.customComponents[name]);
   },
 );

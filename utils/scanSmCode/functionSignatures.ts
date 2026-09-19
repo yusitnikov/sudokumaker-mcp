@@ -582,7 +582,13 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     },
     removeComponent: {
       processed: true,
-      arguments: [],
+      arguments: [
+        {
+          name: "instance",
+          type: "CustomComponentInstance",
+          optional: true,
+        },
+      ],
       returnType: "SolverAction",
     },
     replaceComponent: {

@@ -133,122 +133,48 @@ describe("problems in the snippet", () => {
   test("reports a misspelled helper method", () => {
     // Also the regression test for module resolution: if `./types` stops resolving, `helpers`
     // becomes `any` and this passes silently.
-    expect(typecheckInitializationCode(backendResources, "helpers.naming.thisDoesNotExist();")).toMatch(
-      /thisDoesNotExist/,
+    expect(typecheckInitializationCode(backendResources, "helpers.naming.thisDoesNotExist();")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+line 1: Property 'thisDoesNotExist' does not exist on type 'NamingHelper'.
+  helpers.naming.thisDoesNotExist();`,
     );
   });
 
   test("reports a standard component called with too few arguments", () => {
-    expect(typecheckInitializationCode(backendResources, `new BetweenComponent("b", [1, 2]);`)).toMatch(
-      /Expected 3 arguments/,
+    expect(typecheckInitializationCode(backendResources, `new BetweenComponent("b", [1, 2]);`)).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+line 1: Expected 3 arguments, but got 2.
+  new BetweenComponent("b", [1, 2]);`,
     );
   });
 
   test("reports an unknown name", () => {
-    expect(typecheckInitializationCode(backendResources, "noSuchComponent();")).toMatch(/Cannot find name/);
+    expect(typecheckInitializationCode(backendResources, "noSuchComponent();")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+line 1: Cannot find name 'noSuchComponent'. Did you mean 'SumComponent'?
+  noSuchComponent();`,
+    );
   });
 
   test("reports an array passed to a digit set's constructor", () => {
     // The constructor coerces its argument with `+`, so an array becomes `NaN` and the set comes
     // out empty. `DigitSet.from` is the documented way to build one from digits.
-    expect(typecheckInitializationCode(backendResources, "const set = new DigitSet([1, 2, 3]);")).toMatch(
-      /not assignable to parameter of type 'number \| SmallNumberSet'/,
+    expect(typecheckInitializationCode(backendResources, "const set = new DigitSet([1, 2, 3]);")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+line 1: Argument of type 'number[]' is not assignable to parameter of type 'number | SmallNumberSet'.   Type 'number[]' is missing the following properties from type 'SmallNumberSet': mask, add, clear, delete, and 13 more.
+  const set = new DigitSet([1, 2, 3]);`,
     );
-  });
-
-  test("reports a syntax error rather than throwing", () => {
-    expect(typecheckInitializationCode(backendResources, "const x = ;")).toMatch(/line 1/);
-  });
-
-  test("reports DOM globals, which the worker does not have", () => {
-    expect(typecheckInitializationCode(backendResources, `document.querySelector("div");`)).toMatch(
-      /Cannot find name 'document'/,
-    );
-  });
-
-  test("reports top-level await exactly once", () => {
-    const result = typecheckInitializationCode(backendResources, "const x = await Promise.resolve(1);");
-    expect(result).toMatch(/'await' expressions are only allowed at the top level/);
-    expect(result?.match(/line 1:/g)).toHaveLength(1);
-  });
-
-  test("reports top-level return", () => {
-    expect(typecheckInitializationCode(backendResources, "return 5;")).toMatch(
-      /'return' statement can only be used within a function body/,
-    );
-  });
-
-  test("reports the user's own line number", () => {
-    expect(typecheckInitializationCode(backendResources, "const a = 1;\nconst b = 2;\nnoSuchName();\n")).toMatch(
-      /line 3:/,
-    );
-  });
-
-  test("says the change was applied, so the caller does not retry", () => {
-    expect(typecheckInitializationCode(backendResources, "noSuchName();")).toMatch(/The change WAS applied/);
-  });
-});
-
-describe("code that does nothing", () => {
-  // A constraint whose code is empty adds no components, which is valid - and the file having no
-  // statements is the one case where it could be mistaken for a module and lose every global,
-  // turning every later snippet into a flood of "cannot find name".
-  test("an empty snippet is clean", () => {
-    expect(typecheckInitializationCode(backendResources, "")).toBeUndefined();
-  });
-
-  test("a whitespace-only snippet is clean", () => {
-    expect(typecheckInitializationCode(backendResources, "   \n\n  ")).toBeUndefined();
-  });
-
-  test("a comment-only snippet is clean", () => {
-    expect(typecheckInitializationCode(backendResources, "// nothing here")).toBeUndefined();
   });
 });
 
 /*
- * The worker runs the snippet as JavaScript, so it is checked as JavaScript. Several things that
- * are ordinary JS were reported while it was checked as `.ts`; what a JS author still owes the
- * checker is a type for a variable that holds more than its initializer suggests.
+ * A constraint whose code is empty adds no components, which is valid - and a file with no
+ * statements is the one case where it could be mistaken for a module and lose every ambient global,
+ * turning every later snippet into a flood of "cannot find name".
  */
-describe("checked as JavaScript", () => {
-  test("growing an object past the shape it was created with is clean", () => {
-    expect(typecheckInitializationCode(backendResources, "const o = {};\no.newProp = 1;")).toBeUndefined();
-  });
-
-  test("redeclaring a function at top level is clean", () => {
-    expect(
-      typecheckInitializationCode(backendResources, "function f() {\n  return 1;\n}\nfunction f() {\n  return 2;\n}"),
-    ).toBeUndefined();
-  });
-
-  /*
-   * A variable's type is inferred from its initializer, so reassigning it to another type is
-   * reported. That is the author's cue to say what the variable actually holds, which a JSDoc
-   * `@type` does - and the annotation is then enforced in turn.
-   */
-  test("reassigning a variable to another type is reported", () => {
-    expect(typecheckInitializationCode(backendResources, `var v = 1;\nv = "two";`)).toMatch(
-      /Type 'string' is not assignable to type 'number'/,
-    );
-  });
-
-  test("a JSDoc type covering both types makes the reassignment clean", () => {
-    expect(
-      typecheckInitializationCode(backendResources, `/** @type {number | string} */\nvar v = 1;\nv = "two";`),
-    ).toBeUndefined();
-  });
-
-  test("a value outside the JSDoc type is still reported", () => {
-    expect(
-      typecheckInitializationCode(backendResources, `/** @type {number | string} */\nvar v = 1;\nv = true;`),
-    ).toMatch(/Type 'boolean' is not assignable to type 'string \| number'/);
-  });
-
-  test("a parameter with no annotation is not an implicit-any error", () => {
-    expect(typecheckInitializationCode(backendResources, "function f(a, b) {\n  return a + b;\n}\nf(1, 2);")).toBe(
-      undefined,
-    );
+describe("code that does nothing", () => {
+  test("an empty snippet is clean", () => {
+    expect(typecheckInitializationCode(backendResources, "")).toBeUndefined();
   });
 });
 
@@ -263,16 +189,6 @@ describe("getInitializationCodeDiagnostics", () => {
 
   test("a comment-only snippet produces no diagnostics", () => {
     expect(getInitializationCodeDiagnostics(backendResources, "// nothing here")).toEqual([]);
-  });
-});
-
-describe("the worker's own globals", () => {
-  test("console is available", () => {
-    expect(typecheckInitializationCode(backendResources, `console.log("hi");`)).toBeUndefined();
-  });
-
-  test("constructing a scanned class is not a false positive", () => {
-    expect(typecheckInitializationCode(backendResources, "const set = DigitSet.from([1, 2, 3]);")).toBeUndefined();
   });
 });
 

@@ -38,9 +38,7 @@ interface StreamJsonToolResultToolReferenceContent {
   tool_name: string;
 }
 
-type StreamJsonToolResultContent =
-  | StreamJsonToolResultTextContent
-  | StreamJsonToolResultToolReferenceContent;
+type StreamJsonToolResultContent = StreamJsonToolResultTextContent | StreamJsonToolResultToolReferenceContent;
 
 interface StreamJsonToolResult {
   type: "tool_result";
@@ -49,9 +47,8 @@ interface StreamJsonToolResult {
 }
 
 /** Renders one tool_result content item - ToolSearch's matches come back as `tool_reference`, not `text`. */
-const renderToolResultContent = (
-  content: StreamJsonToolResultContent,
-): string => (content.type === "text" ? content.text : content.tool_name);
+const renderToolResultContent = (content: StreamJsonToolResultContent): string =>
+  content.type === "text" ? content.text : content.tool_name;
 
 interface StreamJsonEvent {
   type: string;
@@ -99,9 +96,7 @@ const parseStreamJsonLine = (line: string): ReportEntry[] => {
     for (const content of event.message?.content ?? []) {
       if (content.type === "tool_result") {
         const inner = content.content;
-        const text = Array.isArray(inner)
-          ? inner.map(renderToolResultContent).join("\n")
-          : inner;
+        const text = Array.isArray(inner) ? inner.map(renderToolResultContent).join("\n") : inner;
         entries.push({ kind: "tool_result", text });
       }
     }
@@ -139,53 +134,46 @@ program
     "--project-dir <path>",
     "Directory to launch `claude` in - relative paths resolve against the current working directory",
   )
-  .option(
-    "--resume <sessionId>",
-    "Resume an existing session id instead of starting a fresh one",
-  )
-  .action(
-    (options: { prompt: string; projectDir: string; resume?: string }) => {
-      const projectDir = resolve(process.cwd(), options.projectDir);
-      const sessionId = options.resume ?? randomUUID();
-      const args = [
-        "-p",
-        options.prompt,
-        "--allowedTools",
-        "mcp__sudokumaker",
-        options.resume ? "--resume" : "--session-id",
-        sessionId,
-        "--output-format",
-        "stream-json",
-        "--verbose",
-      ];
+  .option("--resume <sessionId>", "Resume an existing session id instead of starting a fresh one")
+  .action((options: { prompt: string; projectDir: string; resume?: string }) => {
+    const projectDir = resolve(process.cwd(), options.projectDir);
+    const sessionId = options.resume ?? randomUUID();
+    const args = [
+      "-p",
+      options.prompt,
+      "--allowedTools",
+      "mcp__sudokumaker",
+      options.resume ? "--resume" : "--session-id",
+      sessionId,
+      "--output-format",
+      "stream-json",
+      "--verbose",
+    ];
 
-      const result = spawnSync("claude", args, {
-        cwd: projectDir,
-        encoding: "utf-8",
-        maxBuffer: 64 * 1024 * 1024,
-      });
+    const result = spawnSync("claude", args, {
+      cwd: projectDir,
+      encoding: "utf-8",
+      maxBuffer: 64 * 1024 * 1024,
+    });
 
-      console.log(`Session ID: ${sessionId}\n`);
+    console.log(`Session ID: ${sessionId}\n`);
 
-      if (result.error) {
-        console.error("Failed to launch claude:", result.error);
-        process.exit(1);
+    if (result.error) {
+      console.error("Failed to launch claude:", result.error);
+      process.exit(1);
+    }
+
+    const entries = result.stdout.split("\n").flatMap((line) => parseStreamJsonLine(line));
+
+    console.log(renderReport(entries));
+
+    if (result.status !== 0) {
+      console.error(`\nclaude exited with status ${result.status}`);
+      if (result.stderr) {
+        console.error(result.stderr);
       }
-
-      const entries = result.stdout
-        .split("\n")
-        .flatMap((line) => parseStreamJsonLine(line));
-
-      console.log(renderReport(entries));
-
-      if (result.status !== 0) {
-        console.error(`\nclaude exited with status ${result.status}`);
-        if (result.stderr) {
-          console.error(result.stderr);
-        }
-        process.exit(result.status ?? 1);
-      }
-    },
-  );
+      process.exit(result.status ?? 1);
+    }
+  });
 
 program.parse();

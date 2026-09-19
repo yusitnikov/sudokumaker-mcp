@@ -9,10 +9,11 @@ import * as typescript from "typescript";
 import types from "./generated/types.d.ts?raw";
 import globals from "./generated/globals.d.ts?raw";
 import initialCodeGlobals from "./generated/initialCodeGlobals.d.ts?raw";
+import customComponentGlobals from "./generated/customComponentGlobals.d.ts?raw";
 import type { BackendResources } from "./BackendResources";
 /* eslint-enable import-x/default */
 
 export const backendResources: BackendResources = {
   typescript,
-  declarations: { types, globals, initialCodeGlobals },
+  declarations: { types, globals, initialCodeGlobals, customComponentGlobals },
 };

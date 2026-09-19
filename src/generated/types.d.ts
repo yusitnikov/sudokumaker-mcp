@@ -61,9 +61,10 @@ export declare class CellGraph {
 
 export type CustomComponentInstance = {
   readonly __brand: "CustomComponent";
-  cellIds: CellId[];
-  cells: CellId[];
-  name: string;
+  readonly cellIds: CellId[];
+  readonly cells: CellId[];
+  readonly name: string;
+  [member: string]: any;
 };
 
 export declare class CellIdsHelper {
@@ -106,7 +107,7 @@ export declare class CustomComponentPuzzleBase extends PuzzleBase {
   removeCandidateFromCells: (digit: Digit, cellIds: Iterable<CellId>) => SolverAction;
   removeCandidatesFromCell: (candidates: DigitSetMask | SmallNumberSet, cellId: CellId) => SolverAction;
   removeCandidatesFromCells: (candidates: DigitSetMask | SmallNumberSet, cellIds: Iterable<CellId>) => SolverAction;
-  removeComponent: () => SolverAction;
+  removeComponent: (instance?: CustomComponentInstance) => SolverAction;
   replaceComponent: (
     currentOrReplacement: CustomComponentInstance | Component | Component[],
     replacement?: Component | Component[],

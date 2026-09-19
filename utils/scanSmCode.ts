@@ -259,12 +259,19 @@ program
         "  clone(): CellGraph;\n" +
         "}\n\n";
 
+      /*
+       * `setParams` exists to hang the component's own members off the instance, which the other
+       * hooks read back - so the type has to admit any name. The known fields stay `readonly`:
+       * they are the app's, and an assignment to one is a mistake worth reporting.
+       */
       declarations +=
         "export type CustomComponentInstance = {\n" +
         '  readonly __brand: "CustomComponent";\n' +
-        "  cellIds: CellId[];\n" +
-        "  cells: CellId[];\n" +
-        "  name: string;\n" +
+        "  readonly cellIds: CellId[];\n" +
+        "  readonly cells: CellId[];\n" +
+        "  readonly name: string;\n" +
+        // An author-defined member's type is whatever their constructor passed - unknowable here
+        "  [member: string]: any;\n" +
         "};\n\n";
 
       const { initialCodeScopeHandle, customComponentCodeScopeHandle, globalScopeHandle } = SmCodeScanner;
