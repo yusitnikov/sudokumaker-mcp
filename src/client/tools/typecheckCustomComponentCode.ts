@@ -1,5 +1,12 @@
 import type { BackendResources } from "../../BackendResources";
-import { getSnippetDiagnostics, type SnippetScope, type ToAuthorLine, typecheckSnippet } from "./typecheckSnippet";
+import {
+  formatSnippetProblems,
+  getSnippetDiagnostics,
+  getSnippetProblems,
+  type SnippetProblem,
+  type SnippetScope,
+  type ToAuthorLine,
+} from "./typecheckSnippet";
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
 
@@ -10,15 +17,18 @@ const solverActions = `Generator<${typesImport("SolverAction")}, void, undefined
 /**
  * The five functions a component may declare, and what the app passes each one.
  *
- * `params` are the leading arguments whose types are known; the two variadic hooks receive the
- * component's own constructor arguments after them, which are unknowable and stay untyped. The
- * parameter types come from the scanner - it captures each hook's live `arguments` - while the
+ * `params` are the leading arguments whose types are known. The two hooks marked `variadic` are
+ * called with the component's own constructor arguments after them, which are unknowable and stay
+ * untyped; the other three are called with exactly `params`, so anything further the author declares
+ * is always `undefined` and is reported.
+ *
+ * The parameter types come from the scanner - it captures each hook's live `arguments` - while the
  * return types are transcribed by hand from the probe component it installs, so they are the part
  * to re-derive first if a component ever warns inexplicably.
  */
-const hooks: Record<string, { params: string[]; returns: string }> = {
-  getAffectedCells: { params: [], returns: `${typesImport("CellId")}[]` },
-  setParams: { params: [hookArg("SetParamsArgs", "instance")], returns: "void" },
+const hooks: Record<string, { params: string[]; returns: string; variadic?: true }> = {
+  getAffectedCells: { params: [], returns: `${typesImport("CellId")}[]`, variadic: true },
+  setParams: { params: [hookArg("SetParamsArgs", "instance")], returns: "void", variadic: true },
   initialize: {
     params: [hookArg("InitializeArgs", "instance"), hookArg("InitializeArgs", "puzzle")],
     returns: solverActions,
@@ -105,6 +115,27 @@ const buildJsDoc = (typescript: BackendResources["typescript"], { name, fn }: De
 };
 
 /**
+ * Parameters the author declared that the app will never pass.
+ *
+ * TypeScript cannot report these: the hook is a declaration, not a call, so nothing checks it
+ * against the app's argument list - and a `@param` tag naming a parameter that should not exist
+ * would land on the generated line with a message about JSDoc. So the checker says it itself.
+ */
+const findExtraParameters = (sourceFile: ts.SourceFile, { name, fn }: DeclaredHook): SnippetProblem[] => {
+  const { params, variadic } = hooks[name];
+  if (variadic) {
+    return [];
+  }
+
+  return fn.parameters.slice(params.length).map((parameter) => ({
+    line: sourceFile.getLineAndCharacterOfPosition(parameter.getStart(sourceFile)).line,
+    message:
+      `'${name}' is called with ${params.length} argument(s), so '${parameter.getText(sourceFile)}' ` +
+      `is always undefined.`,
+  }));
+};
+
+/**
  * The component's code with a JSDoc line above each hook, plus a map back to the author's lines.
  *
  * Typing the hooks is what makes the check worth anything - without it `instance` and `puzzle` are
@@ -115,9 +146,12 @@ const annotate = (typescript: BackendResources["typescript"], code: string) => {
   const sourceFile = typescript.createSourceFile("/component.js", code, typescript.ScriptTarget.ESNext, true);
 
   const jsDocByLine = new Map<number, string>();
+  const problems: SnippetProblem[] = [];
+
   for (const hook of findHooks(typescript, sourceFile)) {
     const { line } = sourceFile.getLineAndCharacterOfPosition(hook.statement.getStart(sourceFile));
     jsDocByLine.set(line, buildJsDoc(typescript, hook));
+    problems.push(...findExtraParameters(sourceFile, hook));
   }
 
   const annotated: string[] = [];
@@ -146,7 +180,7 @@ const annotate = (typescript: BackendResources["typescript"], code: string) => {
 
   const toAuthorLine: ToAuthorLine = (line) => authorLines[line];
 
-  return { annotated: annotated.join("\n"), toAuthorLine };
+  return { annotated: annotated.join("\n"), toAuthorLine, problems };
 };
 
 /** What a custom component is checked against - its scope's `helpers`, and nothing else. */
@@ -168,12 +202,17 @@ export const getCustomComponentCodeDiagnostics = (backendResources: BackendResou
  * Each hook the component declares is annotated with the types the app calls it with, so the checker
  * sees `instance` and `puzzle` for what they are inside the bodies. Diagnostics are reported against
  * the author's own lines, never the annotated ones.
+ *
+ * The annotator's own findings - a parameter the app never passes - are reported alongside the
+ * compiler's, since the two are equally the author's business.
  */
 export const typecheckCustomComponentCode = (backendResources: BackendResources, code: string): string | undefined => {
-  const { annotated, toAuthorLine } = annotate(backendResources.typescript, code);
+  const { annotated, toAuthorLine, problems } = annotate(backendResources.typescript, code);
 
-  return typecheckSnippet(backendResources, scope(backendResources), code, "component code", {
+  const compilerProblems = getSnippetProblems(backendResources, scope(backendResources), code, {
     compiled: annotated,
     toAuthorLine,
   });
+
+  return formatSnippetProblems([...problems, ...compilerProblems], code, "component code");
 };

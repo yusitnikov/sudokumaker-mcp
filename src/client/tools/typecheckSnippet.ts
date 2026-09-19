@@ -38,23 +38,26 @@ const buildFiles = ({ declarations }: BackendResources, { globals, extraDeclarat
     [snippetFileName, code],
   ]);
 
-/** Renders one diagnostic as `line N: message`, followed by the offending source line. */
-const formatDiagnostic = (
+/**
+ * One thing wrong with the snippet, at a line of the author's own source.
+ *
+ * A scope that finds problems of its own reports them in this shape, so they are counted, ordered
+ * and rendered exactly as the compiler's are.
+ */
+export interface SnippetProblem {
+  line: number;
+  message: string;
+}
+
+/** One diagnostic located in the snippet, as a problem on the author's own line. */
+const toProblem = (
   typescript: BackendResources["typescript"],
-  diagnostic: ts.Diagnostic,
-  code: string,
+  { file, start, messageText }: ts.DiagnosticWithLocation,
   toAuthorLine: ToAuthorLine,
-) => {
-  const message = typescript.flattenDiagnosticMessageText(diagnostic.messageText, " ");
-  if (!diagnostic.file || diagnostic.start === undefined) {
-    return message;
-  }
-
-  const { line } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-  const authorLine = toAuthorLine(line);
-
-  return `line ${authorLine + 1}: ${message}\n  ${code.split("\n")[authorLine]?.trim() ?? ""}`;
-};
+): SnippetProblem => ({
+  line: toAuthorLine(file.getLineAndCharacterOfPosition(start).line),
+  message: typescript.flattenDiagnosticMessageText(messageText, " "),
+});
 
 /** Diagnostics for `code` checked in `scope`, including those of the declarations themselves. */
 export const getSnippetDiagnostics = (backendResources: BackendResources, scope: SnippetScope, code: string) => {
@@ -114,46 +117,69 @@ export const getSnippetDiagnostics = (backendResources: BackendResources, scope:
 };
 
 /**
- * Typechecks a snippet against the declarations scanned out of the app, returning the problems as
- * text - or `undefined` when there are none.
+ * What the compiler finds wrong with a snippet, on the author's own lines.
  *
  * The snippet is compiled as a *script* rather than a module: that is what the worker runs it as, so
  * the augmented globals are in scope and top-level `await` and `return` are errors exactly as they
  * are at runtime.
  *
  * A scope that annotates the code before compiling it passes the annotated text as `compiled` and
- * its own `toAuthorLine`, so every reported number and echoed line stays the author's.
+ * its own `toAuthorLine`, so every reported line stays the author's.
  */
-export const typecheckSnippet = (
+export const getSnippetProblems = (
   backendResources: BackendResources,
   scope: SnippetScope,
+  code: string,
+  { compiled = code, toAuthorLine = (line) => line }: { compiled?: string; toAuthorLine?: ToAuthorLine } = {},
+): SnippetProblem[] => {
+  const { typescript } = backendResources;
+
+  return getSnippetDiagnostics(backendResources, scope, compiled)
+    .filter(
+      (diagnostic): diagnostic is ts.DiagnosticWithLocation =>
+        diagnostic.category === typescript.DiagnosticCategory.Error && diagnostic.file?.fileName === snippetFileName,
+    )
+    .map((diagnostic) => toProblem(typescript, diagnostic, toAuthorLine));
+};
+
+/**
+ * The problems as the text a tool appends to its response - or `undefined` when there are none.
+ *
+ * Problems are reported in the order of the lines they sit on, whoever found them, so a scope that
+ * contributes its own passes them in alongside the compiler's.
+ */
+export const formatSnippetProblems = (
+  problems: SnippetProblem[],
   /** What the author wrote - the offending line is echoed from this. */
   code: string,
   /** Names the edited thing in the warning, e.g. "initialization code". */
   subject: string,
-  { compiled = code, toAuthorLine = (line) => line }: { compiled?: string; toAuthorLine?: ToAuthorLine } = {},
 ): string | undefined => {
-  const { typescript } = backendResources;
-
-  const diagnostics = getSnippetDiagnostics(backendResources, scope, compiled).filter(
-    ({ category }) => category === typescript.DiagnosticCategory.Error,
-  );
-
-  const snippetDiagnostics = diagnostics.filter(({ file }) => file?.fileName === snippetFileName);
-  if (!snippetDiagnostics.length) {
+  if (!problems.length) {
     return undefined;
   }
 
+  const ordered = [...problems].sort((a, b) => a.line - b.line);
+
   const maxReported = 20;
-  const reported = snippetDiagnostics
+  const lines = code.split("\n");
+  const reported = ordered
     .slice(0, maxReported)
-    .map((diagnostic) => formatDiagnostic(typescript, diagnostic, code, toAuthorLine));
-  if (snippetDiagnostics.length > maxReported) {
-    reported.push(`(... and ${snippetDiagnostics.length - maxReported} more)`);
+    .map(({ line, message }) => `line ${line + 1}: ${message}\n  ${lines[line]?.trim() ?? ""}`);
+  if (ordered.length > maxReported) {
+    reported.push(`(... and ${ordered.length - maxReported} more)`);
   }
 
   return [
-    `[WARNING] TypeScript found ${snippetDiagnostics.length} problem(s) in the new ${subject}. The change WAS applied.`,
+    `[WARNING] TypeScript found ${ordered.length} problem(s) in the new ${subject}. The change WAS applied.`,
     ...reported,
   ].join("\n");
 };
+
+/** Typechecks a snippet against the declarations scanned out of the app, as text for a response. */
+export const typecheckSnippet = (
+  backendResources: BackendResources,
+  scope: SnippetScope,
+  code: string,
+  subject: string,
+): string | undefined => formatSnippetProblems(getSnippetProblems(backendResources, scope, code), code, subject);
