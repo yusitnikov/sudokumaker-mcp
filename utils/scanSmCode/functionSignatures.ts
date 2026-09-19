@@ -448,7 +448,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           type: "CellId",
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
     filterCandidatesInCells: {
       processed: true,
@@ -462,7 +462,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           type: "Iterable<CellId>",
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
     getCandidates: {
       processed: true,
@@ -536,7 +536,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           type: "CellId",
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
     removeCandidateFromCells: {
       processed: true,
@@ -550,7 +550,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           type: "Iterable<CellId>",
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
     removeCandidatesFromCell: {
       processed: true,
@@ -564,7 +564,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           type: "CellId",
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
     removeCandidatesFromCells: {
       processed: true,
@@ -578,7 +578,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           type: "Iterable<CellId>",
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
     removeComponent: {
       processed: true,
@@ -589,7 +589,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           optional: true,
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
     replaceComponent: {
       processed: true,
@@ -604,7 +604,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           optional: true,
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
     stop: {
       processed: true,
@@ -620,7 +620,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
           optional: true,
         },
       ],
-      returnType: "SolverAction",
+      returnType: "Change",
     },
   },
   CustomComponentScopeGeometryHelper: {

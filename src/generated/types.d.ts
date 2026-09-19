@@ -11,7 +11,7 @@ export type OuterCellId = number;
 export type Digit = number;
 export type DigitSetMask = number;
 
-export type SolverAction = { readonly __brand: "SolverAction" };
+export type Change = { readonly __brand: "Change" };
 
 export declare class Component {
   readonly __brand: "Component";
@@ -95,24 +95,24 @@ export declare class CornerIdsHelper {
 }
 
 export declare class CustomComponentPuzzleBase extends PuzzleBase {
-  filterCandidatesInCell: (candidates: DigitSetMask | SmallNumberSet, cellId: CellId) => SolverAction;
-  filterCandidatesInCells: (candidates: DigitSetMask | SmallNumberSet, cellIds: Iterable<CellId>) => SolverAction;
+  filterCandidatesInCell: (candidates: DigitSetMask | SmallNumberSet, cellId: CellId) => Change;
+  filterCandidatesInCells: (candidates: DigitSetMask | SmallNumberSet, cellIds: Iterable<CellId>) => Change;
   getCandidates: (cellId: CellId) => DigitSet;
   getCandidatesBitMask: (cellId: CellId) => DigitSetMask;
   getCellsAreFilled: (cellIds: Iterable<CellId>) => boolean;
   getFriendlyCandidates: (cellId: CellId) => DigitSet;
   getValue: (cellId: CellId) => Digit | undefined;
   hasValue: (cellId: CellId) => boolean;
-  removeCandidateFromCell: (digit: Digit, cellId: CellId) => SolverAction;
-  removeCandidateFromCells: (digit: Digit, cellIds: Iterable<CellId>) => SolverAction;
-  removeCandidatesFromCell: (candidates: DigitSetMask | SmallNumberSet, cellId: CellId) => SolverAction;
-  removeCandidatesFromCells: (candidates: DigitSetMask | SmallNumberSet, cellIds: Iterable<CellId>) => SolverAction;
-  removeComponent: (instance?: CustomComponentInstance) => SolverAction;
+  removeCandidateFromCell: (digit: Digit, cellId: CellId) => Change;
+  removeCandidateFromCells: (digit: Digit, cellIds: Iterable<CellId>) => Change;
+  removeCandidatesFromCell: (candidates: DigitSetMask | SmallNumberSet, cellId: CellId) => Change;
+  removeCandidatesFromCells: (candidates: DigitSetMask | SmallNumberSet, cellIds: Iterable<CellId>) => Change;
+  removeComponent: (instance?: CustomComponentInstance) => Change;
   replaceComponent: (
     currentOrReplacement: CustomComponentInstance | Component | Component[],
     replacement?: Component | Component[],
-  ) => SolverAction;
-  stop: (message?: string, cellIds?: CellId[]) => SolverAction;
+  ) => Change;
+  stop: (message?: string, cellIds?: CellId[]) => Change;
   helpers: CustomComponentScopeHelpers;
   instance: CustomComponentInstance;
 }

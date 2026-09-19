@@ -457,7 +457,7 @@ line 2 - error TS2322: Type 'string' is not assignable to type 'boolean'.
     expect(checker.typecheck("function* update (instance, puzzle) {\n  yield 42\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
+line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 
 2   yield 42
           ~~`,
@@ -471,7 +471,7 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
+line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 
 2   yield puzzle.getValue(instance.cells[0])
           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`,
@@ -598,7 +598,7 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'boolean'.
     expect(checker.typecheck("function* update (instance, puzzle) {\n  yield 42\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
+line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 
 2   yield 42
           ~~`,
@@ -649,7 +649,7 @@ line 5 - error TS2322: Type 'number' is not assignable to type 'boolean'.
     ).toBe(
       `[WARNING] TypeScript found 2 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
+line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 
 2   yield 42
           ~~

@@ -201,7 +201,7 @@ program
       declarations += "export type OuterCellId = number;\n";
       declarations += "export type Digit = number;\n";
       declarations += "export type DigitSetMask = number;\n\n";
-      declarations += 'export type SolverAction = { readonly __brand: "SolverAction" };\n\n';
+      declarations += 'export type Change = { readonly __brand: "Change" };\n\n';
 
       /** A constraint the solver can hold - one of the standard components, or a custom one. */
       declarations += 'export declare class Component {\n  readonly __brand: "Component";\n}\n\n';

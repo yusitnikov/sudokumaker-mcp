@@ -10,7 +10,7 @@ import type * as ts from "typescript";
 
 const typesImport = (name: string) => `import("./types").${name}`;
 const hookArg = (args: string, member: "instance" | "puzzle") => `${typesImport(args)}["${member}"]`;
-const solverActions = `Generator<${typesImport("SolverAction")}, void, undefined>`;
+const solverActions = `Generator<${typesImport("Change")}, void, undefined>`;
 
 /**
  * The five functions a component may declare, and what the app passes each one.
