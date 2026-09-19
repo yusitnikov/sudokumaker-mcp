@@ -209,10 +209,16 @@ Solver and check responses close with a blind-spot warning naming the elements t
 see, an overwrite reminder on the runs that write, and a pointer to the `solving` topic - each
 carried only by the tools it applies to, and only once the run has actually finished.
 
-`edit_initialization_code` typechecks what it wrote against the generated declarations and appends
-the diagnostics as a `[WARNING]` - the edit lands either way, since the declarations are recovered
-from a minified app and a false positive must never block a real edit. The element's own custom
-components are declared per call: they're named by the user, so no generated file can know them.
+The code-editing tools typecheck what they wrote against the generated declarations and append the
+problems as a `[WARNING]`, formatted the way `tsc` prints a diagnostic. The edit lands either way -
+the declarations are recovered from a minified app, so a false positive must never block a real
+edit. `typecheckSnippet.ts` is the shared checker; the initialization and custom-component scopes
+can never be compiled together, since they declare different `helpers`.
+
+**A snippet is checked as JavaScript**, which is what the worker runs - so a construct that is
+ordinary JS may be reported only if a type annotation could fix it. Reassigning a variable to
+another type qualifies, the author having `/** @type */` as the remedy; anything with no
+annotation-shaped remedy is a false positive, and the declarations are what to fix.
 
 `runOnFrontend` catches whatever a tool throws and returns it as an `isError: true` result, so a
 failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace through
@@ -269,7 +275,7 @@ original schema.
 
 Custom-constraint code runs in SudokuMaker's own worker scope, which has no published types. The
 scanner reads that scope out of a live tab - so regenerating needs one open - and emits the
-declarations `edit_initialization_code` typechecks snippets against. Everything under
+declarations the snippet checkers typecheck against. Everything under
 `src/generated/` is output; never edit it.
 
 The app is minified, so what a scanned body reveals is limited and often wrong in the details.
