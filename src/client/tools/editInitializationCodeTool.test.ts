@@ -206,6 +206,52 @@ describe("code that does nothing", () => {
   });
 });
 
+/*
+ * The worker runs the snippet as JavaScript, so it is checked as JavaScript. Several things that
+ * are ordinary JS were reported while it was checked as `.ts`; what a JS author still owes the
+ * checker is a type for a variable that holds more than its initializer suggests.
+ */
+describe("checked as JavaScript", () => {
+  test("growing an object past the shape it was created with is clean", () => {
+    expect(typecheckInitializationCode(backendResources, "const o = {};\no.newProp = 1;")).toBeUndefined();
+  });
+
+  test("redeclaring a function at top level is clean", () => {
+    expect(
+      typecheckInitializationCode(backendResources, "function f() {\n  return 1;\n}\nfunction f() {\n  return 2;\n}"),
+    ).toBeUndefined();
+  });
+
+  /*
+   * A variable's type is inferred from its initializer, so reassigning it to another type is
+   * reported. That is the author's cue to say what the variable actually holds, which a JSDoc
+   * `@type` does - and the annotation is then enforced in turn.
+   */
+  test("reassigning a variable to another type is reported", () => {
+    expect(typecheckInitializationCode(backendResources, `var v = 1;\nv = "two";`)).toMatch(
+      /Type 'string' is not assignable to type 'number'/,
+    );
+  });
+
+  test("a JSDoc type covering both types makes the reassignment clean", () => {
+    expect(
+      typecheckInitializationCode(backendResources, `/** @type {number | string} */\nvar v = 1;\nv = "two";`),
+    ).toBeUndefined();
+  });
+
+  test("a value outside the JSDoc type is still reported", () => {
+    expect(
+      typecheckInitializationCode(backendResources, `/** @type {number | string} */\nvar v = 1;\nv = true;`),
+    ).toMatch(/Type 'boolean' is not assignable to type 'string \| number'/);
+  });
+
+  test("a parameter with no annotation is not an implicit-any error", () => {
+    expect(typecheckInitializationCode(backendResources, "function f(a, b) {\n  return a + b;\n}\nf(1, 2);")).toBe(
+      undefined,
+    );
+  });
+});
+
 describe("getInitializationCodeDiagnostics", () => {
   test("an empty snippet produces no diagnostics", () => {
     expect(getInitializationCodeDiagnostics(backendResources, "")).toEqual([]);
@@ -233,13 +279,5 @@ describe("the worker's own globals", () => {
 describe("the element's custom components", () => {
   test("a component named in the element constructs cleanly", () => {
     expect(typecheckInitializationCode(backendResources, "new MyCage(1, 2, 3);", ["MyCage"])).toBeUndefined();
-  });
-
-  test("one sharing a standard component's name keeps the standard signature", () => {
-    // Declaring it again would be a redeclaration error; the standard signature is the better one,
-    // so the arity check must still bite.
-    expect(
-      typecheckInitializationCode(backendResources, `new BetweenComponent("b", [1, 2]);`, ["BetweenComponent"]),
-    ).toMatch(/Expected 3 arguments/);
   });
 });

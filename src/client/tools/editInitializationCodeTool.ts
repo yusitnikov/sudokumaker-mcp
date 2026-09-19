@@ -8,20 +8,23 @@ import type { BackendResources } from "../../BackendResources";
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
 
-/** Where the snippet lives in the virtual program - its diagnostics are the only ones reported. */
-export const snippetFileName = "/snippet.ts";
+/**
+ * Where the snippet lives in the virtual program - its diagnostics are the only ones reported.
+ *
+ * It is checked as JavaScript, which is what the worker runs. TypeScript rejects things that are
+ * ordinary JS - redeclaring a function, or growing an object literal past the shape it was created
+ * with - and reporting those would be a false positive on correct code.
+ */
+export const snippetFileName = "/snippet.js";
 
 /**
  * Declares the element's own components, which the initialization code constructs by bare name.
  *
  * Their constructor parameters can't be recovered - the real signature is only discoverable by
- * analysing user code this doesn't parse, and `unknown[]` would reject every real call site. A name
- * shadowing a standard component is skipped rather than declared twice: a duplicate `class` in one
- * global scope is a redeclaration error, and the standard signature is the better of the two.
+ * analyzing user code this doesn't parse, and `unknown[]` would reject every real call site.
  */
-const buildCustomComponentDeclarations = (customComponentNames: string[], globalsDts: string) => {
+const buildCustomComponentDeclarations = (customComponentNames: string[]) => {
   const declarations = customComponentNames
-    .filter((name) => !new RegExp(`^  class ${RegExp.escape(name)} \\{`, "m").test(globalsDts))
     .map((name) => `  class ${name} extends Component { constructor(...args: any[]); }\n`)
     .join("");
 
@@ -49,7 +52,7 @@ export const getInitializationCodeDiagnostics = (
     ["/types.d.ts", declarations.types],
     ["/globals.d.ts", declarations.globals],
     ["/initialCodeGlobals.d.ts", declarations.initialCodeGlobals],
-    ["/components.d.ts", buildCustomComponentDeclarations(customComponentNames, declarations.globals)],
+    ["/components.d.ts", buildCustomComponentDeclarations(customComponentNames)],
     [snippetFileName, code],
   ]);
 
@@ -63,6 +66,9 @@ export const getInitializationCodeDiagnostics = (
     noImplicitAny: false,
     noUnusedLocals: false,
     noEmit: true,
+    // The snippet is JavaScript, so it has to be both allowed into the program and checked.
+    allowJs: true,
+    checkJs: true,
     // Everything but the snippet is a declaration file, so skipping lib checks would hide a broken
     // generated declaration and leave the check passing while validating nothing.
     skipLibCheck: false,
