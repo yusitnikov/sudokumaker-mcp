@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { formatSnippetProblems, getSnippetProblems, type SnippetProblem, typecheckSnippet } from "./typecheckSnippet";
+import { type SnippetProblem, SnippetTypescript, type SnippetTypescriptAnnotatorResult } from "./typecheckSnippet";
 import { backendResources } from "../../backendResourcesImpl";
 
 /*
@@ -10,16 +10,16 @@ import { backendResources } from "../../backendResourcesImpl";
  */
 const scope = { globals: backendResources.declarations.initialCodeGlobals };
 
-const typecheck = (code: string) => typecheckSnippet(backendResources, scope, code, "initialization code");
+const checker = new SnippetTypescript(backendResources, scope, "generic code");
 
 describe("what the worker environment provides", () => {
   test("console is available", () => {
-    expect(typecheck(`console.log("hi");`)).toBeUndefined();
+    expect(checker.typecheck(`console.log("hi");`)).toBeUndefined();
   });
 
   test("reports DOM globals, which the worker does not have", () => {
-    expect(typecheck(`document.querySelector("div");`)).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck(`document.querySelector("div");`)).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 1 - error TS2584: Cannot find name 'document'. Do you need to change your target library? Try changing the 'lib' compiler option to include 'dom'.
 
@@ -29,8 +29,8 @@ line 1 - error TS2584: Cannot find name 'document'. Do you need to change your t
   });
 
   test("reports top-level await exactly once", () => {
-    expect(typecheck("const x = await Promise.resolve(1);")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck("const x = await Promise.resolve(1);")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 1 - error TS1375: 'await' expressions are only allowed at the top level of a file when that file is a module, but this file has no imports or exports. Consider adding an empty 'export {}' to make this file a module.
 
@@ -40,8 +40,8 @@ line 1 - error TS1375: 'await' expressions are only allowed at the top level of 
   });
 
   test("reports top-level return", () => {
-    expect(typecheck("return 5;")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck("return 5;")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 1 - error TS1108: A 'return' statement can only be used within a function body.
 
@@ -51,14 +51,14 @@ line 1 - error TS1108: A 'return' statement can only be used within a function b
   });
 
   test("constructing a scanned class is not a false positive", () => {
-    expect(typecheck("const set = DigitSet.from([1, 2, 3]);")).toBeUndefined();
+    expect(checker.typecheck("const set = DigitSet.from([1, 2, 3]);")).toBeUndefined();
   });
 });
 
 describe("how a problem is reported", () => {
   test("reports a syntax error rather than throwing", () => {
-    expect(typecheck("const x = ;")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck("const x = ;")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 1 - error TS1109: Expression expected.
 
@@ -68,8 +68,8 @@ line 1 - error TS1109: Expression expected.
   });
 
   test("reports an unclosed brace at the end of the snippet", () => {
-    expect(typecheck("if (true) {\n  const x = 1;\n")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck("if (true) {\n  const x = 1;\n")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 3 - error TS1005: '}' expected.
 
@@ -79,8 +79,8 @@ line 3 - error TS1005: '}' expected.
   });
 
   test("reports a stray closing brace", () => {
-    expect(typecheck("const x = 1;\n}\n")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck("const x = 1;\n}\n")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 2 - error TS1128: Declaration or statement expected.
 
@@ -91,8 +91,8 @@ line 2 - error TS1128: Declaration or statement expected.
 
   /* Checking continues past a parse error, so both are reported, in line order. */
   test("a syntax error is reported ahead of a type error further down", () => {
-    expect(typecheck("const x = ;\nnoSuchName();\n")).toBe(
-      `[WARNING] TypeScript found 2 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck("const x = ;\nnoSuchName();\n")).toBe(
+      `[WARNING] TypeScript found 2 problem(s) in the new generic code. The change WAS applied.
 
 line 1 - error TS1109: Expression expected.
 
@@ -107,23 +107,12 @@ line 2 - error TS2304: Cannot find name 'noSuchName'.
   });
 
   test("reports the author's own line number, and echoes that line", () => {
-    expect(typecheck("const a = 1;\nconst b = 2;\nnoSuchName();\n")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck("const a = 1;\nconst b = 2;\nnoSuchName();\n")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 3 - error TS2304: Cannot find name 'noSuchName'.
 
 3 noSuchName();
-  ~~~~~~~~~~`,
-    );
-  });
-
-  test("names whatever the caller says was edited", () => {
-    expect(typecheckSnippet(backendResources, scope, "noSuchName();", "left-handed widget")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new left-handed widget. The change WAS applied.
-
-line 1 - error TS2304: Cannot find name 'noSuchName'.
-
-1 noSuchName();
   ~~~~~~~~~~`,
     );
   });
@@ -135,16 +124,20 @@ line 1 - error TS2304: Cannot find name 'noSuchName'.
  */
 describe("mapping lines back to the author's", () => {
   test("the reported line and the echoed source are the author's", () => {
-    const authorCode = "noSuchName();";
-    const annotated = `// generated\n${authorCode}`;
+    class CheckerWithAnnotator extends SnippetTypescript {
+      protected annotate(code: string): SnippetTypescriptAnnotatorResult {
+        return {
+          annotated: `// generated\n${code}`,
+          toAuthorSpan: ({ start, end }) => ({
+            start: { ...start, line: Math.max(start.line - 1, 0) },
+            end: { ...end, line: Math.max(end.line - 1, 0) },
+          }),
+        };
+      }
+    }
 
-    const problems = getSnippetProblems(backendResources, scope, annotated, ({ start, end }) => ({
-      start: { ...start, line: Math.max(start.line - 1, 0) },
-      end: { ...end, line: Math.max(end.line - 1, 0) },
-    }));
-
-    expect(formatSnippetProblems(problems, authorCode, "initialization code")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(new CheckerWithAnnotator(backendResources, scope, "generic code").typecheck("noSuchName();")).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 1 - error TS2304: Cannot find name 'noSuchName'.
 
@@ -173,8 +166,8 @@ describe("how much of a long problem is echoed", () => {
   });
 
   test("a span of ten lines is echoed whole", () => {
-    expect(formatSnippetProblems([spanning(10)], sourceOf(10), "initialization code")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.formatProblems([spanning(10)], sourceOf(10))).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 lines 1-10 - error TS9999: Something is wrong.
 
@@ -203,8 +196,8 @@ lines 1-10 - error TS9999: Something is wrong.
 
   /* The header still names the whole span - only the echo is cut. */
   test("a longer span is cut after ten lines, with the rest counted", () => {
-    expect(formatSnippetProblems([spanning(13)], sourceOf(13), "initialization code")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.formatProblems([spanning(13)], sourceOf(13))).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 lines 1-13 - error TS9999: Something is wrong.
 
@@ -234,8 +227,8 @@ lines 1-13 - error TS9999: Something is wrong.
 
   /* The gutter is as wide as the widest line number shown, so single digits are padded to match. */
   test("a span of nine lines needs no gutter padding", () => {
-    expect(formatSnippetProblems([spanning(9)], sourceOf(9), "initialization code")).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.formatProblems([spanning(9)], sourceOf(9))).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 lines 1-9 - error TS9999: Something is wrong.
 
@@ -274,9 +267,9 @@ describe("how many problems are reported", () => {
       code: 9999,
     }));
 
-    const formatted = formatSnippetProblems(problems, Array.from({ length: 23 }, () => "a").join("\n"), "widget");
+    const formatted = checker.formatProblems(problems, Array.from({ length: 23 }, () => "a").join("\n"));
 
-    expect(formatted).toContain("TypeScript found 23 problem(s) in the new widget.");
+    expect(formatted).toContain("TypeScript found 23 problem(s) in the new generic code.");
     expect(formatted).toContain(`line 20 - error TS9999: Something is wrong.
 
 20 a
@@ -293,15 +286,15 @@ describe("how many problems are reported", () => {
  */
 describe("checked as JavaScript", () => {
   test("growing an object past the shape it was created with is clean", () => {
-    expect(typecheck("const o = {};\no.newProp = 1;")).toBeUndefined();
+    expect(checker.typecheck("const o = {};\no.newProp = 1;")).toBeUndefined();
   });
 
   test("redeclaring a function at top level is clean", () => {
-    expect(typecheck("function f() {\n  return 1;\n}\nfunction f() {\n  return 2;\n}")).toBeUndefined();
+    expect(checker.typecheck("function f() {\n  return 1;\n}\nfunction f() {\n  return 2;\n}")).toBeUndefined();
   });
 
   test("a parameter with no annotation is not an implicit-any error", () => {
-    expect(typecheck("function f(a, b) {\n  return a + b;\n}\nf(1, 2);")).toBeUndefined();
+    expect(checker.typecheck("function f(a, b) {\n  return a + b;\n}\nf(1, 2);")).toBeUndefined();
   });
 
   /*
@@ -310,8 +303,8 @@ describe("checked as JavaScript", () => {
    * `@type` does - and the annotation is then enforced in turn.
    */
   test("reassigning a variable to another type is reported", () => {
-    expect(typecheck(`var v = 1;\nv = "two";`)).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck(`var v = 1;\nv = "two";`)).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 2 - error TS2322: Type 'string' is not assignable to type 'number'.
 
@@ -321,12 +314,12 @@ line 2 - error TS2322: Type 'string' is not assignable to type 'number'.
   });
 
   test("a JSDoc type covering both types makes the reassignment clean", () => {
-    expect(typecheck(`/** @type {number | string} */\nvar v = 1;\nv = "two";`)).toBeUndefined();
+    expect(checker.typecheck(`/** @type {number | string} */\nvar v = 1;\nv = "two";`)).toBeUndefined();
   });
 
   test("a value outside the JSDoc type is still reported", () => {
-    expect(typecheck(`/** @type {number | string} */\nvar v = 1;\nv = true;`)).toBe(
-      `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+    expect(checker.typecheck(`/** @type {number | string} */\nvar v = 1;\nv = true;`)).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 3 - error TS2322: Type 'boolean' is not assignable to type 'string | number'.
 
@@ -342,14 +335,14 @@ line 3 - error TS2322: Type 'boolean' is not assignable to type 'string | number
  */
 describe("code that does nothing", () => {
   test("an empty snippet is clean", () => {
-    expect(typecheck("")).toBeUndefined();
+    expect(checker.typecheck("")).toBeUndefined();
   });
 
   test("a whitespace-only snippet is clean", () => {
-    expect(typecheck("   \n\n  ")).toBeUndefined();
+    expect(checker.typecheck("   \n\n  ")).toBeUndefined();
   });
 
   test("a comment-only snippet is clean", () => {
-    expect(typecheck("// nothing here")).toBeUndefined();
+    expect(checker.typecheck("// nothing here")).toBeUndefined();
   });
 });

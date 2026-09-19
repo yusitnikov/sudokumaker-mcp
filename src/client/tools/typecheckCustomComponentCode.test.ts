@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { getCustomComponentCodeDiagnostics, typecheckCustomComponentCode } from "./typecheckCustomComponentCode";
+import { CustomComponentCodeTypescript } from "./typecheckCustomComponentCode";
 import { backendResources } from "../../backendResourcesImpl";
 
-const typecheck = (code: string) => typecheckCustomComponentCode(backendResources, code);
+const checker = new CustomComponentCodeTypescript(backendResources);
 
 /*
  * Verbatim from a puzzle open in the browser. This is the acceptance case: whatever the checker does
@@ -11,7 +11,7 @@ const typecheck = (code: string) => typecheckCustomComponentCode(backendResource
 describe("custom components from real puzzles", () => {
   test('"Parity Party"\'s OneOfSequencesComponent typechecks clean', () => {
     expect(
-      typecheck(`function getAffectedCells (sequences, cells) {
+      checker.typecheck(`function getAffectedCells (sequences, cells) {
   return cells
 }
 
@@ -44,7 +44,7 @@ function* update (instance, puzzle) {
   /* The bodies of the boilerplate the app seeds every new component with. */
   test("the app's boilerplate hooks typecheck clean", () => {
     expect(
-      typecheck(`function getAffectedCells (param1, param2) {
+      checker.typecheck(`function getAffectedCells (param1, param2) {
   return [param1, param2]
 }
 
@@ -86,7 +86,7 @@ function* update (instance, puzzle) {
 describe("problems in a hook body", () => {
   test("reports a misspelled puzzle method", () => {
     expect(
-      typecheck("function* update (instance, puzzle) {\n  yield puzzle.getCandidatez(instance.cellIds[0])\n}"),
+      checker.typecheck("function* update (instance, puzzle) {\n  yield puzzle.getCandidatez(instance.cellIds[0])\n}"),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
@@ -101,7 +101,7 @@ line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'CustomCo
     // Also the regression test for module resolution: if `./types` stops resolving, `helpers`
     // becomes `any` and this passes silently.
     expect(
-      typecheck(
+      checker.typecheck(
         "function* update (instance, puzzle) {\n  yield puzzle.stop(helpers.naming.getCellsDescriptionz([1]))\n}",
       ),
     ).toBe(
@@ -115,7 +115,7 @@ line 2 - error TS2551: Property 'getCellsDescriptionz' does not exist on type 'N
   });
 
   test("reports an unknown name", () => {
-    expect(typecheck("function validate (instance, puzzle) {\n  return totallyUnknownThing\n}")).toBe(
+    expect(checker.typecheck("function validate (instance, puzzle) {\n  return totallyUnknownThing\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2304: Cannot find name 'totallyUnknownThing'.
@@ -126,7 +126,9 @@ line 2 - error TS2304: Cannot find name 'totallyUnknownThing'.
   });
 
   test("reports a puzzle method called with too few arguments", () => {
-    expect(typecheck("function* update (instance, puzzle) {\n  yield puzzle.removeCandidateFromCell(1)\n}")).toBe(
+    expect(
+      checker.typecheck("function* update (instance, puzzle) {\n  yield puzzle.removeCandidateFromCell(1)\n}"),
+    ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2554: Expected 2 arguments, but got 1.
@@ -143,7 +145,7 @@ line 2 - error TS2554: Expected 2 arguments, but got 1.
    */
   test("a nested compiler explanation is flattened onto one line", () => {
     expect(
-      typecheck(
+      checker.typecheck(
         "function* update (instance, puzzle) {\n  yield puzzle.filterCandidatesInCell([1, 2, 3], instance.cells[0])\n}",
       ),
     ).toBe(
@@ -163,7 +165,7 @@ line 2 - error TS2345: Argument of type 'number[]' is not assignable to paramete
    */
   test("a call spread over lines is reported against the argument's own line", () => {
     expect(
-      typecheck(`function* update (instance, puzzle) {
+      checker.typecheck(`function* update (instance, puzzle) {
   yield puzzle.filterCandidatesInCell(
     [1, 2, 3],
     instance.cells[0],
@@ -182,7 +184,7 @@ line 3 - error TS2345: Argument of type 'number[]' is not assignable to paramete
   /* Even inside an argument that spans lines, the position is the property at fault. */
   test("an object literal spanning lines is reported against the offending property", () => {
     expect(
-      typecheck(`function* update (instance, puzzle) {
+      checker.typecheck(`function* update (instance, puzzle) {
   yield puzzle.filterCandidatesInCell({
     alpha: 1,
     beta: 2,
@@ -205,7 +207,7 @@ line 3 - error TS2353: Object literal may only specify known properties, and 'al
    */
   test("a multi-line string literal is escaped into the compiler's one-line message", () => {
     expect(
-      typecheck(`function* update (instance, puzzle) {
+      checker.typecheck(`function* update (instance, puzzle) {
   /** @type {"only"} */
   const s = \`first
 second\`
@@ -222,7 +224,9 @@ line 3 - error TS2322: Type '"first\\nsecond"' is not assignable to type '"only"
   });
 
   test("reports the author's own line number, past the annotation the checker adds", () => {
-    expect(typecheck("function validate (instance, puzzle) {\n  // 2\n  // 3\n  // 4\n  return puzzle.nope()\n}")).toBe(
+    expect(
+      checker.typecheck("function validate (instance, puzzle) {\n  // 2\n  // 3\n  // 4\n  return puzzle.nope()\n}"),
+    ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 5 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
@@ -234,7 +238,7 @@ line 5 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
 
   test("with two hooks, an error in the second maps past both annotations", () => {
     expect(
-      typecheck(
+      checker.typecheck(
         "function validate (instance, puzzle) {\n  return true\n}\nfunction* update (instance, puzzle) {\n  yield puzzle.nope()\n}",
       ),
     ).toBe(
@@ -248,7 +252,7 @@ line 5 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
   });
 
   test("reports a syntax error rather than throwing", () => {
-    expect(typecheck("function validate (instance, puzzle) {\n  return true\n")).toBe(
+    expect(checker.typecheck("function validate (instance, puzzle) {\n  return true\n")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 3 - error TS1005: '}' expected.
@@ -267,7 +271,7 @@ line 3 - error TS1005: '}' expected.
  */
 describe("broken syntax", () => {
   test("inside a hook body", () => {
-    expect(typecheck("function validate (instance, puzzle) {\n  const x = ;\n  return true\n}")).toBe(
+    expect(checker.typecheck("function validate (instance, puzzle) {\n  const x = ;\n  return true\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS1109: Expression expected.
@@ -282,11 +286,11 @@ line 2 - error TS1109: Expression expected.
    * hook is still found and still annotated.
    */
   test("a trailing comma in a hook's parameter list is not an error", () => {
-    expect(typecheck("function validate (instance, ) {\n  return true\n}")).toBeUndefined();
+    expect(checker.typecheck("function validate (instance, ) {\n  return true\n}")).toBeUndefined();
   });
 
   test("a trailing comma does not cost the hook its types", () => {
-    expect(typecheck("function validate (instance, ) {\n  return instance.name.toFixed(2)\n}")).toBe(
+    expect(checker.typecheck("function validate (instance, ) {\n  return instance.name.toFixed(2)\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
@@ -297,7 +301,7 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
   });
 
   test("a broken parameter list, with a stray comma first", () => {
-    expect(typecheck("function validate (, puzzle) {\n  return true\n}")).toBe(
+    expect(checker.typecheck("function validate (, puzzle) {\n  return true\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error TS1138: Parameter declaration expected.
@@ -315,7 +319,7 @@ line 1 - error TS1138: Parameter declaration expected.
    * mid-keystroke is not reading it.
    */
   test("a parameter list left unclosed", () => {
-    expect(typecheck("function validate (instance, puzzle {\n  return true\n}")).toBe(
+    expect(checker.typecheck("function validate (instance, puzzle {\n  return true\n}")).toBe(
       `[WARNING] TypeScript found 10 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error TS8017: Signature declarations can only be used in TypeScript files.
@@ -375,7 +379,7 @@ line 3 - error TS1005: ')' expected.
   });
 
   test("in a hook's declaration, with the name missing", () => {
-    expect(typecheck("function (instance, puzzle) {\n  return true\n}")).toBe(
+    expect(checker.typecheck("function (instance, puzzle) {\n  return true\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error TS1003: Identifier expected.
@@ -386,7 +390,9 @@ line 1 - error TS1003: Identifier expected.
   });
 
   test("outside every hook", () => {
-    expect(typecheck("const broken = ;\n\nfunction validate (instance, puzzle) {\n  return puzzle.nope()\n}")).toBe(
+    expect(
+      checker.typecheck("const broken = ;\n\nfunction validate (instance, puzzle) {\n  return puzzle.nope()\n}"),
+    ).toBe(
       `[WARNING] TypeScript found 2 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error TS1109: Expression expected.
@@ -403,7 +409,7 @@ line 4 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
 
   /* The hook below the break still has to be found, annotated, and reported on its own line. */
   test("before a hook, which is still typed", () => {
-    expect(typecheck("const broken = ;\nfunction validate (instance, puzzle) {\n  return 1\n}")).toBe(
+    expect(checker.typecheck("const broken = ;\nfunction validate (instance, puzzle) {\n  return 1\n}")).toBe(
       `[WARNING] TypeScript found 2 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error TS1109: Expression expected.
@@ -419,7 +425,7 @@ line 3 - error TS2322: Type 'number' is not assignable to type 'boolean'.
   });
 
   test("an unterminated string in a hook body", () => {
-    expect(typecheck(`function* update (instance, puzzle) {\n  yield puzzle.stop("oops)\n}`)).toBe(
+    expect(checker.typecheck(`function* update (instance, puzzle) {\n  yield puzzle.stop("oops)\n}`)).toBe(
       `[WARNING] TypeScript found 2 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS1002: Unterminated string literal.
@@ -437,7 +443,7 @@ line 3 - error TS1005: ',' expected.
 
 describe("what each hook must return", () => {
   test("validate returning a string is reported", () => {
-    expect(typecheck(`function validate (instance, puzzle) {\n  return "nope"\n}`)).toBe(
+    expect(checker.typecheck(`function validate (instance, puzzle) {\n  return "nope"\n}`)).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2322: Type 'string' is not assignable to type 'boolean'.
@@ -448,7 +454,7 @@ line 2 - error TS2322: Type 'string' is not assignable to type 'boolean'.
   });
 
   test("a generator yielding something that is not a solver action is reported", () => {
-    expect(typecheck("function* update (instance, puzzle) {\n  yield 42\n}")).toBe(
+    expect(checker.typecheck("function* update (instance, puzzle) {\n  yield 42\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
@@ -460,7 +466,9 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
 
   /* Easy to write by mistake, and it silently does nothing at runtime. */
   test("yielding a value-returning call instead of an action is reported", () => {
-    expect(typecheck("function* update (instance, puzzle) {\n  yield puzzle.getValue(instance.cells[0])\n}")).toBe(
+    expect(
+      checker.typecheck("function* update (instance, puzzle) {\n  yield puzzle.getValue(instance.cells[0])\n}"),
+    ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
@@ -471,7 +479,7 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
   });
 
   test("getAffectedCells returning the wrong type is reported", () => {
-    expect(typecheck(`function getAffectedCells (a) {\n  return "nope"\n}`)).toBe(
+    expect(checker.typecheck(`function getAffectedCells (a) {\n  return "nope"\n}`)).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
@@ -482,7 +490,7 @@ line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
   });
 
   test("getAffectedCells that forgets to return is reported", () => {
-    expect(typecheck("function getAffectedCells (cells) {\n  cells.filter(c => c > 0)\n}")).toBe(
+    expect(checker.typecheck("function getAffectedCells (cells) {\n  cells.filter(c => c > 0)\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 lines 1-3 - error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
@@ -504,7 +512,7 @@ lines 1-3 - error TS2355: A function whose declared type is neither 'undefined',
  */
 describe("a hook that never returns", () => {
   test("an empty getAffectedCells is reported on its own line", () => {
-    expect(typecheck("function getAffectedCells (param1, param2) {\n}")).toBe(
+    expect(checker.typecheck("function getAffectedCells (param1, param2) {\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 lines 1-2 - error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
@@ -517,7 +525,7 @@ lines 1-2 - error TS2355: A function whose declared type is neither 'undefined',
   });
 
   test("an empty validate is reported on its own line", () => {
-    expect(typecheck("const x = 1;\n\nfunction validate (instance, puzzle) {\n}")).toBe(
+    expect(checker.typecheck("const x = 1;\n\nfunction validate (instance, puzzle) {\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 lines 3-4 - error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
@@ -531,7 +539,7 @@ lines 3-4 - error TS2355: A function whose declared type is neither 'undefined',
 
   test("the hooks that return nothing stay clean", () => {
     expect(
-      typecheck("function setParams (instance, p) {\n}\nfunction* initialize (instance, puzzle) {\n}"),
+      checker.typecheck("function setParams (instance, p) {\n}\nfunction* initialize (instance, puzzle) {\n}"),
     ).toBeUndefined();
   });
 });
@@ -543,7 +551,7 @@ lines 3-4 - error TS2355: A function whose declared type is neither 'undefined',
  */
 describe("which hooks a component declares, and in what order", () => {
   test("a lone getAffectedCells is typed by its own return", () => {
-    expect(typecheck(`function getAffectedCells (cells) {\n  return "not cells"\n}`)).toBe(
+    expect(checker.typecheck(`function getAffectedCells (cells) {\n  return "not cells"\n}`)).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
@@ -554,7 +562,7 @@ line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
   });
 
   test("a lone setParams is typed by its own instance", () => {
-    expect(typecheck("function setParams (instance, p) {\n  instance.cells = p\n}")).toBe(
+    expect(checker.typecheck("function setParams (instance, p) {\n  instance.cells = p\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only property.
@@ -565,7 +573,7 @@ line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only proper
   });
 
   test("a lone initialize is typed by its own puzzle", () => {
-    expect(typecheck("function* initialize (instance, puzzle) {\n  yield puzzle.nope()\n}")).toBe(
+    expect(checker.typecheck("function* initialize (instance, puzzle) {\n  yield puzzle.nope()\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
@@ -576,7 +584,7 @@ line 2 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
   });
 
   test("a lone validate is typed by its own return", () => {
-    expect(typecheck("function validate (instance, puzzle) {\n  return 1\n}")).toBe(
+    expect(checker.typecheck("function validate (instance, puzzle) {\n  return 1\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2322: Type 'number' is not assignable to type 'boolean'.
@@ -587,7 +595,7 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'boolean'.
   });
 
   test("a lone update is typed by what it yields", () => {
-    expect(typecheck("function* update (instance, puzzle) {\n  yield 42\n}")).toBe(
+    expect(checker.typecheck("function* update (instance, puzzle) {\n  yield 42\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
@@ -599,7 +607,7 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'SolverAction'.
 
   test("hooks declared in reverse order are each still typed correctly", () => {
     expect(
-      typecheck(`function* update (instance, puzzle) {
+      checker.typecheck(`function* update (instance, puzzle) {
   yield puzzle.removeComponent(instance)
 }
 
@@ -620,7 +628,7 @@ function getAffectedCells (cells) {
   test("a hook is typed by its name, not by its position among the others", () => {
     // `validate` is second, after a generator - if position drove the types this would not report.
     expect(
-      typecheck(
+      checker.typecheck(
         `function* update (instance, puzzle) {\n  yield puzzle.removeComponent(instance)\n}\nfunction validate (instance, puzzle) {\n  return 1\n}`,
       ),
     ).toBe(
@@ -635,7 +643,7 @@ line 5 - error TS2322: Type 'number' is not assignable to type 'boolean'.
 
   test("with hooks reordered, each error still lands on its own line", () => {
     expect(
-      typecheck(
+      checker.typecheck(
         `function* update (instance, puzzle) {\n  yield 42\n}\nfunction validate (instance, puzzle) {\n  return 1\n}`,
       ),
     ).toBe(
@@ -660,7 +668,7 @@ line 5 - error TS2322: Type 'number' is not assignable to type 'boolean'.
  */
 describe("hook parameters named differently", () => {
   test("a renamed puzzle still carries its type", () => {
-    expect(typecheck("function* update (self, p) {\n  yield p.nope()\n}")).toBe(
+    expect(checker.typecheck("function* update (self, p) {\n  yield p.nope()\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
@@ -671,7 +679,7 @@ line 2 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
   });
 
   test("a renamed instance still carries its type", () => {
-    expect(typecheck("function validate (self, p) {\n  return self.name.toFixed(2)\n}")).toBe(
+    expect(checker.typecheck("function validate (self, p) {\n  return self.name.toFixed(2)\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
@@ -683,7 +691,7 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
 
   test("renamed parameters used correctly are clean", () => {
     expect(
-      typecheck("function* update (self, p) {\n  yield p.removeCandidateFromCell(1, self.cells[0])\n}"),
+      checker.typecheck("function* update (self, p) {\n  yield p.removeCandidateFromCell(1, self.cells[0])\n}"),
     ).toBeUndefined();
   });
 
@@ -691,7 +699,7 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
     // Whatever they are called, the first parameter is the instance and the second is the puzzle -
     // so here `instance.cells` is a puzzle without a `cells`.
     expect(
-      typecheck("function validate (puzzle, instance) {\n  return puzzle.getCellsAreFilled(instance.cells)\n}"),
+      checker.typecheck("function validate (puzzle, instance) {\n  return puzzle.getCellsAreFilled(instance.cells)\n}"),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
@@ -710,7 +718,7 @@ line 2 - error TS2339: Property 'cells' does not exist on type 'CustomComponentP
  */
 describe("a hook declaring a parameter the app never passes", () => {
   test("an extra parameter on validate is reported", () => {
-    expect(typecheck("function validate (instance, puzzle, extra) {\n  return !!extra\n}")).toBe(
+    expect(checker.typecheck("function validate (instance, puzzle, extra) {\n  return !!extra\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error: 'validate' must have exactly 2 arguments
@@ -721,7 +729,9 @@ line 1 - error: 'validate' must have exactly 2 arguments
   });
 
   test("an extra parameter on update is reported", () => {
-    expect(typecheck("function* update (instance, puzzle, extra) {\n  yield puzzle.removeComponent(instance)\n}")).toBe(
+    expect(
+      checker.typecheck("function* update (instance, puzzle, extra) {\n  yield puzzle.removeComponent(instance)\n}"),
+    ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error: 'update' must have exactly 2 arguments
@@ -733,7 +743,9 @@ line 1 - error: 'update' must have exactly 2 arguments
 
   test("an extra parameter on initialize is reported", () => {
     expect(
-      typecheck("function* initialize (instance, puzzle, extra) {\n  yield puzzle.removeComponent(instance)\n}"),
+      checker.typecheck(
+        "function* initialize (instance, puzzle, extra) {\n  yield puzzle.removeComponent(instance)\n}",
+      ),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
@@ -745,7 +757,7 @@ line 1 - error: 'initialize' must have exactly 2 arguments
   });
 
   test("several extra parameters are one problem underlining all of them", () => {
-    expect(typecheck("function validate (instance, puzzle, a, b, c) {\n  return !!a && !!b && !!c\n}")).toBe(
+    expect(checker.typecheck("function validate (instance, puzzle, a, b, c) {\n  return !!a && !!b && !!c\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error: 'validate' must have exactly 2 arguments
@@ -758,7 +770,7 @@ line 1 - error: 'validate' must have exactly 2 arguments
   /* The span runs from the first extra parameter to the last, however they are laid out. */
   test("extra parameters written one per line are underlined across those lines", () => {
     expect(
-      typecheck(`function validate (
+      checker.typecheck(`function validate (
   instance,
   puzzle,
   extra,
@@ -784,7 +796,7 @@ lines 4-5 - error: 'validate' must have exactly 2 arguments
    */
   test("a blank line inside the span is echoed and underlined", () => {
     expect(
-      typecheck(`function validate (
+      checker.typecheck(`function validate (
   instance,
 
   puzzle,
@@ -810,7 +822,7 @@ lines 6-8 - error: 'validate' must have exactly 2 arguments
   });
 
   test("it is reported alongside a real type error, in line order", () => {
-    expect(typecheck("function validate (instance, puzzle, extra) {\n  return puzzle.nope()\n}")).toBe(
+    expect(checker.typecheck("function validate (instance, puzzle, extra) {\n  return puzzle.nope()\n}")).toBe(
       `[WARNING] TypeScript found 2 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error: 'validate' must have exactly 2 arguments
@@ -827,7 +839,7 @@ line 2 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
 
   test("it is reported on the hook's own line, wherever the hook sits", () => {
     expect(
-      typecheck(
+      checker.typecheck(
         `function setParams (instance, size) {
   instance.size = size
 }
@@ -854,7 +866,7 @@ line 6 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
   /* A destructured parameter is underlined over the whole pattern, however many lines it takes. */
   test("a destructured extra parameter is underlined across the lines it is written on", () => {
     expect(
-      typecheck(`function validate (instance, puzzle, {
+      checker.typecheck(`function validate (instance, puzzle, {
   first,
   second,
 }) {
@@ -878,14 +890,14 @@ lines 1-4 - error: 'validate' must have exactly 2 arguments
 
   test("the variadic hooks take the component's own constructor arguments, so they are not reported", () => {
     expect(
-      typecheck(
+      checker.typecheck(
         "function getAffectedCells (a, b, c) {\n  return [a, b, c]\n}\nfunction setParams (instance, a, b, c) {\n  instance.a = a\n}",
       ),
     ).toBeUndefined();
   });
 
   test("an arrow hook's extra parameter is reported too", () => {
-    expect(typecheck("const validate = (instance, puzzle, extra) => !!extra;")).toBe(
+    expect(checker.typecheck("const validate = (instance, puzzle, extra) => !!extra;")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error: 'validate' must have exactly 2 arguments
@@ -896,13 +908,13 @@ line 1 - error: 'validate' must have exactly 2 arguments
   });
 
   test("the exact parameter count is clean", () => {
-    expect(typecheck("function validate (instance, puzzle) {\n  return true\n}")).toBeUndefined();
+    expect(checker.typecheck("function validate (instance, puzzle) {\n  return true\n}")).toBeUndefined();
   });
 });
 
 describe("the shapes a component may be written in", () => {
   test("hooks declared as const arrows are checked", () => {
-    expect(typecheck("const validate = (instance, puzzle) => puzzle.getCandidatez(instance.cellIds[0]);")).toBe(
+    expect(checker.typecheck("const validate = (instance, puzzle) => puzzle.getCandidatez(instance.cellIds[0]);")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error TS2551: Property 'getCandidatez' does not exist on type 'CustomComponentPuzzleBase'. Did you mean 'getCandidates'?
@@ -914,7 +926,9 @@ line 1 - error TS2551: Property 'getCandidatez' does not exist on type 'CustomCo
 
   test("hooks declared as function expressions are checked", () => {
     expect(
-      typecheck("const update = function* (instance, puzzle) {\n  yield puzzle.getCandidatez(instance.cellIds[0])\n}"),
+      checker.typecheck(
+        "const update = function* (instance, puzzle) {\n  yield puzzle.getCandidatez(instance.cellIds[0])\n}",
+      ),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
@@ -927,7 +941,7 @@ line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'CustomCo
 
   test("all five hooks as zero-parameter const arrows are clean", () => {
     expect(
-      typecheck(`const getAffectedCells = () => [0];
+      checker.typecheck(`const getAffectedCells = () => [0];
 const setParams = () => {};
 const initialize = function*() {};
 const validate = () => true;
@@ -936,21 +950,23 @@ const update = function*() {};`),
   });
 
   test("a hook declaring fewer parameters than the app passes is clean", () => {
-    expect(typecheck("function validate (instance) {\n  return !!instance.cells.length\n}")).toBeUndefined();
+    expect(checker.typecheck("function validate (instance) {\n  return !!instance.cells.length\n}")).toBeUndefined();
   });
 
   test("a non-hook helper function is left untyped, with no false positives", () => {
-    expect(typecheck("function myHelper (a, b) {\n  return a.whatever + b.anything\n}")).toBeUndefined();
+    expect(checker.typecheck("function myHelper (a, b) {\n  return a.whatever + b.anything\n}")).toBeUndefined();
   });
 
   test("a hook nested inside a block is left alone, as the app would leave it", () => {
     expect(
-      typecheck("if (true) {\n  function validate (instance, puzzle) {\n    return puzzle.nope()\n  }\n}"),
+      checker.typecheck("if (true) {\n  function validate (instance, puzzle) {\n    return puzzle.nope()\n  }\n}"),
     ).toBeUndefined();
   });
 
   test("the author's own JSDoc above a hook is left alone", () => {
-    expect(typecheck("/** My own docs */\nfunction validate (instance, puzzle) {\n  return puzzle.nope()\n}")).toBe(
+    expect(
+      checker.typecheck("/** My own docs */\nfunction validate (instance, puzzle) {\n  return puzzle.nope()\n}"),
+    ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 3 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
@@ -961,7 +977,7 @@ line 3 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
   });
 
   test("no hooks at all is clean", () => {
-    expect(typecheck("const x = 1;")).toBeUndefined();
+    expect(checker.typecheck("const x = 1;")).toBeUndefined();
   });
 });
 
@@ -972,35 +988,35 @@ line 3 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
  */
 describe("code that does nothing", () => {
   test("an empty component is clean", () => {
-    expect(typecheck("")).toBeUndefined();
+    expect(checker.typecheck("")).toBeUndefined();
   });
 
   test("a whitespace-only component is clean", () => {
-    expect(typecheck("   \n\n  ")).toBeUndefined();
+    expect(checker.typecheck("   \n\n  ")).toBeUndefined();
   });
 
   test("a comment-only component is clean", () => {
-    expect(typecheck("// nothing here")).toBeUndefined();
+    expect(checker.typecheck("// nothing here")).toBeUndefined();
   });
 });
 
-describe("getCustomComponentCodeDiagnostics", () => {
+describe("diagnostics for the generated code", () => {
   test("an empty component produces no diagnostics", () => {
-    expect(getCustomComponentCodeDiagnostics(backendResources, "")).toEqual([]);
+    expect(checker.getDiagnostics("")).toEqual([]);
   });
 
   test("a whitespace-only component produces no diagnostics", () => {
-    expect(getCustomComponentCodeDiagnostics(backendResources, "   \n\n  ")).toEqual([]);
+    expect(checker.getDiagnostics("   \n\n  ")).toEqual([]);
   });
 
   test("a comment-only component produces no diagnostics", () => {
-    expect(getCustomComponentCodeDiagnostics(backendResources, "// nothing here")).toEqual([]);
+    expect(checker.getDiagnostics("// nothing here")).toEqual([]);
   });
 });
 
 describe("destructured parameters", () => {
   test("a destructured instance keeps the known fields' real types", () => {
-    expect(typecheck("function* update ({ name }, puzzle) {\n  yield puzzle.stop(name.toFixed(2))\n}")).toBe(
+    expect(checker.typecheck("function* update ({ name }, puzzle) {\n  yield puzzle.stop(name.toFixed(2))\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
@@ -1011,7 +1027,9 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
   });
 
   test("a renamed binding keeps its type", () => {
-    expect(typecheck("function* update ({ cells: c }, puzzle) {\n  yield puzzle.stop(c.toUpperCase())\n}")).toBe(
+    expect(
+      checker.typecheck("function* update ({ cells: c }, puzzle) {\n  yield puzzle.stop(c.toUpperCase())\n}"),
+    ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
@@ -1023,13 +1041,17 @@ line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
   test("a correct body with a destructured instance is clean", () => {
     expect(
-      typecheck("function* update ({ cells }, puzzle) {\n  yield puzzle.removeCandidateFromCell(1, cells[0])\n}"),
+      checker.typecheck(
+        "function* update ({ cells }, puzzle) {\n  yield puzzle.removeCandidateFromCell(1, cells[0])\n}",
+      ),
     ).toBeUndefined();
   });
 
   test("a destructured puzzle has its keys checked", () => {
     expect(
-      typecheck("function* update (instance, { getCandidatez }) {\n  yield getCandidatez(instance.cells[0])\n}"),
+      checker.typecheck(
+        "function* update (instance, { getCandidatez }) {\n  yield getCandidatez(instance.cells[0])\n}",
+      ),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
@@ -1042,7 +1064,9 @@ line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'CustomCo
 
   test("a destructured puzzle method keeps its signature", () => {
     expect(
-      typecheck("function* update (instance, { hasValue, stop }) {\n  if (hasValue('r1c1')) { yield stop('x') }\n}"),
+      checker.typecheck(
+        "function* update (instance, { hasValue, stop }) {\n  if (hasValue('r1c1')) { yield stop('x') }\n}",
+      ),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
@@ -1054,7 +1078,9 @@ line 2 - error TS2345: Argument of type 'string' is not assignable to parameter 
   });
 
   test("both parameters destructured still catches a puzzle typo", () => {
-    expect(typecheck("function* update ({ cells }, { getCandidatez }) {\n  yield getCandidatez(cells[0])\n}")).toBe(
+    expect(
+      checker.typecheck("function* update ({ cells }, { getCandidatez }) {\n  yield getCandidatez(cells[0])\n}"),
+    ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'CustomComponentPuzzleBase'.
@@ -1065,7 +1091,7 @@ line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'CustomCo
   });
 
   test("the placeholder name does not leak into the body", () => {
-    expect(typecheck("function* update ({ cells }, puzzle) {\n  yield puzzle.stop(String(options0))\n}")).toBe(
+    expect(checker.typecheck("function* update ({ cells }, puzzle) {\n  yield puzzle.stop(String(options0))\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2304: Cannot find name 'options0'.
@@ -1084,7 +1110,7 @@ line 2 - error TS2304: Cannot find name 'options0'.
 describe("the instance's own members", () => {
   test("a member can be written and read back", () => {
     expect(
-      typecheck(
+      checker.typecheck(
         "function setParams (instance, p) {\n  instance.sequences = p\n}\nfunction* update (instance, puzzle) {\n  yield puzzle.stop(String(instance.sequences.length))\n}",
       ),
     ).toBeUndefined();
@@ -1092,14 +1118,14 @@ describe("the instance's own members", () => {
 
   test("a member can be used, not merely read", () => {
     expect(
-      typecheck(
+      checker.typecheck(
         "function* update (instance, puzzle) {\n  for (const s of instance.sequences.filter(x => x.length)) { yield puzzle.stop(String(s)) }\n}",
       ),
     ).toBeUndefined();
   });
 
   test("a known field cannot be overwritten", () => {
-    expect(typecheck("function setParams (instance, p) {\n  instance.cells = p\n}")).toBe(
+    expect(checker.typecheck("function setParams (instance, p) {\n  instance.cells = p\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
 line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only property.
@@ -1111,7 +1137,7 @@ line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only proper
 
   test("a known field keeps its real type", () => {
     expect(
-      typecheck("function* update (instance, puzzle) {\n  yield puzzle.stop(instance.cells.toUpperCase())\n}"),
+      checker.typecheck("function* update (instance, puzzle) {\n  yield puzzle.stop(instance.cells.toUpperCase())\n}"),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
@@ -1124,7 +1150,7 @@ line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
   test("a misspelled known field is NOT caught - the cost of admitting any member name", () => {
     expect(
-      typecheck(
+      checker.typecheck(
         "function* update (instance, puzzle) {\n  yield puzzle.removeCandidateFromCell(1, instance.cellIdz[0])\n}",
       ),
     ).toBeUndefined();

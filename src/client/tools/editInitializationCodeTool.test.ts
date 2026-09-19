@@ -1,12 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { getInitializationCodeDiagnostics, typecheckInitializationCode } from "./editInitializationCodeTool";
+import { InitializationCodeTypescript } from "./editInitializationCodeTool";
 import { backendResources } from "../../backendResourcesImpl";
+
+const checkerNoComponents = new InitializationCodeTypescript(backendResources);
 
 describe("real initialization code", () => {
   test("the killer cage example typechecks clean", () => {
     expect(
-      typecheckInitializationCode(
-        backendResources,
+      checkerNoComponents.typecheck(
         `for (const { cells, value } of input.groups) {
   const name = 'killer cage in ' + helpers.naming.getCellsDescription(cells);
   puzzle.addConstraintComponent(new DifferentDigitsComponent(name, cells));
@@ -18,8 +19,7 @@ describe("real initialization code", () => {
 
   test("the anti-knight example typechecks clean", () => {
     expect(
-      typecheckInitializationCode(
-        backendResources,
+      checkerNoComponents.typecheck(
         `for (const cells of helpers.geometry.getAllKnightMovePairs()) {
   puzzle.addConstraintComponent(new DifferentDigitsComponent(
     'anti-knight at ' + helpers.naming.getCellsDescription(cells),
@@ -32,8 +32,7 @@ describe("real initialization code", () => {
 
   test("the classic sudoku example typechecks clean", () => {
     expect(
-      typecheckInitializationCode(
-        backendResources,
+      checkerNoComponents.typecheck(
         `for (const [index, cells] of Array.from(helpers.geometry.getAllRows()).entries()) {
   puzzle.addConstraintComponent(new HouseComponent(\`row \${index + 1}\`, cells));
 }`,
@@ -49,8 +48,7 @@ describe("real initialization code", () => {
 describe("initialization code from real puzzles", () => {
   test('"Parity Party" typechecks clean', () => {
     expect(
-      typecheckInitializationCode(
-        backendResources,
+      new InitializationCodeTypescript(backendResources, ["OneOfSequencesComponent"]).typecheck(
         `function * getValidSequences(sum, paritySoFar = undefined, remainingDigits = helpers.digits.createFullDigitSet()) {
   for (const digit of remainingDigits) {
     const remainder = sum - digit
@@ -75,15 +73,13 @@ for (const group of input.groups) {
   const sequences = Array.from(getValidSequences(Number(group.value)))
   puzzle.addConstraintComponent(new OneOfSequencesComponent(name, sequences, group.cells))
 }`,
-        ["OneOfSequencesComponent"],
       ),
     ).toBeUndefined();
   });
 
   test('"Prime Digit Alternation" typechecks clean', () => {
     expect(
-      typecheckInitializationCode(
-        backendResources,
+      checkerNoComponents.typecheck(
         `const primes = DigitSet.from([2, 3, 5, 7]);
 const nonPrimes = DigitSet.from([1, 4, 6, 8, 9]);
 
@@ -110,8 +106,7 @@ for (const { cells } of input.groups) {
 
   test('"No 7" typechecks clean', () => {
     expect(
-      typecheckInitializationCode(
-        backendResources,
+      checkerNoComponents.typecheck(
         `const set = helpers.digits.createFilteredDigitSet(n => n !== 7);
 const list = Array.from(set);
 
@@ -133,7 +128,7 @@ describe("problems in the snippet", () => {
   test("reports a misspelled helper method", () => {
     // Also the regression test for module resolution: if `./types` stops resolving, `helpers`
     // becomes `any` and this passes silently.
-    expect(typecheckInitializationCode(backendResources, "helpers.naming.thisDoesNotExist();")).toBe(
+    expect(checkerNoComponents.typecheck("helpers.naming.thisDoesNotExist();")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
 
 line 1 - error TS2339: Property 'thisDoesNotExist' does not exist on type 'NamingHelper'.
@@ -144,7 +139,7 @@ line 1 - error TS2339: Property 'thisDoesNotExist' does not exist on type 'Namin
   });
 
   test("reports a standard component called with too few arguments", () => {
-    expect(typecheckInitializationCode(backendResources, `new BetweenComponent("b", [1, 2]);`)).toBe(
+    expect(checkerNoComponents.typecheck(`new BetweenComponent("b", [1, 2]);`)).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
 
 line 1 - error TS2554: Expected 3 arguments, but got 2.
@@ -155,7 +150,7 @@ line 1 - error TS2554: Expected 3 arguments, but got 2.
   });
 
   test("reports an unknown name", () => {
-    expect(typecheckInitializationCode(backendResources, "noSuchComponent();")).toBe(
+    expect(checkerNoComponents.typecheck("noSuchComponent();")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
 
 line 1 - error TS2552: Cannot find name 'noSuchComponent'. Did you mean 'SumComponent'?
@@ -168,7 +163,7 @@ line 1 - error TS2552: Cannot find name 'noSuchComponent'. Did you mean 'SumComp
   test("reports an array passed to a digit set's constructor", () => {
     // The constructor coerces its argument with `+`, so an array becomes `NaN` and the set comes
     // out empty. `DigitSet.from` is the documented way to build one from digits.
-    expect(typecheckInitializationCode(backendResources, "const set = new DigitSet([1, 2, 3]);")).toBe(
+    expect(checkerNoComponents.typecheck("const set = new DigitSet([1, 2, 3]);")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
 
 line 1 - error TS2345: Argument of type 'number[]' is not assignable to parameter of type 'number | SmallNumberSet'.   Type 'number[]' is missing the following properties from type 'SmallNumberSet': mask, add, clear, delete, and 13 more.
@@ -186,26 +181,28 @@ line 1 - error TS2345: Argument of type 'number[]' is not assignable to paramete
  */
 describe("code that does nothing", () => {
   test("an empty snippet is clean", () => {
-    expect(typecheckInitializationCode(backendResources, "")).toBeUndefined();
+    expect(checkerNoComponents.typecheck("")).toBeUndefined();
   });
 });
 
-describe("getInitializationCodeDiagnostics", () => {
+describe("diagnostics for the generated code", () => {
   test("an empty snippet produces no diagnostics", () => {
-    expect(getInitializationCodeDiagnostics(backendResources, "")).toEqual([]);
+    expect(checkerNoComponents.getDiagnostics("")).toEqual([]);
   });
 
   test("a whitespace-only snippet produces no diagnostics", () => {
-    expect(getInitializationCodeDiagnostics(backendResources, "   \n\n  ")).toEqual([]);
+    expect(checkerNoComponents.getDiagnostics("   \n\n  ")).toEqual([]);
   });
 
   test("a comment-only snippet produces no diagnostics", () => {
-    expect(getInitializationCodeDiagnostics(backendResources, "// nothing here")).toEqual([]);
+    expect(checkerNoComponents.getDiagnostics("// nothing here")).toEqual([]);
   });
 });
 
 describe("the element's custom components", () => {
   test("a component named in the element constructs cleanly", () => {
-    expect(typecheckInitializationCode(backendResources, "new MyCage(1, 2, 3);", ["MyCage"])).toBeUndefined();
+    expect(
+      new InitializationCodeTypescript(backendResources, ["MyCage"]).typecheck("new MyCage(1, 2, 3);"),
+    ).toBeUndefined();
   });
 });

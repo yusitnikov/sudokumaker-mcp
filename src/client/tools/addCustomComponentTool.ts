@@ -3,7 +3,7 @@ import { CustomElementToolImplementation } from "./CustomElementToolImplementati
 import { addCustomComponentToolName } from "./toolNames";
 import { CustomElement } from "../../elements/CustomElement";
 import { customComponentsTopicName } from "./docs/topicNames";
-import { typecheckCustomComponentCode } from "./typecheckCustomComponentCode";
+import { CustomComponentCodeTypescript } from "./typecheckCustomComponentCode";
 
 export const addCustomComponentTool = new CustomElementToolImplementation(
   {
@@ -33,6 +33,6 @@ the component's API cannot be guessed.
   },
 
   function (targetElement, { name }, resources) {
-    return typecheckCustomComponentCode(resources, targetElement.config.customComponents[name]);
+    return new CustomComponentCodeTypescript(resources).typecheck(targetElement.config.customComponents[name]);
   },
 );

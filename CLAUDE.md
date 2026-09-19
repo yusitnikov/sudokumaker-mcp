@@ -212,8 +212,10 @@ carried only by the tools it applies to, and only once the run has actually fini
 The code-editing tools typecheck what they wrote against the generated declarations and append the
 problems as a `[WARNING]`, formatted the way `tsc` prints a diagnostic. The edit lands either way -
 the declarations are recovered from a minified app, so a false positive must never block a real
-edit. `typecheckSnippet.ts` is the shared checker; the initialization and custom-component scopes
-can never be compiled together, since they declare different `helpers`.
+edit. `SnippetTypescript` (`typecheckSnippet.ts`) is the shared checker, one subclass per scope: a
+scope supplies its globals and may override `annotate` to inject declarations, map the resulting
+spans back to the author's lines, and add findings of its own. The two scopes can never be compiled
+together, since they declare different `helpers`.
 
 **A snippet is checked as JavaScript**, which is what the worker runs - so a construct that is
 ordinary JS may be reported only if a type annotation could fix it. Reassigning a variable to

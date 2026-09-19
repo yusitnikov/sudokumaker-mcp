@@ -5,46 +5,7 @@ import { CustomElement } from "../../elements/CustomElement";
 import { customConstraintsTopicName } from "./docs/topicNames";
 import { editText, editTextOperation } from "./editText";
 import type { BackendResources } from "../../BackendResources";
-import { getSnippetDiagnostics, type SnippetScope, typecheckSnippet } from "./typecheckSnippet";
-
-/**
- * Declares the element's own components, which the initialization code constructs by bare name.
- *
- * Their constructor parameters can't be recovered - the real signature is only discoverable by
- * analyzing user code this doesn't parse, and `unknown[]` would reject every real call site.
- */
-const buildCustomComponentDeclarations = (customComponentNames: string[]) => {
-  const declarations = customComponentNames
-    .map((name) => `  class ${name} extends Component { constructor(...args: any[]); }\n`)
-    .join("");
-
-  return `import { Component } from "./types";\n\ndeclare global {\n${declarations}}\n`;
-};
-
-/** What the initialization code is checked against: its own globals, plus the element's components. */
-const scope = ({ declarations }: BackendResources, customComponentNames: string[]): SnippetScope => ({
-  globals: declarations.initialCodeGlobals,
-  extraDeclarations: { "/components.d.ts": buildCustomComponentDeclarations(customComponentNames) },
-});
-
-export const getInitializationCodeDiagnostics = (
-  backendResources: BackendResources,
-  code: string,
-  customComponentNames: string[] = [],
-) => getSnippetDiagnostics(backendResources, scope(backendResources, customComponentNames), code);
-
-/**
- * Typechecks initialization code against the declarations scanned out of the app, returning the
- * problems as text - or `undefined` when there are none.
- *
- * The code is compiled verbatim, so every diagnostic's line number is the author's own.
- */
-export const typecheckInitializationCode = (
-  backendResources: BackendResources,
-  code: string,
-  customComponentNames: string[] = [],
-): string | undefined =>
-  typecheckSnippet(backendResources, scope(backendResources, customComponentNames), code, "initialization code");
+import { SnippetTypescript } from "./typecheckSnippet";
 
 export const editInitializationCodeTool = new CustomElementToolImplementation(
   {
@@ -70,10 +31,33 @@ its API and conventions cannot be guessed.
 
   function (targetElement, _params, resources) {
     // TODO: do the same typecheck when creating a new custom element
-    return typecheckInitializationCode(
-      resources,
+    return new InitializationCodeTypescript(resources, Object.keys(targetElement.config.customComponents)).typecheck(
       targetElement.config.initializationCode,
-      Object.keys(targetElement.config.customComponents),
     );
   },
 );
+
+export class InitializationCodeTypescript extends SnippetTypescript {
+  constructor(backendResources: BackendResources, customComponentNames: string[] = []) {
+    /**
+     * Declares the element's own components, which the initialization code constructs by bare name.
+     *
+     * Their constructor parameters can't be recovered - the real signature is only discoverable by
+     * analyzing user code this doesn't parse, and `unknown[]` would reject every real call site.
+     */
+    const declarations = customComponentNames
+      .map((name) => `  class ${name} extends Component { constructor(...args: any[]); }\n`)
+      .join("");
+
+    super(
+      backendResources,
+      {
+        globals: backendResources.declarations.initialCodeGlobals,
+        extraDeclarations: {
+          "/components.d.ts": `import { Component } from "./types";\n\ndeclare global {\n${declarations}}\n`,
+        },
+      },
+      "initialization code",
+    );
+  }
+}
