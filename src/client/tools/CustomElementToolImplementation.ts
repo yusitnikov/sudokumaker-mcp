@@ -2,6 +2,7 @@ import { z } from "zod";
 import { getElementById, getElementFinalName } from "./elementUtils";
 import { elementIdNote, operationDescriptionParam } from "./descriptionSnippets";
 import { addElementToolName, getPuzzleToolName } from "./toolNames";
+import { formatStandardComponent, getStandardComponentByName } from "./standardComponents";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
 import { CustomElement } from "../../elements/CustomElement";
 import type { ElementByType } from "../../elements/types";
@@ -128,14 +129,32 @@ export class CustomElementToolImplementation<
   }
 
   /**
-   * Throws a clear domain error when the element already has a component named `name`,
-   * whose code a write under that name would silently replace.
+   * Throws a clear domain error when `name` is not available for a custom component - either the
+   * element already has one under that name, whose code a write would silently replace, or the name
+   * is a standard component's, which the initialization code could then no longer reach - the
+   * error quotes that component's own spec, since it may well be what was wanted in the first place.
    */
   protected checkCustomComponentNameIsFree(targetElement: CustomElementPublic, name: string) {
     if (name in targetElement.config.customComponents) {
       throw new Error(
         `"${getElementFinalName(targetElement)}" already has a custom component named "${name}". ` +
           `Its custom components are: ${Object.keys(targetElement.config.customComponents).join(", ")}.`,
+      );
+    }
+
+    const standardComponent = getStandardComponentByName(name);
+    if (standardComponent) {
+      throw new Error(
+        // language=markdown
+        `
+SudokuMaker already has a standard component named "${name}":
+
+${formatStandardComponent(standardComponent)}
+
+If that is the logic that was wanted, no custom component is needed at all -
+the initialization code can use the standard component by its name.
+If a genuinely different component is meant, pick another name for it.
+`.trim(),
       );
     }
   }

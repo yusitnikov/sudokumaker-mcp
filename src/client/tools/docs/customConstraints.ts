@@ -9,6 +9,7 @@ import {
 import { addCluesToolName, removeCluesToolName, updateCluesToolName } from "../toolNames";
 import { CustomElement } from "../../../elements/CustomElement";
 import standardComponents from "../../../generated/standardComponents.json";
+import { formatStandardComponent } from "../standardComponents";
 
 export const customConstraintsTopic: DocsTopic = {
   name: customConstraintsTopicName,
@@ -72,12 +73,7 @@ i.e. if the German whispers line is r2c2-r3c3-r4c4-r5c5, then the applied compon
 ### Standard components
 
 SudokuMaker supports the following *standard components* out of the box:
-${standardComponents
-  .map(
-    (component) =>
-      `- \`${component.name}${component.definition}\`\n  ${component.description.split("\n").join("\n  ")}`,
-  )
-  .join("\n")}
+${standardComponents.map((component) => `- ${formatStandardComponent(component)}`).join("\n")}
 
 ### Initialization code, input groups and global constraints
 
