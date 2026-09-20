@@ -270,8 +270,6 @@ program
         "  readonly cellIds: CellId[];\n" +
         "  readonly cells: CellId[];\n" +
         "  readonly name: string;\n" +
-        // An author-defined member's type is whatever their constructor passed - unknowable here
-        "  [member: string]: any;\n" +
         "};\n\n";
 
       const { initialCodeScopeHandle, customComponentCodeScopeHandle, globalScopeHandle } = SmCodeScanner;
@@ -537,6 +535,7 @@ program
             // Aliases extend their originals to not be replaced in the typecheck reports
             `interface Puzzle extends ${typesNamespace}.CustomComponentPuzzle {}`,
             `interface Instance extends ${typesNamespace}.CustomComponentInstance {}`,
+            `interface DynamicInstance extends Instance { [member: string]: any; }`,
             `type Change = ${typesNamespace}.Change;`,
           ].join("\n"),
         ),

@@ -64,7 +64,6 @@ export type CustomComponentInstance = {
   readonly cellIds: CellId[];
   readonly cells: CellId[];
   readonly name: string;
-  [member: string]: any;
 };
 
 export declare class CellIdsHelper {

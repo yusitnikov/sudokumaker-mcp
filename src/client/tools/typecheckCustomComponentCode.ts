@@ -27,20 +27,20 @@ const hooks: Record<string, { params: string[]; returns: string; variadic?: true
     variadic: true,
   },
   setParams: {
-    params: ["Instance"],
+    params: ["DynamicInstance"],
     returns: "void",
     variadic: true,
   },
   initialize: {
-    params: ["Instance", "Puzzle"],
+    params: ["DynamicInstance", "Puzzle"],
     returns: "Generator<Change, void, undefined>",
   },
   validate: {
-    params: ["Instance", "Puzzle"],
+    params: ["DynamicInstance", "Puzzle"],
     returns: "boolean",
   },
   update: {
-    params: ["Instance", "Puzzle"],
+    params: ["DynamicInstance", "Puzzle"],
     returns: "Generator<Change, void, undefined>",
   },
 };
@@ -116,11 +116,15 @@ const authorType = (
       const written = isVariadic ? type.type.getText(sourceFile) : type.getText(sourceFile);
 
       return {
-        text: written
-          // remove the "*" characters that are parts of JSDoc's format
-          .replace(/\n\s*\*/g, "\n")
-          // compact whitespace character runs, including the line breaks
-          .replace(/\s+/g, " ").trim(),
+        text:
+          written.trim() === "*"
+            ? "any"
+            : written
+                // remove the "*" characters that are parts of JSDoc's format
+                .replace(/\n\s*\*/g, "\n")
+                // compact whitespace character runs, including the line breaks
+                .replace(/\s+/g, " ")
+                .trim(),
         variadic: isVariadic,
       };
     }
@@ -162,14 +166,18 @@ const buildJsDoc = (
       return;
     }
 
-    const own = known === undefined ? authorType(typescript, sourceFile, parameter) : undefined;
+    const isInstance = known === "DynamicInstance";
+    const own = known === undefined || isInstance ? authorType(typescript, sourceFile, parameter) : undefined;
     /*
      * A rest parameter collects every remaining argument, so its tag types one of them and is
      * spelled `...T` - tagging it as the array itself would give each argument the whole list's
      * type. The author may have spelled that themselves, in which case it is not repeated.
      */
     const rest = parameter.dotDotDotToken !== undefined || own?.variadic === true;
-    const type = known ?? own?.text;
+    const type =
+      isInstance && own?.text
+        ? `Instance & (${["any", "object"].includes(own.text) ? "{}" : own.text})`
+        : (known ?? own?.text);
     /*
      * A constructor argument the author did not type is tagged without one rather than as `{any}`: a
      * tag's type is the parameter's declared type and overrides what the compiler would otherwise
@@ -179,9 +187,7 @@ const buildJsDoc = (
     const annotation = type === undefined ? "" : `{${rest ? "..." : ""}${type}} `;
 
     tags.push(
-      `@param ${annotation}${
-        typescript.isIdentifier(parameter.name) ? parameter.name.text : `options${index}`
-      }`,
+      `@param ${annotation}${typescript.isIdentifier(parameter.name) ? parameter.name.text : `options${index}`}`,
     );
   });
 

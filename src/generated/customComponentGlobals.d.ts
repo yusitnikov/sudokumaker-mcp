@@ -9,5 +9,8 @@ declare global {
   type CellId = types.CellId;
   interface Puzzle extends types.CustomComponentPuzzle {}
   interface Instance extends types.CustomComponentInstance {}
+  interface DynamicInstance extends Instance {
+    [member: string]: any;
+  }
   type Change = types.Change;
 }
