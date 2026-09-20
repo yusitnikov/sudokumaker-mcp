@@ -531,7 +531,14 @@ program
         formatGlobals(
           groupedIndex.object[customComponentCodeScopeHandle].ownProperties,
           "",
-          `interface ${customComponentsListHandle} {}\n`,
+          [
+            `interface ${customComponentsListHandle} {}`,
+            `type CellId = ${typesNamespace}.CellId;`,
+            // Aliases extend their originals to not be replaced in the typecheck reports
+            `interface Puzzle extends ${typesNamespace}.CustomComponentPuzzle {}`,
+            `interface Instance extends ${typesNamespace}.CustomComponentInstance {}`,
+            `type Change = ${typesNamespace}.Change;`,
+          ].join("\n"),
         ),
       );
 

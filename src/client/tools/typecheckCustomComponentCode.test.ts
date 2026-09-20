@@ -90,7 +90,7 @@ describe("problems in a hook body", () => {
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'CustomComponentPuzzleBase'. Did you mean 'getCandidates'?
+line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'Puzzle'. Did you mean 'getCandidates'?
 
 2   yield puzzle.getCandidatez(instance.cellIds[0])
                  ~~~~~~~~~~~~~`,
@@ -229,7 +229,7 @@ line 3 - error TS2322: Type '"first\\nsecond"' is not assignable to type '"only"
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 5 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
+line 5 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 5   return puzzle.nope()
                   ~~~~`,
@@ -244,7 +244,7 @@ line 5 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPu
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 5 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
+line 5 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 5   yield puzzle.nope()
                  ~~~~`,
@@ -400,7 +400,7 @@ line 1 - error TS1109: Expression expected.
 1 const broken = ;
                  ~
 
-line 4 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
+line 4 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 4   return puzzle.nope()
                   ~~~~`,
@@ -576,7 +576,7 @@ line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only proper
     expect(checker.typecheck("function* initialize (instance, puzzle) {\n  yield puzzle.nope()\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
+line 2 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 2   yield puzzle.nope()
                  ~~~~`,
@@ -671,7 +671,7 @@ describe("hook parameters named differently", () => {
     expect(checker.typecheck("function* update (self, p) {\n  yield p.nope()\n}")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
+line 2 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 2   yield p.nope()
             ~~~~`,
@@ -703,7 +703,7 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2339: Property 'cells' does not exist on type 'CustomComponentPuzzleBase'.
+line 2 - error TS2339: Property 'cells' does not exist on type 'Puzzle'.
 
 2   return puzzle.getCellsAreFilled(instance.cells)
                                              ~~~~~`,
@@ -830,7 +830,7 @@ line 1 - error: 'validate' must have exactly 2 arguments
 1 function validate (instance, puzzle, extra) {
                                        ~~~~~
 
-line 2 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
+line 2 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 2   return puzzle.nope()
                   ~~~~`,
@@ -856,7 +856,7 @@ line 5 - error: 'validate' must have exactly 2 arguments
 5 function validate (instance, puzzle, extra) {
                                        ~~~~~
 
-line 6 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
+line 6 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 6   return puzzle.nope() && !!extra
                   ~~~~`,
@@ -917,7 +917,7 @@ describe("the shapes a component may be written in", () => {
     expect(checker.typecheck("const validate = (instance, puzzle) => puzzle.getCandidatez(instance.cellIds[0]);")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 1 - error TS2551: Property 'getCandidatez' does not exist on type 'CustomComponentPuzzleBase'. Did you mean 'getCandidates'?
+line 1 - error TS2551: Property 'getCandidatez' does not exist on type 'Puzzle'. Did you mean 'getCandidates'?
 
 1 const validate = (instance, puzzle) => puzzle.getCandidatez(instance.cellIds[0]);
                                                 ~~~~~~~~~~~~~`,
@@ -932,7 +932,7 @@ line 1 - error TS2551: Property 'getCandidatez' does not exist on type 'CustomCo
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'CustomComponentPuzzleBase'. Did you mean 'getCandidates'?
+line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'Puzzle'. Did you mean 'getCandidates'?
 
 2   yield puzzle.getCandidatez(instance.cellIds[0])
                  ~~~~~~~~~~~~~`,
@@ -969,7 +969,7 @@ const update = function*() {};`),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 3 - error TS2339: Property 'nope' does not exist on type 'CustomComponentPuzzleBase'.
+line 3 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 3   return puzzle.nope()
                   ~~~~`,
@@ -1055,7 +1055,7 @@ line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'CustomComponentPuzzleBase'.
+line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'Puzzle'.
 
 1 function* update (instance, { getCandidatez }) {
                                 ~~~~~~~~~~~~~`,
@@ -1083,7 +1083,7 @@ line 2 - error TS2345: Argument of type 'string' is not assignable to parameter 
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'CustomComponentPuzzleBase'.
+line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'Puzzle'.
 
 1 function* update ({ cells }, { getCandidatez }) {
                                  ~~~~~~~~~~~~~`,

@@ -387,7 +387,7 @@
         },
         "puzzle": {
           "type": "reference",
-          "id": "InstanceOfCustomComponentPuzzleBase"
+          "id": "InstanceOfCustomComponentPuzzle"
         }
       }
     },
@@ -454,16 +454,16 @@
         "id": "CornerIdsHelper"
       }
     },
-    "InstanceOfCustomComponentPuzzleBase": {
+    "InstanceOfCustomComponentPuzzle": {
       "type": "object",
       "reference": {
         "type": "reference",
-        "id": "InstanceOfCustomComponentPuzzleBase"
+        "id": "InstanceOfCustomComponentPuzzle"
       },
       "references": ["InitializeArgs.puzzle", "ValidateArgs.puzzle", "UpdateArgs.puzzle"],
       "class": {
         "type": "reference",
-        "id": "CustomComponentPuzzleBase"
+        "id": "CustomComponentPuzzle"
       }
     },
     "InstanceOfCustomComponentScopeGeometryHelper": {
@@ -858,7 +858,7 @@
         },
         "puzzle": {
           "type": "reference",
-          "id": "InstanceOfCustomComponentPuzzleBase"
+          "id": "InstanceOfCustomComponentPuzzle"
         }
       }
     },
@@ -876,7 +876,7 @@
         },
         "puzzle": {
           "type": "reference",
-          "id": "InstanceOfCustomComponentPuzzleBase"
+          "id": "InstanceOfCustomComponentPuzzle"
         }
       }
     },
@@ -1087,14 +1087,14 @@
         }
       }
     },
-    "CustomComponentPuzzleBase": {
+    "CustomComponentPuzzle": {
       "type": "class",
       "reference": {
         "type": "reference",
-        "id": "CustomComponentPuzzleBase"
+        "id": "CustomComponentPuzzle"
       },
       "references": [
-        "CustomComponentPuzzleBase",
+        "CustomComponentPuzzle",
         "InitializeArgs.puzzle.class",
         "ValidateArgs.puzzle.class",
         "UpdateArgs.puzzle.class"
@@ -1742,7 +1742,7 @@
         "type": "reference",
         "id": "PuzzleBase"
       },
-      "references": ["InitialCodePuzzle.class.extends", "PuzzleBase", "CustomComponentPuzzleBase.extends"],
+      "references": ["InitialCodePuzzle.class.extends", "PuzzleBase", "CustomComponentPuzzle.extends"],
       "ownProperties": {
         "digitCount": {
           "type": "magic",

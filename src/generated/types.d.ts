@@ -94,7 +94,7 @@ export declare class CornerIdsHelper {
   cellIdHelper: CellIdsHelper;
 }
 
-export declare class CustomComponentPuzzleBase extends PuzzleBase {
+export declare class CustomComponentPuzzle extends PuzzleBase {
   filterCandidatesInCell: (candidates: DigitSetMask | SmallNumberSet, cellId: CellId) => Change;
   filterCandidatesInCells: (candidates: DigitSetMask | SmallNumberSet, cellIds: Iterable<CellId>) => Change;
   getCandidates: (cellId: CellId) => DigitSet;
@@ -399,7 +399,7 @@ export type InitialCodeScopeHelpers = Helpers & {
 
 export type InitializeArgs = {
   instance: CustomComponentInstance;
-  puzzle: CustomComponentPuzzleBase;
+  puzzle: CustomComponentPuzzle;
 };
 
 export type IterationUtils = {
@@ -445,12 +445,12 @@ export type SetUtils = {
 
 export type UpdateArgs = {
   instance: CustomComponentInstance;
-  puzzle: CustomComponentPuzzleBase;
+  puzzle: CustomComponentPuzzle;
 };
 
 export type ValidateArgs = {
   instance: CustomComponentInstance;
-  puzzle: CustomComponentPuzzleBase;
+  puzzle: CustomComponentPuzzle;
 };
 
 export type Vector2Funcs = {

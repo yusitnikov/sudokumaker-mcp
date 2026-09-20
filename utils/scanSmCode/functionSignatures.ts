@@ -435,7 +435,7 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
       returnType: "CornerId",
     },
   },
-  CustomComponentPuzzleBase: {
+  CustomComponentPuzzle: {
     filterCandidatesInCell: {
       processed: true,
       arguments: [

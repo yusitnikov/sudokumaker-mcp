@@ -8,10 +8,6 @@ import {
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
 
-const typesImport = (name: string) => `import("./types").${name}`;
-const hookArg = (args: string, member: "instance" | "puzzle") => `${typesImport(args)}["${member}"]`;
-const solverActions = `Generator<${typesImport("Change")}, void, undefined>`;
-
 /**
  * The five functions a component may declare, and what the app passes each one.
  *
@@ -25,19 +21,27 @@ const solverActions = `Generator<${typesImport("Change")}, void, undefined>`;
  * to re-derive first if a component ever warns inexplicably.
  */
 const hooks: Record<string, { params: string[]; returns: string; variadic?: true }> = {
-  getAffectedCells: { params: [], returns: `${typesImport("CellId")}[]`, variadic: true },
-  setParams: { params: [hookArg("SetParamsArgs", "instance")], returns: "void", variadic: true },
+  getAffectedCells: {
+    params: [],
+    returns: "CellId[]",
+    variadic: true,
+  },
+  setParams: {
+    params: ["Instance"],
+    returns: "void",
+    variadic: true,
+  },
   initialize: {
-    params: [hookArg("InitializeArgs", "instance"), hookArg("InitializeArgs", "puzzle")],
-    returns: solverActions,
+    params: ["Instance", "Puzzle"],
+    returns: "Generator<Change, void, undefined>",
   },
   validate: {
-    params: [hookArg("ValidateArgs", "instance"), hookArg("ValidateArgs", "puzzle")],
+    params: ["Instance", "Puzzle"],
     returns: "boolean",
   },
   update: {
-    params: [hookArg("UpdateArgs", "instance"), hookArg("UpdateArgs", "puzzle")],
-    returns: solverActions,
+    params: ["Instance", "Puzzle"],
+    returns: "Generator<Change, void, undefined>",
   },
 };
 

@@ -636,7 +636,7 @@ export class SmCodeScanner extends GenericSmCodeScanner<false> {
     );
     this.indexLabel(initialCodeScope.puzzle, "InitialCodePuzzle");
     this.indexLabel(this.getClass(Object.getPrototypeOf(updateArgs.puzzle)), "PuzzleBase");
-    this.indexLabel(this.getClass(updateArgs.puzzle), "CustomComponentPuzzleBase");
+    this.indexLabel(this.getClass(updateArgs.puzzle), "CustomComponentPuzzle");
     this.fakeBaseClass(
       "Env",
       this.indexLabel(initialCodeScope.env, "InitialCodeEnv"),
