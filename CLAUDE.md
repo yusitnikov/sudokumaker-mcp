@@ -220,7 +220,10 @@ together, since they declare different `helpers`.
 **A snippet is checked as JavaScript**, which is what the worker runs - so a construct that is
 ordinary JS may be reported only if a type annotation could fix it. Reassigning a variable to
 another type qualifies, the author having `/** @type */` as the remedy; anything with no
-annotation-shaped remedy is a false positive, and the declarations are what to fix.
+annotation-shaped remedy is a false positive, and the declarations are what to fix. A hook's leading
+parameters are typed from the hook table and an author cannot override them; the constructor
+arguments two of the hooks receive after those are unknowable, so there the author's own `@param` is
+honored, and is the only way they get checked.
 
 `runOnFrontend` catches whatever a tool throws and returns it as an `isError: true` result, so a
 failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace through

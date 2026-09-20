@@ -982,6 +982,444 @@ line 3 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 });
 
 /*
+ * Only the JSDoc block nearest the function is read - an earlier one contributes nothing but
+ * `@overload` - so the injected block is the whole of what types a hook, and it copies the author's
+ * own `@param` for the constructor arguments it cannot type itself. What the author writes for a
+ * parameter the app defines is therefore ignored, and what they write for a constructor argument is
+ * what checks it.
+ */
+describe("the author's own @param tags", () => {
+  test("a type the author gives a constructor argument is checked", () => {
+    expect(
+      checker.typecheck(
+        `/** @param {string} param1 */
+function setParams (instance, param1) {
+  instance.param1 = param1.toFixed(2)
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
+
+3   instance.param1 = param1.toFixed(2)
+                             ~~~~~~~`,
+    );
+  });
+
+  test("an untyped constructor argument stays unchecked", () => {
+    expect(
+      checker.typecheck("function setParams (instance, param1) {\n  instance.param1 = param1.anything()\n}"),
+    ).toBeUndefined();
+  });
+
+  test("the author cannot retype a parameter the checker already types", () => {
+    // The injected block sits nearest the function and names `puzzle` itself, so the author's block
+    // is never read - `getCellsAreFilled` exists on the real type and on no `string`.
+    expect(
+      checker.typecheck(
+        `/** @param {string} puzzle */
+function validate (instance, puzzle) {
+  return puzzle.getCellsAreFilled(instance.cells)
+}`,
+      ),
+    ).toBeUndefined();
+  });
+
+  test("a retyped parameter is still checked against the real type", () => {
+    // Misusing the real type's own result reports only if the injected tag is the one in force:
+    // under the author's `{string}` the whole call would be unchecked.
+    expect(
+      checker.typecheck(
+        `/** @param {string} puzzle */
+function validate (instance, puzzle) {
+  return puzzle.getCellsAreFilled(instance.cells).toFixed(2)
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2339: Property 'toFixed' does not exist on type 'boolean'.
+
+3   return puzzle.getCellsAreFilled(instance.cells).toFixed(2)
+                                                    ~~~~~~~`,
+    );
+  });
+
+  test("an author's @returns does not loosen what the hook must return", () => {
+    expect(
+      checker.typecheck(
+        `/** @returns {string} */
+function validate (instance, puzzle) {
+  return "nope"
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2322: Type 'string' is not assignable to type 'boolean'.
+
+3   return "nope"
+    ~~~~~~`,
+    );
+  });
+});
+
+/*
+ * The author's type is copied as the source text of its own node, and a JSDoc type may be written
+ * across as many lines as it likes. The injected block is a single line, so a copied type carrying
+ * newlines would split it - and every line after the hook would then be echoed out of step with the
+ * author's source. These pin the copy on the shapes that carry that risk.
+ */
+describe("the author's own JSDoc written across lines", () => {
+  test("a multi-line block types a constructor argument", () => {
+    expect(
+      checker.typecheck(
+        `/**
+ * Sets the component up.
+ * @param {Instance} instance
+ * @param {string} param1
+ */
+function setParams (instance, param1) {
+  instance.param1 = param1.toFixed(2)
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
+
+7   instance.param1 = param1.toFixed(2)
+                             ~~~~~~~`,
+    );
+  });
+
+  test("a type spanning lines is copied whole, and the hook stays on its own line", () => {
+    expect(
+      checker.typecheck(
+        `/**
+ * @param {{
+ *   width: number,
+ *   height: number,
+ * }} param1
+ */
+function setParams (instance, param1) {
+  instance.area = param1.width * param1.depth
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 8 - error TS2339: Property 'depth' does not exist on type '{ width: number; height: number; }'.
+
+8   instance.area = param1.width * param1.depth
+                                          ~~~~~`,
+    );
+  });
+
+  test("a union spanning lines keeps every member", () => {
+    expect(
+      checker.typecheck(
+        `/**
+ * @param {
+ *   | "row"
+ *   | "column"
+ * } param1
+ */
+function setParams (instance, param1) {
+  instance.axis = param1.toFixed(2)
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 8 - error TS2551: Property 'toFixed' does not exist on type '"row" | "column"'. Did you mean 'fixed'?   Property 'toFixed' does not exist on type '"row"'.
+
+8   instance.axis = param1.toFixed(2)
+                           ~~~~~~~`,
+    );
+  });
+
+  test("a multi-line type still leaves a later hook's errors on their own lines", () => {
+    expect(
+      checker.typecheck(
+        `/**
+ * @param {{
+ *   width: number,
+ * }} param1
+ */
+function setParams (instance, param1) {
+  instance.width = param1.width
+}
+
+function validate (instance, puzzle) {
+  return puzzle.nope()
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 11 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
+
+11   return puzzle.nope()
+                   ~~~~`,
+    );
+  });
+});
+
+/*
+ * A rest parameter collects every remaining constructor argument, so its tag types one of them
+ * rather than the list - `{...T}`, not `{T[]}`. Getting that backwards would give each argument the
+ * whole list's type, which reads as sound on a body that then misuses it.
+ */
+describe("a variadic hook's rest parameter", () => {
+  test("the items of an untyped rest parameter stay unchecked", () => {
+    expect(
+      checker.typecheck("function getAffectedCells (...cells) {\n  return cells[0].anything()\n}"),
+    ).toBeUndefined();
+  });
+
+  test("an untyped rest parameter is still checked as an array", () => {
+    expect(checker.typecheck("function getAffectedCells (...cells) {\n  return cells.anything()\n}"))
+      .toBe(`[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 2 - error TS2339: Property 'anything' does not exist on type 'any[]'.
+
+2   return cells.anything()
+                 ~~~~~~~~`);
+  });
+
+  test("the author's type applies to one argument, not to the list", () => {
+    // `cells` is `CellId[]`, so indexing it gives a `CellId` - a number, which has no `toUpperCase`.
+    expect(
+      checker.typecheck(
+        `/** @param {CellId} cells */
+function getAffectedCells (...cells) {
+  return cells[0].toUpperCase()
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
+
+3   return cells[0].toUpperCase()
+                    ~~~~~~~~~~~`,
+    );
+  });
+
+  test("the list itself is an array of the author's type", () => {
+    expect(
+      checker.typecheck(
+        `/** @param {CellId} cells */
+function getAffectedCells (...cells) {
+  return cells.toUpperCase()
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
+
+3   return cells.toUpperCase()
+                 ~~~~~~~~~~~`,
+    );
+  });
+
+  test("an author who spelled the ... themselves is not doubled", () => {
+    // `{...CellId}` and a `...cells` parameter both say rest; emitting `{......CellId}` would be a
+    // malformed tag, and the parameter would fall back to an unchecked `any`.
+    expect(
+      checker.typecheck(
+        `/** @param {...CellId} cells */
+function getAffectedCells (...cells) {
+  return cells[0].toUpperCase()
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
+
+3   return cells[0].toUpperCase()
+                    ~~~~~~~~~~~`,
+    );
+  });
+
+  test("a rest parameter after the known ones keeps those typed", () => {
+    expect(
+      checker.typecheck("function setParams (instance, ...params) {\n  instance.first = instance.name.toFixed(2)\n}"),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
+
+2   instance.first = instance.name.toFixed(2)
+                                   ~~~~~~~`,
+    );
+  });
+
+  test("a typed rest parameter alongside the known ones is checked", () => {
+    expect(
+      checker.typecheck(
+        `/** @param {string} names */
+function setParams (instance, ...names) {
+  instance.first = names[0].toFixed(2)
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
+
+3   instance.first = names[0].toFixed(2)
+                              ~~~~~~~`,
+    );
+  });
+});
+
+/*
+ * A default value says what the author expects to receive, so it types the parameter when they wrote
+ * no `@param` for it - the checker must not throw that away. A tag of their own still wins, and the
+ * default must then satisfy it.
+ */
+describe("a constructor argument with a default value", () => {
+  test("an empty array default makes the parameter a list", () => {
+    expect(
+      checker.typecheck("function getAffectedCells (cell, extraCells = []) {\n  return extraCells.anything()\n}"),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 2 - error TS2339: Property 'anything' does not exist on type 'any[]'.
+
+2   return extraCells.anything()
+                      ~~~~~~~~`,
+    );
+  });
+
+  test("an item of a parameter defaulted to an empty array has no known type", () => {
+    // The default says it is a list and nothing says of what, so the element stays unchecked.
+    expect(
+      checker.typecheck("function getAffectedCells (cell, extraCells = []) {\n  return extraCells[0].anything()\n}"),
+    ).toBeUndefined();
+  });
+
+  test("a scalar default types the parameter", () => {
+    expect(
+      checker.typecheck("function getAffectedCells (cell, size = 3) {\n  return [cell, size.toUpperCase()]\n}"),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
+
+2   return [cell, size.toUpperCase()]
+                       ~~~~~~~~~~~`,
+    );
+  });
+
+  test("a populated array default types the parameter", () => {
+    expect(
+      checker.typecheck("function getAffectedCells (cell, extraCells = [1, 2]) {\n  return extraCells.anything()\n}"),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 2 - error TS2339: Property 'anything' does not exist on type 'number[]'.
+
+2   return extraCells.anything()
+                      ~~~~~~~~`,
+    );
+  });
+
+  test("the author's type is what checks a defaulted parameter", () => {
+    expect(
+      checker.typecheck(
+        `/** @param {number} size */
+function getAffectedCells (cell, size = 3) {
+  return [cell, size.toUpperCase()]
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
+
+3   return [cell, size.toUpperCase()]
+                       ~~~~~~~~~~~`,
+    );
+  });
+
+  test("a default agreeing with the author's type is clean", () => {
+    expect(
+      checker.typecheck(
+        `/** @param {CellId[]} extraCells */
+function getAffectedCells (cell, extraCells = []) {
+  return [cell, ...extraCells]
+}`,
+      ),
+    ).toBeUndefined();
+  });
+
+  /*
+   * A default is a type of its own, and a narrower one than the author declared. It must not become
+   * the parameter's type: the body is checked against the tag, so a use the tag forbids is reported
+   * even where the default alone would have allowed it.
+   */
+  test("a default picking one member of a union does not narrow it", () => {
+    expect(
+      checker.typecheck(
+        `/** @param {number | string} size */
+function getAffectedCells (cell, size = "big") {
+  return [cell, size.toUpperCase()]
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'string | number'.   Property 'toUpperCase' does not exist on type 'number'.
+
+3   return [cell, size.toUpperCase()]
+                       ~~~~~~~~~~~`,
+    );
+  });
+
+  test("an empty array default does not narrow the author's element type", () => {
+    expect(
+      checker.typecheck(
+        `/** @param {number[]} extraCells */
+function getAffectedCells (cell, extraCells = []) {
+  return [cell, extraCells[0].anything()]
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 3 - error TS2339: Property 'anything' does not exist on type 'number'.
+
+3   return [cell, extraCells[0].anything()]
+                                ~~~~~~~~`,
+    );
+  });
+
+  test("a default contradicting the author's type is reported", () => {
+    expect(
+      checker.typecheck(
+        `/** @param {CellId[]} extraCells */
+function getAffectedCells (cell, extraCells = "none") {
+  return [cell, ...extraCells]
+}`,
+      ),
+    ).toBe(
+      `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
+
+2 function getAffectedCells (cell, extraCells = "none") {
+                                   ~~~~~~~~~~~~~~~~~~~`,
+    );
+  });
+});
+
+/*
  * A component with no hooks does nothing, which is valid - and a file with no statements is the one
  * case where it could be mistaken for a module and lose every ambient global, turning every later
  * snippet into a flood of "cannot find name".

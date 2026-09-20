@@ -90,25 +90,99 @@ const findHooks = (typescript: BackendResources["typescript"], sourceFile: ts.So
 };
 
 /**
+ * The type the author gave a parameter in their own JSDoc, as one line.
+ *
+ * Read off the tag's type node as source text rather than rebuilt, so every spelling survives
+ * whole - a union, a generic, an inline object literal, a `...rest`. Nothing but the JSDoc is
+ * consulted: a parameter the author left untagged has no type here, whatever the compiler might
+ * infer for it elsewhere.
+ *
+ * A type written across several lines carries whatever margin the author used into that text - the
+ * leading `*` is conventional rather than required, and may be on some lines and not others. The
+ * annotation it goes into is a single line, so each break takes the margin after it and becomes one
+ * space; left in, the break would split the annotation and shift every line below it out of step
+ * with the author's source.
+ */
+const authorType = (
+  typescript: BackendResources["typescript"],
+  sourceFile: ts.SourceFile,
+  parameter: ts.ParameterDeclaration,
+) => {
+  for (const tag of typescript.getJSDocParameterTags(parameter)) {
+    if (tag.typeExpression) {
+      const { type } = tag.typeExpression;
+      const isVariadic = typescript.isJSDocVariadicType(type);
+      // An author who spelled the `...` themselves already has it in the text.
+      const written = isVariadic ? type.type.getText(sourceFile) : type.getText(sourceFile);
+
+      return {
+        text: written
+          // remove the "*" characters that are parts of JSDoc's format
+          .replace(/\n\s*\*/g, "\n")
+          // compact whitespace character runs, including the line breaks
+          .replace(/\s+/g, " ").trim(),
+        variadic: isVariadic,
+      };
+    }
+  }
+
+  return undefined;
+};
+
+/**
  * The JSDoc line that types one hook's parameters and return.
  *
- * `@param` binds by *name*, so a tag is emitted for every parameter the author declared, in order,
- * and none beyond them: a tag naming a parameter they omitted is an error, and omitting one is
- * legal since the app passes the full set regardless. A destructured parameter has no name to bind
- * to, so it gets a placeholder - skipping it would let the next tag bind to its position and type
- * the wrong parameter.
+ * A tag is emitted for *every* parameter the author declared, because only the JSDoc block nearest
+ * the function is read: a block of the author's own is skipped past for everything but `@overload`,
+ * so a parameter this one leaves out falls to implicit `any` rather than to their tag. The
+ * parameters the app's argument list defines are typed from `hooks`, and the rest carry the author's
+ * own type where they wrote one - and no type at all where they did not, leaving whatever the
+ * compiler can infer from a default value in force.
+ *
+ * `@param` binds by *name*, so the tags follow the author's own names and order. A destructured
+ * parameter has no name to bind to, so it gets a placeholder - skipping it would let the next tag
+ * bind to its position and type the wrong parameter.
  */
-const buildJsDoc = (typescript: BackendResources["typescript"], { name, fn }: DeclaredHook) => {
-  const { params, returns } = hooks[name];
+const buildJsDoc = (
+  typescript: BackendResources["typescript"],
+  sourceFile: ts.SourceFile,
+  { name, fn }: DeclaredHook,
+) => {
+  const { params, returns, variadic } = hooks[name];
   const tags: string[] = [];
 
   fn.parameters.forEach((parameter, index) => {
-    const type = params[index];
-    if (!type) {
+    const known = params[index];
+    /*
+     * Past the known parameters only a variadic hook has anything to type: the other three are
+     * called with exactly `params`, so a further parameter is always `undefined` and typing it
+     * would make a body that reads it look sound. It is reported as an extra parameter instead.
+     */
+    if (known === undefined && !variadic) {
       return;
     }
 
-    tags.push(`@param {${type}} ${typescript.isIdentifier(parameter.name) ? parameter.name.text : `options${index}`}`);
+    const own = known === undefined ? authorType(typescript, sourceFile, parameter) : undefined;
+    /*
+     * A rest parameter collects every remaining argument, so its tag types one of them and is
+     * spelled `...T` - tagging it as the array itself would give each argument the whole list's
+     * type. The author may have spelled that themselves, in which case it is not repeated.
+     */
+    const rest = parameter.dotDotDotToken !== undefined || own?.variadic === true;
+    const type = known ?? own?.text;
+    /*
+     * A constructor argument the author did not type is tagged without one rather than as `{any}`: a
+     * tag's type is the parameter's declared type and overrides what the compiler would otherwise
+     * infer, so `{any}` would erase the type a default value carries. The tag itself still has to be
+     * written, since `@param` binds by name and a missing one lets the next tag take its position.
+     */
+    const annotation = type === undefined ? "" : `{${rest ? "..." : ""}${type}} `;
+
+    tags.push(
+      `@param ${annotation}${
+        typescript.isIdentifier(parameter.name) ? parameter.name.text : `options${index}`
+      }`,
+    );
   });
 
   tags.push(`@returns {${returns}}`);
@@ -167,7 +241,7 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
 
     for (const hook of findHooks(typescript, sourceFile)) {
       const start = sourceFile.getLineAndCharacterOfPosition(hook.statement.getStart(sourceFile));
-      jsDocByLine.set(start.line, buildJsDoc(typescript, hook));
+      jsDocByLine.set(start.line, buildJsDoc(typescript, sourceFile, hook));
       hookRangeByLine.set(start.line, {
         start,
         end: sourceFile.getLineAndCharacterOfPosition(hook.statement.getEnd()),
