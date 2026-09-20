@@ -258,7 +258,7 @@ line 3 - error TS2322: Type 'number[]' is not assignable to type 'number'.
     expect(
       checker.typecheck(
         `function getAffectedCells (sequence) {
-  return sequence
+  return [0]
 }
 
 /** @param {string} sequence */
@@ -274,7 +274,7 @@ function setParams (instance, sequence) {
     expect(
       checker.typecheck(
         `function getAffectedCells (sequence) {
-  return sequence
+  return [0]
 }
 
 /** @param {string} sequence */

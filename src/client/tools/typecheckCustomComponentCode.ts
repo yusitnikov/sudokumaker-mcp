@@ -8,64 +8,35 @@ import {
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
 
-interface Hook<ParamsT = string[]> {
-  params: ParamsT;
-  returns: string;
-  variadic?: true;
+const allHookNames = ["getAffectedCells", "setParams", "initialize", "validate", "update"];
+
+/** A value the app passes, shared by every hook that receives it. */
+interface ResolvedArgument {
+  /** What the authors declared for it, across all hooks. Emitted as an intersection. */
+  typeVariants: Set<string>;
+  /** The argument collects every remaining one, and `typeVariants` is its item's type. */
+  variadic?: boolean;
+  /** The app owns this type - a `@param` for it is ignored. */
+  final?: boolean;
 }
 
-/**
- * The five functions a component may declare, and what the app passes each one.
- *
- * `params` are the leading arguments whose types are known. The two hooks marked `variadic` are
- * called with the component's own constructor arguments after them, which are unknowable and stay
- * untyped; the other three are called with exactly `params`, so anything further the author declares
- * is always `undefined` and is reported.
- *
- * The parameter types come from the scanner - it captures each hook's live `arguments` - while the
- * return types are transcribed by hand from the probe component it installs, so they are the part
- * to re-derive first if a component ever warns inexplicably.
- */
-const hooks: Record<string, Hook<string[] | ((getAffectedCellsDefined: boolean) => string[])>> = {
-  getAffectedCells: {
-    params: [],
-    returns: "CellId[]",
-    variadic: true,
-  },
-  setParams: {
-    params: (getAffectedCellsDefined: boolean) =>
-      getAffectedCellsDefined ? ["DynamicInstance"] : ["DynamicInstance", "CellId[]"],
-    returns: "void",
-    variadic: true,
-  },
-  initialize: {
-    params: ["DynamicInstance", "Puzzle"],
-    returns: "Generator<Change, void, undefined>",
-  },
-  validate: {
-    params: ["DynamicInstance", "Puzzle"],
-    returns: "boolean",
-  },
-  update: {
-    params: ["DynamicInstance", "Puzzle"],
-    returns: "Generator<Change, void, undefined>",
-  },
-};
-
-const getHook = (name: string, getAffectedCellsDefined: boolean): Hook => {
-  const hook = hooks[name];
-
-  return {
-    ...hook,
-    params: typeof hook.params === "function" ? hook.params(getAffectedCellsDefined) : hook.params,
-  };
-};
+interface ResolvedHook {
+  args: ResolvedArgument[];
+  returns: string;
+}
 
 /** A hook the component declares: the function itself, and the statement to hang its JSDoc on. */
 interface DeclaredHook {
   name: string;
   fn: ts.SignatureDeclaration;
   statement: ts.Statement;
+  args: DeclaredArgument[];
+}
+
+interface DeclaredArgument {
+  declaration: ts.ParameterDeclaration;
+  isRest: boolean;
+  jsDocType?: string;
 }
 
 /**
@@ -76,12 +47,12 @@ interface DeclaredHook {
  * is left alone, matching what the app would find.
  */
 const findHooks = (typescript: BackendResources["typescript"], sourceFile: ts.SourceFile) => {
-  const declared: DeclaredHook[] = [];
+  const declared: Omit<DeclaredHook, "args">[] = [];
 
   for (const statement of sourceFile.statements) {
     if (typescript.isFunctionDeclaration(statement)) {
       const name = statement.name?.text;
-      if (name && hooks[name]) {
+      if (name && allHookNames.includes(name)) {
         declared.push({ name, fn: statement, statement });
       }
       continue;
@@ -92,7 +63,7 @@ const findHooks = (typescript: BackendResources["typescript"], sourceFile: ts.So
         const { name, initializer } = declaration;
         if (
           typescript.isIdentifier(name) &&
-          hooks[name.text] &&
+          allHookNames.includes(name.text) &&
           initializer &&
           (typescript.isArrowFunction(initializer) || typescript.isFunctionExpression(initializer))
         ) {
@@ -124,26 +95,23 @@ const authorType = (
   sourceFile: ts.SourceFile,
   parameter: ts.ParameterDeclaration,
 ) => {
-  for (const tag of typescript.getJSDocParameterTags(parameter)) {
-    if (tag.typeExpression) {
-      const { type } = tag.typeExpression;
-      const isVariadic = typescript.isJSDocVariadicType(type);
-      // An author who spelled the `...` themselves already has it in the text.
-      const written = isVariadic ? type.type.getText(sourceFile) : type.getText(sourceFile);
-
-      return {
-        text:
-          written.trim() === "*"
-            ? "any"
-            : written
-                // remove the "*" characters that are parts of JSDoc's format
-                .replace(/\n\s*\*/g, "\n")
-                // compact whitespace character runs, including the line breaks
-                .replace(/\s+/g, " ")
-                .trim(),
-        variadic: isVariadic,
-      };
+  for (const { typeExpression } of typescript.getJSDocParameterTags(parameter)) {
+    if (!typeExpression) {
+      continue;
     }
+
+    const { type } = typeExpression;
+    // An author who spelled the `...` themselves already has it in the text.
+    const written = typescript.isJSDocVariadicType(type) ? type.type.getText(sourceFile) : type.getText(sourceFile);
+
+    return written.trim() === "*"
+      ? "any"
+      : written
+          // remove the "*" characters that are parts of JSDoc's format
+          .replace(/\n\s*\*/g, "\n")
+          // compact whitespace character runs, including the line breaks
+          .replace(/\s+/g, " ")
+          .trim();
   }
 
   return undefined;
@@ -165,83 +133,26 @@ const authorType = (
  */
 const buildJsDoc = (
   typescript: BackendResources["typescript"],
-  sourceFile: ts.SourceFile,
-  { name, fn }: DeclaredHook,
-  getAffectedCellsDefined: boolean,
+  declaredArgs: DeclaredArgument[],
+  { args: resolvedArgs, returns }: ResolvedHook,
 ) => {
-  const { params, returns, variadic } = getHook(name, getAffectedCellsDefined);
   const tags: string[] = [];
 
-  fn.parameters.forEach((parameter, index) => {
-    const known = params[index];
-    /*
-     * Past the known parameters only a variadic hook has anything to type: the other three are
-     * called with exactly `params`, so a further parameter is always `undefined` and typing it
-     * would make a body that reads it look sound. It is reported as an extra parameter instead.
-     */
-    if (known === undefined && !variadic) {
+  declaredArgs.forEach(({ declaration: { name }, isRest }, index) => {
+    const resolvedArg = resolvedArgs[index];
+    if (!resolvedArg) {
       return;
     }
 
-    const isInstance = known === "DynamicInstance";
-    const own = known === undefined || isInstance ? authorType(typescript, sourceFile, parameter) : undefined;
-    /*
-     * A rest parameter collects every remaining argument, so its tag types one of them and is
-     * spelled `...T` - tagging it as the array itself would give each argument the whole list's
-     * type. The author may have spelled that themselves, in which case it is not repeated.
-     */
-    const rest = parameter.dotDotDotToken !== undefined || own?.variadic === true;
-    const type =
-      isInstance && own?.text
-        ? `Instance & (${["any", "object"].includes(own.text) ? "{}" : own.text})`
-        : (known ?? own?.text);
-    /*
-     * A constructor argument the author did not type is tagged without one rather than as `{any}`: a
-     * tag's type is the parameter's declared type and overrides what the compiler would otherwise
-     * infer, so `{any}` would erase the type a default value carries. The tag itself still has to be
-     * written, since `@param` binds by name and a missing one lets the next tag take its position.
-     */
-    const annotation = type === undefined ? "" : `{${rest ? "..." : ""}${type}} `;
+    const type = [...resolvedArg.typeVariants].map((s) => `(${s})`).join(" & ");
+    const annotation = type ? `{${isRest ? "..." : ""}${type}}` : "";
 
-    tags.push(
-      `@param ${annotation}${typescript.isIdentifier(parameter.name) ? parameter.name.text : `options${index}`}`,
-    );
+    tags.push(`@param ${annotation} ${typescript.isIdentifier(name) ? name.text : `options${index}`}`);
   });
 
   tags.push(`@returns {${returns}}`);
 
   return `/** ${tags.join(" ")} */`;
-};
-
-/**
- * Parameters the author declared that the app will never pass, as one problem over all of them.
- *
- * TypeScript cannot report these: the hook is a declaration, not a call, so nothing checks it
- * against the app's argument list - and a `@param` tag naming a parameter that should not exist
- * would land on the generated line with a message about JSDoc. So the checker says it itself.
- */
-const findExtraParameters = (
-  sourceFile: ts.SourceFile,
-  { name, fn }: DeclaredHook,
-  getAffectedCellsDefined: boolean,
-): SnippetProblem[] => {
-  const { params, variadic } = getHook(name, getAffectedCellsDefined);
-  if (variadic) {
-    return [];
-  }
-
-  const extra = fn.parameters.slice(params.length);
-  if (!extra.length) {
-    return [];
-  }
-
-  return [
-    {
-      start: sourceFile.getLineAndCharacterOfPosition(extra[0].getStart(sourceFile)),
-      end: sourceFile.getLineAndCharacterOfPosition(extra[extra.length - 1].getEnd()),
-      message: `'${name}' must have exactly ${params.length} arguments`,
-    },
-  ];
 };
 
 export class CustomComponentCodeTypescript extends SnippetTypescript {
@@ -266,17 +177,122 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
     const hookRangeByLine = new Map<number, { start: SnippetPosition; end: SnippetPosition }>();
     const problems: SnippetProblem[] = [];
 
-    const declaredHooks = findHooks(typescript, sourceFile);
-    const getAffectedCellsDefined = declaredHooks.some((hook) => hook.name === "getAffectedCells");
+    // region Find declared hooks in the snippet
+    const declaredHooks = findHooks(typescript, sourceFile).map(
+      (hook): DeclaredHook => ({
+        ...hook,
+        args: hook.fn.parameters.map((declaration) => ({
+          declaration,
+          isRest: !!declaration.dotDotDotToken,
+          jsDocType: authorType(typescript, sourceFile, declaration),
+        })),
+      }),
+    );
+    const declaredGetAffectedCells = declaredHooks.find(({ name }) => name === "getAffectedCells");
+    const declaredSetParams = declaredHooks.find(({ name }) => name === "setParams");
+    // endregion
 
-    for (const hook of declaredHooks) {
-      const start = sourceFile.getLineAndCharacterOfPosition(hook.statement.getStart(sourceFile));
-      jsDocByLine.set(start.line, buildJsDoc(typescript, sourceFile, hook, getAffectedCellsDefined));
+    // region Initialize hook argument descriptors
+    const constructorArgs = Array(
+      Math.max(declaredGetAffectedCells?.args.length ?? 1, declaredSetParams?.args.length ?? 0),
+    )
+      .fill(0)
+      .map((): ResolvedArgument => ({ typeVariants: new Set() }));
+    if (!declaredGetAffectedCells) {
+      constructorArgs[0] = { typeVariants: new Set(["CellId[]"]), final: true };
+    }
+
+    const instanceArg: ResolvedArgument = { typeVariants: new Set() };
+    const puzzleArg: ResolvedArgument = { typeVariants: new Set(["Puzzle"]), final: true };
+
+    const resolvedHooks: Record<string, ResolvedHook> = {
+      getAffectedCells: {
+        args: constructorArgs,
+        returns: "CellId[]",
+      },
+      setParams: {
+        args: [instanceArg, ...constructorArgs],
+        returns: "void",
+      },
+      initialize: {
+        args: [instanceArg, puzzleArg],
+        returns: "Generator<Change, void, undefined>",
+      },
+      validate: {
+        args: [instanceArg, puzzleArg],
+        returns: "boolean",
+      },
+      update: {
+        args: [instanceArg, puzzleArg],
+        returns: "Generator<Change, void, undefined>",
+      },
+    };
+    // endregion
+
+    // Merge declared arguments of the same meaning together
+    for (const { name, args: declaredArgs } of declaredHooks) {
+      const resolvedArgs = resolvedHooks[name].args;
+
+      const lastDeclaredArg = declaredArgs[declaredArgs.length - 1];
+      const hasRest = lastDeclaredArg?.isRest;
+
+      if (hasRest) {
+        resolvedArgs[resolvedArgs.length - 1].variadic = true;
+      }
+
+      for (const [index, resolvedArg] of resolvedArgs.entries()) {
+        if (resolvedArg.final) {
+          continue;
+        }
+
+        let declaredArg = declaredArgs[index];
+        if (hasRest) {
+          declaredArg ??= lastDeclaredArg;
+        }
+        if (!declaredArg) {
+          continue;
+        }
+
+        if (declaredArg.jsDocType) {
+          resolvedArg.typeVariants.add(declaredArg.jsDocType);
+        }
+      }
+    }
+
+    // Finalize the "instance" argument
+    if (instanceArg.typeVariants.size) {
+      instanceArg.typeVariants.delete("any");
+      instanceArg.typeVariants.delete("object");
+      instanceArg.typeVariants.delete("unknown");
+      instanceArg.typeVariants.delete("{}");
+      instanceArg.typeVariants.delete("{ }");
+      instanceArg.typeVariants = new Set(["Instance", ...instanceArg.typeVariants]);
+    } else {
+      instanceArg.typeVariants.add("DynamicInstance");
+    }
+
+    // Compile and inserted the generated JSDocs
+    for (const { name, statement, args: declaredArgs } of declaredHooks) {
+      const start = sourceFile.getLineAndCharacterOfPosition(statement.getStart(sourceFile));
+      jsDocByLine.set(start.line, buildJsDoc(typescript, declaredArgs, resolvedHooks[name]));
       hookRangeByLine.set(start.line, {
         start,
-        end: sourceFile.getLineAndCharacterOfPosition(hook.statement.getEnd()),
+        end: sourceFile.getLineAndCharacterOfPosition(statement.getEnd()),
       });
-      problems.push(...findExtraParameters(sourceFile, hook, getAffectedCellsDefined));
+    }
+
+    // Report extra arguments for non-variadic hooks
+    for (const { name, fn } of declaredHooks) {
+      const { args } = resolvedHooks[name];
+
+      const extra = fn.parameters.slice(args.length);
+      if (extra.length) {
+        problems.push({
+          start: sourceFile.getLineAndCharacterOfPosition(extra[0].getStart(sourceFile)),
+          end: sourceFile.getLineAndCharacterOfPosition(extra[extra.length - 1].getEnd()),
+          message: `'${name}' must have exactly ${args.length} arguments`,
+        });
+      }
     }
 
     const annotated: string[] = [];

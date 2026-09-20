@@ -43,18 +43,12 @@ function* update (instance, puzzle) {
 
   test('"Parity Party"\'s OneOfSequencesComponent with declared instance shape reports only unused parameter', () => {
     expect(
-      checker.typecheck(`/**
- * @param {number[][]} sequences
- * @param {CellId[]} cells
- */
-function getAffectedCells (sequences, cells) {
+      checker.typecheck(`function getAffectedCells (sequences, cells) {
   return cells
 }
 
-/** @typedef {{ sequences: number[][] }} MyInstance */
-
 /**
- * @param {MyInstance} instance
+ * @param {{ sequences: number[][] }} instance
  * @param {number[][]} sequences
  * @param {CellId[]} cells
  */
@@ -62,7 +56,6 @@ function setParams (instance, sequences, cells) {
   instance.sequences = sequences
 }
 
-/** @param {MyInstance} instance */
 function* update (instance, puzzle) {
   const { cells, sequences, maxSize } = instance
   const possibleSequences = sequences.filter(sequence => {
@@ -84,25 +77,22 @@ function* update (instance, puzzle) {
 }`),
     ).toBe(`[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 22 - error TS2339: Property 'maxSize' does not exist on type 'Instance & MyInstance'.
+line 15 - error TS2339: Property 'maxSize' does not exist on type 'Instance & { sequences: number[][]; }'.
 
-22   const { cells, sequences, maxSize } = instance
+15   const { cells, sequences, maxSize } = instance
                                ~~~~~~~`);
   });
 
   test('"Parity Party"\'s OneOfSequencesComponent with flipped params order reports only unused parameter', () => {
     expect(
-      checker.typecheck(`/** @typedef {{ sequences: number[][] }} MyInstance */
-
-/**
- * @param {MyInstance} instance
+      checker.typecheck(`/**
+ * @param {{ sequences: number[][] }} instance
  * @param {number[][]} sequences
  */
 function setParams (instance, cells, sequences) {
   instance.sequences = sequences
 }
 
-/** @param {MyInstance} instance */
 function* update (instance, puzzle) {
   const { cells, sequences, maxSize } = instance
   const possibleSequences = sequences.filter(sequence => {
@@ -124,9 +114,9 @@ function* update (instance, puzzle) {
 }`),
     ).toBe(`[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 13 - error TS2339: Property 'maxSize' does not exist on type 'Instance & MyInstance'.
+line 10 - error TS2339: Property 'maxSize' does not exist on type 'Instance & { sequences: number[][]; }'.
 
-13   const { cells, sequences, maxSize } = instance
+10   const { cells, sequences, maxSize } = instance
                                ~~~~~~~`);
   });
 
@@ -182,31 +172,23 @@ function getAffectedCells (param1, param2) {
 }
 
 /**
- * @typedef {{
+ * @param {{
  *   param1: boolean;
  *   param2: CellId;
- *   uniqueDigits: boolean;
- * }} MyInstance
- */
-
-/**
- * @param {MyInstance} instance
- * @param {boolean} param1
- * @param {CellId} param2
+ * }} instance
  */
 function setParams (instance, param1, param2) {
   instance.param1 = param1
   instance.param2 = param2
 }
 
-/** @param {MyInstance} instance */
+/** @param {{ uniqueDigits: boolean }} instance */
 function* initialize (instance, puzzle) {
   const { cells, param1 } = instance
   yield puzzle.removeCandidatesFromCells(SudokuDigitSet.from([1]), cells)
   instance.uniqueDigits = param1 && puzzle.getCellsSeeEachOther(cells)
 }
 
-/** @param {MyInstance} instance */
 function validate (instance, puzzle) {
   const { cells } = instance
   if (!puzzle.getCellsAreFilled(cells)) {
@@ -215,7 +197,6 @@ function validate (instance, puzzle) {
   return cells.every(cell => puzzle.getValue(cell) === 1)
 }
 
-/** @param {MyInstance} instance */
 function* update (instance, puzzle) {
   const { cells } = instance
   if (puzzle.hasValue(cells[0])) {
