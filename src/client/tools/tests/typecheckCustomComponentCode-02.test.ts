@@ -41,7 +41,7 @@ function* update (instance, puzzle) {
     ).toBeUndefined();
   });
 
-  test('"Parity Party"\'s OneOfSequencesComponent with declared instance shape reports unused parameter', () => {
+  test('"Parity Party"\'s OneOfSequencesComponent with declared instance shape reports only unused parameter', () => {
     expect(
       checker.typecheck(`/**
  * @param {number[][]} sequences
@@ -87,6 +87,46 @@ function* update (instance, puzzle) {
 line 22 - error TS2339: Property 'maxSize' does not exist on type 'Instance & MyInstance'.
 
 22   const { cells, sequences, maxSize } = instance
+                               ~~~~~~~`);
+  });
+
+  test('"Parity Party"\'s OneOfSequencesComponent with flipped params order reports only unused parameter', () => {
+    expect(
+      checker.typecheck(`/** @typedef {{ sequences: number[][] }} MyInstance */
+
+/**
+ * @param {MyInstance} instance
+ * @param {number[][]} sequences
+ */
+function setParams (instance, cells, sequences) {
+  instance.sequences = sequences
+}
+
+/** @param {MyInstance} instance */
+function* update (instance, puzzle) {
+  const { cells, sequences, maxSize } = instance
+  const possibleSequences = sequences.filter(sequence => {
+    for (let i = 0; i < sequence.length; i++) {
+      if (!puzzle.getCandidates(cells[i]).has(sequence[i])) {
+        return false
+      }
+    }
+    return true
+  })
+  const minSize = possibleSequences.reduce((acc, seq) => Math.min(acc, seq.length), 9)
+  for (let i = 0; i < minSize; i++) {
+    const candidates = new DigitSet()
+    for (const sequence of possibleSequences) {
+      candidates.add(sequence[i])
+    }
+    yield puzzle.filterCandidatesInCell(candidates, cells[i])
+  }
+}`),
+    ).toBe(`[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
+
+line 13 - error TS2339: Property 'maxSize' does not exist on type 'Instance & MyInstance'.
+
+13   const { cells, sequences, maxSize } = instance
                                ~~~~~~~`);
   });
 

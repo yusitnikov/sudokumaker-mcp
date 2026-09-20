@@ -286,7 +286,7 @@ describe("the author's own @param tags", () => {
     expect(
       checker.typecheck(
         `/** @param {string} param1 */
-function setParams (instance, param1) {
+function setParams (instance, cells, param1) {
   instance.param1 = param1.toFixed(2)
 }`,
       ),
@@ -302,7 +302,7 @@ line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
 
   test("an untyped constructor argument stays unchecked", () => {
     expect(
-      checker.typecheck("function setParams (instance, param1) {\n  instance.param1 = param1.anything()\n}"),
+      checker.typecheck("function setParams (instance, cells, param1) {\n  instance.param1 = param1.anything()\n}"),
     ).toBeUndefined();
   });
 
@@ -371,18 +371,19 @@ describe("the author's own JSDoc written across lines", () => {
         `/**
  * Sets the component up.
  * @param instance
+ * @param {number[]} cells
  * @param {string} param1
  */
-function setParams (instance, param1) {
+function setParams (instance, cells, param1) {
   instance.param1 = param1.toFixed(2)
 }`,
       ),
     ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new component code. The change WAS applied.
 
-line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
+line 8 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
-7   instance.param1 = param1.toFixed(2)
+8   instance.param1 = param1.toFixed(2)
                              ~~~~~~~`,
     );
   });
@@ -396,7 +397,7 @@ line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
  *   height: number,
  * }} param1
  */
-function setParams (instance, param1) {
+function setParams (instance, cells, param1) {
   instance.area = param1.width * param1.depth
 }`,
       ),
@@ -419,7 +420,7 @@ line 8 - error TS2339: Property 'depth' does not exist on type '{ width: number;
  *   | "column"
  * } param1
  */
-function setParams (instance, param1) {
+function setParams (instance, cells, param1) {
   instance.axis = param1.toFixed(2)
 }`,
       ),
@@ -441,7 +442,7 @@ line 8 - error TS2551: Property 'toFixed' does not exist on type '"row" | "colum
  *   width: number,
  * }} param1
  */
-function setParams (instance, param1) {
+function setParams (instance, cells, param1) {
   instance.width = param1.width
 }
 
@@ -556,7 +557,7 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
     expect(
       checker.typecheck(
         `/** @param {string} names */
-function setParams (instance, ...names) {
+function setParams (instance, cellIds, ...names) {
   instance.first = names[0].toFixed(2)
 }`,
       ),

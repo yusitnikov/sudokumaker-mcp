@@ -8,6 +8,12 @@ import {
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
 
+interface Hook<ParamsT = string[]> {
+  params: ParamsT;
+  returns: string;
+  variadic?: true;
+}
+
 /**
  * The five functions a component may declare, and what the app passes each one.
  *
@@ -20,14 +26,15 @@ import type * as ts from "typescript";
  * return types are transcribed by hand from the probe component it installs, so they are the part
  * to re-derive first if a component ever warns inexplicably.
  */
-const hooks: Record<string, { params: string[]; returns: string; variadic?: true }> = {
+const hooks: Record<string, Hook<string[] | ((getAffectedCellsDefined: boolean) => string[])>> = {
   getAffectedCells: {
     params: [],
     returns: "CellId[]",
     variadic: true,
   },
   setParams: {
-    params: ["DynamicInstance"],
+    params: (getAffectedCellsDefined: boolean) =>
+      getAffectedCellsDefined ? ["DynamicInstance"] : ["DynamicInstance", "CellId[]"],
     returns: "void",
     variadic: true,
   },
@@ -43,6 +50,15 @@ const hooks: Record<string, { params: string[]; returns: string; variadic?: true
     params: ["DynamicInstance", "Puzzle"],
     returns: "Generator<Change, void, undefined>",
   },
+};
+
+const getHook = (name: string, getAffectedCellsDefined: boolean): Hook => {
+  const hook = hooks[name];
+
+  return {
+    ...hook,
+    params: typeof hook.params === "function" ? hook.params(getAffectedCellsDefined) : hook.params,
+  };
 };
 
 /** A hook the component declares: the function itself, and the statement to hang its JSDoc on. */
@@ -151,8 +167,9 @@ const buildJsDoc = (
   typescript: BackendResources["typescript"],
   sourceFile: ts.SourceFile,
   { name, fn }: DeclaredHook,
+  getAffectedCellsDefined: boolean,
 ) => {
-  const { params, returns, variadic } = hooks[name];
+  const { params, returns, variadic } = getHook(name, getAffectedCellsDefined);
   const tags: string[] = [];
 
   fn.parameters.forEach((parameter, index) => {
@@ -203,8 +220,12 @@ const buildJsDoc = (
  * against the app's argument list - and a `@param` tag naming a parameter that should not exist
  * would land on the generated line with a message about JSDoc. So the checker says it itself.
  */
-const findExtraParameters = (sourceFile: ts.SourceFile, { name, fn }: DeclaredHook): SnippetProblem[] => {
-  const { params, variadic } = hooks[name];
+const findExtraParameters = (
+  sourceFile: ts.SourceFile,
+  { name, fn }: DeclaredHook,
+  getAffectedCellsDefined: boolean,
+): SnippetProblem[] => {
+  const { params, variadic } = getHook(name, getAffectedCellsDefined);
   if (variadic) {
     return [];
   }
@@ -245,14 +266,17 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
     const hookRangeByLine = new Map<number, { start: SnippetPosition; end: SnippetPosition }>();
     const problems: SnippetProblem[] = [];
 
-    for (const hook of findHooks(typescript, sourceFile)) {
+    const declaredHooks = findHooks(typescript, sourceFile);
+    const getAffectedCellsDefined = declaredHooks.some((hook) => hook.name === "getAffectedCells");
+
+    for (const hook of declaredHooks) {
       const start = sourceFile.getLineAndCharacterOfPosition(hook.statement.getStart(sourceFile));
-      jsDocByLine.set(start.line, buildJsDoc(typescript, sourceFile, hook));
+      jsDocByLine.set(start.line, buildJsDoc(typescript, sourceFile, hook, getAffectedCellsDefined));
       hookRangeByLine.set(start.line, {
         start,
         end: sourceFile.getLineAndCharacterOfPosition(hook.statement.getEnd()),
       });
-      problems.push(...findExtraParameters(sourceFile, hook));
+      problems.push(...findExtraParameters(sourceFile, hook, getAffectedCellsDefined));
     }
 
     const annotated: string[] = [];
