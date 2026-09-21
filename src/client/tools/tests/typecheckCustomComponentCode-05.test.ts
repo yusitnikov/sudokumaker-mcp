@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { CustomComponentCodeTypescript } from "../typecheckCustomComponentCode";
 import { backendResources } from "../../../backendResourcesImpl";
 
-const checker = new CustomComponentCodeTypescript(backendResources);
+const checker = new CustomComponentCodeTypescript(backendResources, {});
 
 /*
  * A default value says what the author expects to receive, so it types the parameter when they wrote

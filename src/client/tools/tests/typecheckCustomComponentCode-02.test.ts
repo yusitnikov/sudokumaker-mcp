@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { CustomComponentCodeTypescript } from "../typecheckCustomComponentCode";
 import { backendResources } from "../../../backendResourcesImpl";
 
-const checker = new CustomComponentCodeTypescript(backendResources);
+const checker = new CustomComponentCodeTypescript(backendResources, {});
 
 /*
  * Verbatim from a puzzle open in the browser. This is the acceptance case: whatever the checker does

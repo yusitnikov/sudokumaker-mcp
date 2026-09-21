@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { CustomComponentCodeTypescript } from "../typecheckCustomComponentCode";
 import { backendResources } from "../../../backendResourcesImpl";
 
-const checker = new CustomComponentCodeTypescript(backendResources);
+const checker = new CustomComponentCodeTypescript(backendResources, {});
 
 /*
  * `initialize`, `validate` and `update` are called with exactly `(instance, puzzle)`, so a further

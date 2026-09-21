@@ -33,6 +33,6 @@ the component's API cannot be guessed.
   },
 
   function (targetElement, { name }, resources) {
-    return new CustomComponentCodeTypescript(resources).typecheck(targetElement.config.customComponents[name]);
+    return new CustomComponentCodeTypescript(resources, targetElement.config.customComponents).typecheckComponent(name);
   },
 );

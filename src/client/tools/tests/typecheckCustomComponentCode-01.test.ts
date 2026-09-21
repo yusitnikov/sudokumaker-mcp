@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { CustomComponentCodeTypescript } from "../typecheckCustomComponentCode";
 import { backendResources } from "../../../backendResourcesImpl";
 
-const checker = new CustomComponentCodeTypescript(backendResources);
+const checker = new CustomComponentCodeTypescript(backendResources, {});
 
 /*
  * `setParams` writes the component's own members onto the instance for the other hooks to read back,

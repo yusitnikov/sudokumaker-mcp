@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { CustomComponentCodeTypescript } from "../typecheckCustomComponentCode";
 import { backendResources } from "../../../backendResourcesImpl";
 
-const checker = new CustomComponentCodeTypescript(backendResources);
+const checker = new CustomComponentCodeTypescript(backendResources, {});
 
 /*
  * Broken syntax is what the annotator meets most often - it runs on half-written code, before the

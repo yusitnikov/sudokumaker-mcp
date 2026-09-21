@@ -209,13 +209,23 @@ Solver and check responses close with a blind-spot warning naming the elements t
 see, an overwrite reminder on the runs that write, and a pointer to the `solving` topic - each
 carried only by the tools it applies to, and only once the run has actually finished.
 
-The code-editing tools typecheck what they wrote against the generated declarations and append the
-problems as a `[WARNING]`, formatted the way `tsc` prints a diagnostic. The edit lands either way -
-the declarations are recovered from a minified app, so a false positive must never block a real
-edit. `SnippetTypescript` (`typecheckSnippet.ts`) is the shared checker, one subclass per scope: a
-scope supplies its globals and may override `annotate` to inject declarations, map the resulting
-spans back to the author's lines, and add findings of its own. The two scopes can never be compiled
-together, since they declare different `helpers`.
+The code-editing tools close with the problems the snippet checker found, as a `[WARNING]`.
+
+`runOnFrontend` catches whatever a tool throws and returns it as an `isError: true` result, so a
+failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace through
+the minified bundle; `runOnBackend` does the same for a failed round trip. That is the only way a
+tool reports a failure - no tool assembles an error result itself.
+
+## Checking a snippet (`src/client/tools/typecheckSnippet.ts`, `src/typescript/`)
+
+A tool that writes code typechecks what it wrote against the scanned declarations and reports the
+problems the way `tsc` prints them. **The edit lands either way** - the declarations are recovered
+from a minified app, so a false positive must never block a real edit.
+
+`SnippetTypescript` is the shared checker, one subclass per scope. A scope supplies its globals and
+may override `annotate` to inject declarations, map the resulting spans back to the author's lines,
+and add findings of its own. The two scopes declare different `helpers`, so they can never be
+compiled together.
 
 **A snippet is checked as JavaScript**, which is what the worker runs - so a construct that is
 ordinary JS may be reported only if a type annotation could fix it. Reassigning a variable to
@@ -225,18 +235,19 @@ annotation-shaped remedy is a false positive, and the declarations are what to f
 **A hook's parameters are typed from the hook table, and the author's own JSDoc sharpens that.**
 Untyped code a setter already wrote has to keep compiling, so what the table cannot know - the
 constructor arguments two of the hooks receive, the members `setParams` puts on `instance` - stays
-permissive on its own - `instance` takes any member at all, so a typo in one is invisible. An author
+permissive on its own: `instance` takes any member at all, so a typo in one is invisible. An author
 who says what those are gets them checked, and an ordinary `@param` is all it takes. Tagging
 `instance` is what closes it to anything undeclared, so the typo is finally reported - that is the
 point of tagging it, and any tag does it. A tag is written once, in whichever hook it reads best in:
-the hooks share the values they receive, so a constructor argument and the instance carry everywhere
-what any one hook declared about them. Nothing here is a convention of ours to learn, which is what
-lets an LLM tighten a component by documenting it.
+the hooks share the values they receive, so one `ResolvedArgument` per constructor position collects
+what every hook declared about it, and the instance likewise. Nothing here is a convention of ours to
+learn, which is what lets an LLM tighten a component by documenting it.
 
-`runOnFrontend` catches whatever a tool throws and returns it as an `isError: true` result, so a
-failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace through
-the minified bundle; `runOnBackend` does the same for a failed round trip. That is the only way a
-tool reports a failure - no tool assembles an error result itself.
+**That list is also the component's public signature**, so a tag types every `new` of the component
+as well as its own body. Both checkers therefore take the element's whole `customComponents` map, not
+the one snippet they are checking: the initialization code is checked against a
+`class <Name> extends Component` per component, and a component against the `customComponents`
+global, which is how one constructs another.
 
 ## Documentation (`src/client/tools/docs/`)
 

@@ -48,7 +48,101 @@ describe("real initialization code", () => {
 describe("initialization code from real puzzles", () => {
   test('"Parity Party" typechecks clean', () => {
     expect(
-      new InitializationCodeTypescript(backendResources, ["OneOfSequencesComponent"]).typecheck(
+      new InitializationCodeTypescript(backendResources, {
+        OneOfSequencesComponent: `function getAffectedCells (sequences, cells) {
+  return cells
+}
+
+function setParams (instance, sequences, cells) {
+  instance.sequences = sequences
+}
+
+function* update (instance, puzzle) {
+  const { cells, sequences, maxSize } = instance
+  const possibleSequences = sequences.filter(sequence => {
+    for (let i = 0; i < sequence.length; i++) {
+      if (!puzzle.getCandidates(cells[i]).has(sequence[i])) {
+        return false
+      }
+    }
+    return true
+  })
+  const minSize = possibleSequences.reduce((acc, seq) => Math.min(acc, seq.length), 9)
+  for (let i = 0; i < minSize; i++) {
+    const candidates = new DigitSet()
+    for (const sequence of possibleSequences) {
+      candidates.add(sequence[i])
+    }
+    yield puzzle.filterCandidatesInCell(candidates, cells[i])
+  }
+}
+`,
+      }).typecheck(
+        `function * getValidSequences(sum, paritySoFar = undefined, remainingDigits = helpers.digits.createFullDigitSet()) {
+  for (const digit of remainingDigits) {
+    const remainder = sum - digit
+    if (remainder === 0) {
+      if (paritySoFar === undefined || digit % 2 !== paritySoFar) {
+        yield [digit]
+      }
+    }
+    else if (remainder > 0 && (paritySoFar === undefined || digit % 2 === paritySoFar)) {
+      const newRemainingDigits = new DigitSet(remainingDigits)
+      newRemainingDigits.delete(digit)
+      for (const subSequence of getValidSequences(remainder, digit % 2, newRemainingDigits)) {
+        yield [digit, ...subSequence]
+      }
+    }
+  }
+}
+
+for (const group of input.groups) {
+  if (group.cells.length < puzzle.size) continue
+  const name = \`the parity party clue at \${helpers.naming.getCellName(group.cells[0])}-\${helpers.naming.getCellName(group.cells.at(-1))}\`
+  const sequences = Array.from(getValidSequences(Number(group.value)))
+  puzzle.addConstraintComponent(new OneOfSequencesComponent(name, sequences, group.cells))
+}`,
+      ),
+    ).toBeUndefined();
+  });
+
+  test('"Parity Party" with JSDocs typechecks clean', () => {
+    expect(
+      new InitializationCodeTypescript(backendResources, {
+        OneOfSequencesComponent: `function getAffectedCells (sequences, cells) {
+  return cells
+}
+
+/**
+ * @param {{ sequences: number[][] }} instance
+ * @param {number[][]} sequences
+ * @param {CellId[]} cells
+ */
+function setParams (instance, sequences, cells) {
+  instance.sequences = sequences
+}
+
+function* update (instance, puzzle) {
+  const { cells, sequences, maxSize } = instance
+  const possibleSequences = sequences.filter(sequence => {
+    for (let i = 0; i < sequence.length; i++) {
+      if (!puzzle.getCandidates(cells[i]).has(sequence[i])) {
+        return false
+      }
+    }
+    return true
+  })
+  const minSize = possibleSequences.reduce((acc, seq) => Math.min(acc, seq.length), 9)
+  for (let i = 0; i < minSize; i++) {
+    const candidates = new DigitSet()
+    for (const sequence of possibleSequences) {
+      candidates.add(sequence[i])
+    }
+    yield puzzle.filterCandidatesInCell(candidates, cells[i])
+  }
+}
+`,
+      }).typecheck(
         `function * getValidSequences(sum, paritySoFar = undefined, remainingDigits = helpers.digits.createFullDigitSet()) {
   for (const digit of remainingDigits) {
     const remainder = sum - digit
@@ -202,7 +296,78 @@ describe("diagnostics for the generated code", () => {
 describe("the element's custom components", () => {
   test("a component named in the element constructs cleanly", () => {
     expect(
-      new InitializationCodeTypescript(backendResources, ["MyCage"]).typecheck("new MyCage(1, 2, 3);"),
+      new InitializationCodeTypescript(backendResources, {
+        MyCage: "const getAffectedCells = (...cells) => cells;",
+      }).typecheck('new MyCage("name", 1, 2, 3);'),
     ).toBeUndefined();
+  });
+
+  test("respect component's JSDocs", () => {
+    const checker = new InitializationCodeTypescript(backendResources, {
+      MyCage: `
+        /**
+         * @param {string} arg2
+         */
+        const setParams = (instance, cells, arg1, arg2) => cells;
+      `,
+    });
+
+    expect(checker.typecheck('new MyCage("name", 1, 2, 3, 4);'))
+      .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+line 1 - error TS2554: Expected 4 arguments, but got 5.
+
+1 new MyCage("name", 1, 2, 3, 4);
+                              ~`);
+
+    expect(checker.typecheck('new MyCage("name", 1, 2, 3);'))
+      .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'CellId[]'.
+
+1 new MyCage("name", 1, 2, 3);
+                     ~`);
+
+    expect(checker.typecheck('new MyCage("name", [1], 2, 3);'))
+      .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+
+1 new MyCage("name", [1], 2, 3);
+                             ~`);
+
+    expect(checker.typecheck('new MyCage("name", [1], { any: true }, "3");')).toBeUndefined();
+  });
+
+  test("a component with no special hooks expects name and cell IDs", () => {
+    const checker = new InitializationCodeTypescript(backendResources, {
+      MyCage: "const validate = () => true;",
+    });
+
+    expect(checker.typecheck("new MyCage(1, 2, 3);"))
+      .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+line 1 - error TS2554: Expected 2 arguments, but got 3.
+
+1 new MyCage(1, 2, 3);
+                   ~`);
+
+    expect(checker.typecheck("new MyCage(1, 2);"))
+      .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+
+1 new MyCage(1, 2);
+             ~`);
+
+    expect(checker.typecheck('new MyCage("1", 2);'))
+      .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
+
+line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'CellId[]'.
+
+1 new MyCage("1", 2);
+                  ~`);
+
+    expect(checker.typecheck('new MyCage("1", [2]);')).toBeUndefined();
   });
 });

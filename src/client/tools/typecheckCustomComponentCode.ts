@@ -12,13 +12,46 @@ import { TypescriptProgram } from "../../typescript/TypescriptProgram";
 const allHookNames = ["getAffectedCells", "setParams", "initialize", "validate", "update"];
 
 /** A value the app passes, shared by every hook that receives it. */
-interface ResolvedArgument {
+class ResolvedArgument {
   /** What the authors declared for it, across all hooks. Emitted as an intersection. */
-  typeVariants: Set<string>;
-  /** The argument collects every remaining one, and `typeVariants` is its item's type. */
-  variadic?: boolean;
-  /** The app owns this type - a `@param` for it is ignored. */
-  final?: boolean;
+  private typeVariants: Set<string>;
+
+  constructor(
+    public name = "",
+    typeVariants: string[] = [],
+    /** The app owns this type - a `@param` for it is ignored. */
+    readonly final = false,
+    /** The argument collects every remaining one, and `typeVariants` is its item's type. */
+    public variadic = false,
+  ) {
+    this.typeVariants = new Set(typeVariants);
+  }
+
+  get hasType() {
+    return this.typeVariants.size !== 0;
+  }
+
+  get type() {
+    return [...this.typeVariants]
+      .map((s) => (this.typeVariants.size === 1 || /^\w+$/.test(s) ? s : `(${s})`))
+      .join(" & ");
+  }
+
+  pushType(...types: string[]) {
+    for (const type of types) {
+      this.typeVariants.add(type);
+    }
+  }
+
+  unshiftType(...types: string[]) {
+    this.typeVariants = new Set([...types, ...this.typeVariants]);
+  }
+
+  deleteType(...types: string[]) {
+    for (const type of types) {
+      this.typeVariants.delete(type);
+    }
+  }
 }
 
 interface ResolvedHook {
@@ -35,6 +68,7 @@ interface DeclaredHook {
 }
 
 interface DeclaredArgument {
+  name?: string;
   declaration: ts.ParameterDeclaration;
   isRest: boolean;
   jsDocType?: string;
@@ -132,23 +166,13 @@ const authorType = (
  * parameter has no name to bind to, so it gets a placeholder - skipping it would let the next tag
  * bind to its position and type the wrong parameter.
  */
-const buildJsDoc = (
-  typescript: BackendResources["typescript"],
-  declaredArgs: DeclaredArgument[],
-  { args: resolvedArgs, returns }: ResolvedHook,
-) => {
-  const tags: string[] = [];
-
-  declaredArgs.forEach(({ declaration: { name }, isRest }, index) => {
+const buildJsDoc = (declaredArgs: DeclaredArgument[], { args: resolvedArgs, returns }: ResolvedHook) => {
+  const tags = declaredArgs.slice(0, resolvedArgs.length).map(({ name, isRest }, index) => {
     const resolvedArg = resolvedArgs[index];
-    if (!resolvedArg) {
-      return;
-    }
 
-    const type = [...resolvedArg.typeVariants].map((s) => `(${s})`).join(" & ");
-    const annotation = type ? `{${isRest ? "..." : ""}${type}}` : "";
+    const annotation = resolvedArg.hasType ? `{${isRest ? "..." : ""}${resolvedArg.type}}` : "";
 
-    tags.push(`@param ${annotation} ${typescript.isIdentifier(name) ? name.text : `options${index}`}`);
+    return `@param ${annotation} ${name ?? `__arg${index + 1}`}`;
   });
 
   tags.push(`@returns {${returns}}`);
@@ -159,8 +183,16 @@ const buildJsDoc = (
 let baseProgram: TypescriptProgram | undefined;
 
 export class CustomComponentCodeTypescript extends SnippetTypescript {
-  constructor(backendResources: BackendResources) {
+  constructor(
+    backendResources: BackendResources,
+    /** Custom components map: name => code */
+    private readonly customComponents: Record<string, string>,
+  ) {
     super(backendResources, "component code");
+  }
+
+  typecheckComponent(name: string) {
+    return this.typecheck(this.customComponents[name]);
   }
 
   getProgram() {
@@ -168,17 +200,26 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
       "/customComponentGlobals.d.ts": this.backendResources.declarations.customComponentGlobals,
     });
 
-    return baseProgram;
+    const componentNames = Object.keys(this.customComponents);
+    if (componentNames.length === 0) {
+      return baseProgram;
+    }
+
+    const classesCode = this.getClassesCode();
+    const propsCode = componentNames.map((name) => `"${name}": typeof ${name}`).join(", ");
+
+    return baseProgram.withFiles({
+      "/customComponentsProp.d.ts": `import { Component } from "./types";
+
+${classesCode}
+
+declare global {
+  interface CustomComponents { ${propsCode} }
+}`,
+    });
   }
 
-  /**
-   * The component's code with a JSDoc line above each hook, plus a map back to the author's lines.
-   *
-   * Typing the hooks is what makes the check worth anything - without it `instance` and `puzzle` are
-   * implicitly `any` inside the bodies, where all the logic is. The annotations are whole lines, so
-   * the line numbers shift and every diagnostic has to be mapped back before it is reported.
-   */
-  protected annotate(code: string): SnippetTypescriptAnnotatorResult {
+  parseHooks(code: string) {
     const { typescript } = this.backendResources;
 
     const sourceFile = typescript.createSourceFile(
@@ -189,16 +230,12 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
       typescript.ScriptKind.JS,
     );
 
-    const jsDocByLine = new Map<number, string>();
-    /** The hook each annotation line belongs to, spanning the author's source. */
-    const hookRangeByLine = new Map<number, { start: SnippetPosition; end: SnippetPosition }>();
-    const problems: SnippetProblem[] = [];
-
     // region Find declared hooks in the snippet
     const declaredHooks = findHooks(typescript, sourceFile).map(
       (hook): DeclaredHook => ({
         ...hook,
         args: hook.fn.parameters.map((declaration) => ({
+          name: typescript.isIdentifier(declaration.name) ? declaration.name.text : undefined,
           declaration,
           isRest: !!declaration.dotDotDotToken,
           jsDocType: authorType(typescript, sourceFile, declaration),
@@ -211,16 +248,16 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
 
     // region Initialize hook argument descriptors
     const constructorArgs = Array(
-      Math.max(declaredGetAffectedCells?.args.length ?? 1, declaredSetParams?.args.length ?? 0),
+      Math.max(declaredGetAffectedCells?.args.length ?? 1, (declaredSetParams?.args.length ?? 1) - 1),
     )
       .fill(0)
-      .map((): ResolvedArgument => ({ typeVariants: new Set() }));
+      .map(() => new ResolvedArgument());
     if (!declaredGetAffectedCells) {
-      constructorArgs[0] = { typeVariants: new Set(["CellId[]"]), final: true };
+      constructorArgs[0] = new ResolvedArgument("cellIds", ["CellId[]"], true);
     }
 
-    const instanceArg: ResolvedArgument = { typeVariants: new Set() };
-    const puzzleArg: ResolvedArgument = { typeVariants: new Set(["Puzzle"]), final: true };
+    const instanceArg = new ResolvedArgument("instance");
+    const puzzleArg = new ResolvedArgument("puzzle", ["Puzzle"], true);
 
     const resolvedHooks: Record<string, ResolvedHook> = {
       getAffectedCells: {
@@ -263,6 +300,11 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
         }
 
         let declaredArg = declaredArgs[index];
+
+        if (declaredArg?.name) {
+          resolvedArg.name = declaredArg.name;
+        }
+
         if (hasRest) {
           declaredArg ??= lastDeclaredArg;
         }
@@ -271,27 +313,77 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
         }
 
         if (declaredArg.jsDocType) {
-          resolvedArg.typeVariants.add(declaredArg.jsDocType);
+          resolvedArg.pushType(declaredArg.jsDocType);
         }
       }
     }
 
     // Finalize the "instance" argument
-    if (instanceArg.typeVariants.size) {
-      instanceArg.typeVariants.delete("any");
-      instanceArg.typeVariants.delete("object");
-      instanceArg.typeVariants.delete("unknown");
-      instanceArg.typeVariants.delete("{}");
-      instanceArg.typeVariants.delete("{ }");
-      instanceArg.typeVariants = new Set(["Instance", ...instanceArg.typeVariants]);
+    if (instanceArg.hasType) {
+      instanceArg.deleteType("any", "object", "unknown", "{}", "{ }");
+      instanceArg.unshiftType("Instance");
     } else {
-      instanceArg.typeVariants.add("DynamicInstance");
+      instanceArg.pushType("DynamicInstance");
     }
+
+    // Fix empty and duplicated constructor arg names
+    const forbiddenArgNames = new Set<string>(["", "name"]);
+    for (const [index, arg] of constructorArgs.entries()) {
+      if (forbiddenArgNames.has(arg.name)) {
+        arg.name = `__arg${index + 1}`;
+      } else {
+        forbiddenArgNames.add(arg.name);
+      }
+    }
+
+    return {
+      sourceFile,
+      declaredHooks,
+      resolvedHooks,
+      constructorArgs,
+    };
+  }
+
+  getConstructorArgs(code: string) {
+    return (
+      "name: string, " +
+      this.parseHooks(code)
+        .constructorArgs.map(
+          ({ name, type, variadic }) => `${variadic ? "..." : ""}${name}: ${type || "any"}${variadic ? "[]" : ""}`,
+        )
+        .join(", ")
+    );
+  }
+
+  getClassCode(name: string, code: string) {
+    return `class ${name} extends Component { constructor(${this.getConstructorArgs(code)}); }`;
+  }
+
+  getClassesCode(offset = "") {
+    return Object.entries(this.customComponents)
+      .map(([name, code]) => `${offset}${this.getClassCode(name, code)}\n`)
+      .join("");
+  }
+
+  /**
+   * The component's code with a JSDoc line above each hook, plus a map back to the author's lines.
+   *
+   * Typing the hooks is what makes the check worth anything - without it `instance` and `puzzle` are
+   * implicitly `any` inside the bodies, where all the logic is. The annotations are whole lines, so
+   * the line numbers shift and every diagnostic has to be mapped back before it is reported.
+   */
+  protected annotate(code: string): SnippetTypescriptAnnotatorResult {
+    const jsDocByLine = new Map<number, string>();
+    /** The hook each annotation line belongs to, spanning the author's source. */
+    const hookRangeByLine = new Map<number, { start: SnippetPosition; end: SnippetPosition }>();
+    const problems: SnippetProblem[] = [];
+
+    const { sourceFile, declaredHooks, resolvedHooks } = this.parseHooks(code);
 
     // Compile and insert the generated JSDocs
     for (const { name, statement, args: declaredArgs } of declaredHooks) {
       const start = sourceFile.getLineAndCharacterOfPosition(statement.getStart(sourceFile));
-      jsDocByLine.set(start.line, buildJsDoc(typescript, declaredArgs, resolvedHooks[name]));
+      jsDocByLine.set(start.line, buildJsDoc(declaredArgs, resolvedHooks[name]));
       hookRangeByLine.set(start.line, {
         start,
         end: sourceFile.getLineAndCharacterOfPosition(statement.getEnd()),
