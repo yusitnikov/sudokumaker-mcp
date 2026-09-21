@@ -15,6 +15,7 @@ export interface BackendResources {
   declarations: {
     types: string;
     globals: string;
+    standardComponentsGlobals: string;
     initialCodeGlobals: string;
     customComponentGlobals: string;
   };

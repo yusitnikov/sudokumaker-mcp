@@ -510,10 +510,12 @@ program
 
       await writeFile("src/generated/types.d.ts", declarations);
 
+      await writeFile("src/generated/globals.d.ts", formatGlobals(groupedIndex.class[globalScopeHandle].ownProperties));
+
       await writeFile(
-        "src/generated/globals.d.ts",
+        "src/generated/standardComponentsGlobals.d.ts",
         formatGlobals(
-          groupedIndex.class[globalScopeHandle].ownProperties,
+          {},
           `type CellId = ${typesNamespace}.CellId;\ntype DigitSet = ${typesNamespace}.DigitSet;\n\n`,
           componentDeclarations,
         ),
@@ -551,7 +553,9 @@ program
        * The two scope files both declare `helpers`, so each is checked against its own program.
        */
       for (const scopeFile of ["initialCodeGlobals", "customComponentGlobals"]) {
-        const files = ["types", "globals", scopeFile].map((name) => `src/generated/${name}.d.ts`);
+        const files = ["types", "globals", "standardComponentsGlobals", scopeFile].map(
+          (name) => `src/generated/${name}.d.ts`,
+        );
 
         await run("npx", [
           "tsc",

@@ -80,6 +80,7 @@ export class SnippetTypescript {
     }).withFiles({
       "/types.d.ts": declarations.types,
       "/globals.d.ts": declarations.globals,
+      "/standardComponentsGlobals.d.ts": declarations.standardComponentsGlobals,
     });
 
     return baseProgram;

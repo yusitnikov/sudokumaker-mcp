@@ -8,6 +8,7 @@ import * as typescript from "typescript";
 /* eslint-disable import-x/default */
 import types from "./generated/types.d.ts?raw";
 import globals from "./generated/globals.d.ts?raw";
+import standardComponentsGlobals from "./generated/standardComponentsGlobals.d.ts?raw";
 import initialCodeGlobals from "./generated/initialCodeGlobals.d.ts?raw";
 import customComponentGlobals from "./generated/customComponentGlobals.d.ts?raw";
 import type { BackendResources } from "./BackendResources";
@@ -15,5 +16,5 @@ import type { BackendResources } from "./BackendResources";
 
 export const backendResources: BackendResources = {
   typescript,
-  declarations: { types, globals, initialCodeGlobals, customComponentGlobals },
+  declarations: { types, globals, standardComponentsGlobals, initialCodeGlobals, customComponentGlobals },
 };
