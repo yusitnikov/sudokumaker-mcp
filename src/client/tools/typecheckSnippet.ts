@@ -1,17 +1,7 @@
 import type { BackendResources } from "../../BackendResources";
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
-
-/** What one scope adds to the program the two of them share. */
-export interface SnippetScope {
-  /**
-   * The scope's own globals - `initialCodeGlobals` or `customComponentGlobals`. They declare
-   * different `helpers`, so a program takes one or the other, never both.
-   */
-  globals: string;
-  /** Anything else the scope declares, by file name - e.g. the element's own components. */
-  extraDeclarations?: Record<string, string>;
-}
+import { TypescriptProgram } from "../../typescript/TypescriptProgram";
 
 /** One end of a problem's span, in the author's own source. */
 export interface SnippetPosition {
@@ -50,6 +40,8 @@ export interface SnippetTypescriptAnnotatorResult {
   problems?: SnippetProblem[];
 }
 
+let baseProgram: TypescriptProgram | undefined;
+
 export class SnippetTypescript {
   /**
    * Where the snippet lives in the virtual program - its diagnostics are the only ones reported.
@@ -58,27 +50,17 @@ export class SnippetTypescript {
    * ordinary JS - redeclaring a function, or growing an object literal past the shape it was created
    * with - and reporting those would be a false positive on correct code.
    */
-  private static readonly snippetFileName = "/snippet.js";
+  protected static readonly snippetFileName = "/snippet.js";
 
   constructor(
     readonly backendResources: BackendResources,
-    readonly scope: SnippetScope,
     readonly subject: string,
   ) {}
 
-  /** Diagnostics for `code` checked in `scope`, including those of the declarations themselves. */
-  getDiagnostics(code: string) {
+  getProgram() {
     const { typescript, declarations } = this.backendResources;
 
-    const files = new Map([
-      ["/types.d.ts", declarations.types],
-      ["/globals.d.ts", declarations.globals],
-      ["/scopeGlobals.d.ts", this.scope.globals],
-      ...Object.entries(this.scope.extraDeclarations ?? {}),
-      [SnippetTypescript.snippetFileName, code],
-    ]);
-
-    const options: ts.CompilerOptions = {
+    baseProgram ??= TypescriptProgram.root(typescript, {
       target: typescript.ScriptTarget.ESNext,
       module: typescript.ModuleKind.ESNext,
       // The worker environment: `console`, `self` and friends, but no DOM.
@@ -95,39 +77,21 @@ export class SnippetTypescript {
       // generated declaration and leave the check passing while validating nothing.
       skipLibCheck: false,
       types: [],
-    };
+    }).withFiles({
+      "/types.d.ts": declarations.types,
+      "/globals.d.ts": declarations.globals,
+    });
 
-    const libFileName = typescript.getDefaultLibFilePath(options);
-    const libDirectory = libFileName.slice(0, libFileName.lastIndexOf("/"));
+    return baseProgram;
+  }
 
-    const host = typescript.createCompilerHost(options);
-    const readDiskFile = host.getSourceFile.bind(host);
-    host.getSourceFile = (fileName, languageVersion, ...rest) => {
-      const virtual = files.get(fileName);
-
-      return virtual === undefined
-        ? readDiskFile(fileName, languageVersion, ...rest)
-        : typescript.createSourceFile(fileName, virtual, languageVersion, true);
-    };
-    host.fileExists = (fileName) => files.has(fileName) || typescript.sys.fileExists(fileName);
-    host.readFile = (fileName) => files.get(fileName) ?? typescript.sys.readFile(fileName);
-    host.getDefaultLibFileName = () => libFileName;
-    host.getDefaultLibLocation = () => libDirectory;
-    // The globals files import `./types`, which is virtual - the default resolver only looks on disk,
-    // and without this every scanned type silently degrades to `any`.
-    host.resolveModuleNameLiterals = (literals, containingFile) =>
-      literals.map(({ text }) => {
-        const directory = containingFile.slice(0, containingFile.lastIndexOf("/"));
-        const resolvedFileName = `${directory}/${text.replace(/^\.\//, "")}.d.ts`;
-
-        return files.has(resolvedFileName)
-          ? { resolvedModule: { resolvedFileName, extension: typescript.Extension.Dts } }
-          : { resolvedModule: undefined };
-      });
-
-    const program = typescript.createProgram([...files.keys()], options, host);
-
-    return typescript.getPreEmitDiagnostics(program);
+  /** Diagnostics for `code` checked in `scope`, including those of the declarations themselves. */
+  getDiagnostics(code: string) {
+    return this.backendResources.typescript.getPreEmitDiagnostics(
+      this.getProgram()
+        .withFiles({ [SnippetTypescript.snippetFileName]: code })
+        .getProgram(),
+    );
   }
 
   /**

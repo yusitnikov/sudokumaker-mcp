@@ -7,6 +7,7 @@ import {
 } from "./typecheckSnippet";
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
+import { TypescriptProgram } from "../../typescript/TypescriptProgram";
 
 const allHookNames = ["getAffectedCells", "setParams", "initialize", "validate", "update"];
 
@@ -155,9 +156,19 @@ const buildJsDoc = (
   return `/** ${tags.join(" ")} */`;
 };
 
+let baseProgram: TypescriptProgram | undefined;
+
 export class CustomComponentCodeTypescript extends SnippetTypescript {
   constructor(backendResources: BackendResources) {
-    super(backendResources, { globals: backendResources.declarations.customComponentGlobals }, "component code");
+    super(backendResources, "component code");
+  }
+
+  getProgram() {
+    baseProgram ??= super.getProgram().withFiles({
+      "/customComponentGlobals.d.ts": this.backendResources.declarations.customComponentGlobals,
+    });
+
+    return baseProgram;
   }
 
   /**
@@ -170,7 +181,13 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
   protected annotate(code: string): SnippetTypescriptAnnotatorResult {
     const { typescript } = this.backendResources;
 
-    const sourceFile = typescript.createSourceFile("/component.js", code, typescript.ScriptTarget.ESNext, true);
+    const sourceFile = typescript.createSourceFile(
+      SnippetTypescript.snippetFileName,
+      code,
+      typescript.ScriptTarget.ESNext,
+      true,
+      typescript.ScriptKind.JS,
+    );
 
     const jsDocByLine = new Map<number, string>();
     /** The hook each annotation line belongs to, spanning the author's source. */
@@ -271,7 +288,7 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
       instanceArg.typeVariants.add("DynamicInstance");
     }
 
-    // Compile and inserted the generated JSDocs
+    // Compile and insert the generated JSDocs
     for (const { name, statement, args: declaredArgs } of declaredHooks) {
       const start = sourceFile.getLineAndCharacterOfPosition(statement.getStart(sourceFile));
       jsDocByLine.set(start.line, buildJsDoc(typescript, declaredArgs, resolvedHooks[name]));

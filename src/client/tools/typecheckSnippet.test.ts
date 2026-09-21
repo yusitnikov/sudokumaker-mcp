@@ -2,15 +2,7 @@ import { describe, expect, test } from "vitest";
 import { type SnippetProblem, SnippetTypescript, type SnippetTypescriptAnnotatorResult } from "./typecheckSnippet";
 import { backendResources } from "../../backendResourcesImpl";
 
-/*
- * These cases are about the checker itself - the program shape, the host, and how a diagnostic is
- * rendered - so they are written against one scope but hold for any. The initialization scope is
- * the one used, because it is the one that ships today; its own behaviour is tested next door in
- * `editInitializationCodeTool.test.ts`.
- */
-const scope = { globals: backendResources.declarations.initialCodeGlobals };
-
-const checker = new SnippetTypescript(backendResources, scope, "generic code");
+const checker = new SnippetTypescript(backendResources, "generic code");
 
 describe("what the worker environment provides", () => {
   test("console is available", () => {
@@ -136,7 +128,7 @@ describe("mapping lines back to the author's", () => {
       }
     }
 
-    expect(new CheckerWithAnnotator(backendResources, scope, "generic code").typecheck("noSuchName();")).toBe(
+    expect(new CheckerWithAnnotator(backendResources, "generic code").typecheck("noSuchName();")).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 1 - error TS2304: Cannot find name 'noSuchName'.

@@ -6,6 +6,7 @@ import { customConstraintsTopicName } from "./docs/topicNames";
 import { editText, editTextOperation } from "./editText";
 import type { BackendResources } from "../../BackendResources";
 import { SnippetTypescript } from "./typecheckSnippet";
+import { TypescriptProgram } from "../../typescript/TypescriptProgram";
 
 export const editInitializationCodeTool = new CustomElementToolImplementation(
   {
@@ -37,27 +38,33 @@ its API and conventions cannot be guessed.
   },
 );
 
+let baseProgram: TypescriptProgram | undefined;
+
 export class InitializationCodeTypescript extends SnippetTypescript {
-  constructor(backendResources: BackendResources, customComponentNames: string[] = []) {
+  constructor(
+    backendResources: BackendResources,
+    private readonly customComponentNames: string[] = [],
+  ) {
+    super(backendResources, "initialization code");
+  }
+
+  getProgram() {
     /**
      * Declares the element's own components, which the initialization code constructs by bare name.
      *
      * Their constructor parameters can't be recovered - the real signature is only discoverable by
      * analyzing user code this doesn't parse, and `unknown[]` would reject every real call site.
      */
-    const declarations = customComponentNames
+    const declarations = this.customComponentNames
       .map((name) => `  class ${name} extends Component { constructor(...args: any[]); }\n`)
       .join("");
 
-    super(
-      backendResources,
-      {
-        globals: backendResources.declarations.initialCodeGlobals,
-        extraDeclarations: {
-          "/components.d.ts": `import { Component } from "./types";\n\ndeclare global {\n${declarations}}\n`,
-        },
-      },
-      "initialization code",
-    );
+    baseProgram ??= super.getProgram().withFiles({
+      "/initialCodeGlobals.d.ts": this.backendResources.declarations.initialCodeGlobals,
+    });
+
+    return baseProgram.withFiles({
+      "/components.d.ts": `import { Component } from "./types";\n\ndeclare global {\n${declarations}}\n`,
+    });
   }
 }
