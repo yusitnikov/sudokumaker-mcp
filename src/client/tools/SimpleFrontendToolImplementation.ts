@@ -21,7 +21,7 @@ export abstract class SimpleFrontendToolImplementation<
 > extends FrontendToolImplementation<SchemaT> {
   protected readonly timeout?: number;
 
-  protected constructor({ timeout, ...options }: FrontendToolOptions<SchemaT>) {
+  constructor({ timeout, ...options }: FrontendToolOptions<SchemaT>) {
     super(options);
 
     this.timeout = timeout;
@@ -54,7 +54,7 @@ export abstract class SimpleFrontendToolImplementation<
     const { response, updatedPuzzle } = runResult.result;
 
     if (updatedPuzzle) {
-      const checkResult = await this.checkPuzzleOnBackend(updatedPuzzle, params, resources);
+      const checkResult = await this.checkPuzzleOnBackend(updatedPuzzle, params, resources, tabController);
       if (checkResult) {
         (response.content[response.content.length - 1] as { text: string }).text += `\n\n${checkResult}`;
       }
@@ -70,6 +70,7 @@ export abstract class SimpleFrontendToolImplementation<
     _puzzle: PuzzlePublic,
     _params: z.input<SchemaT>,
     _resources: BackendResources,
+    _tabController: TabController,
   ): Promise<string | undefined> {
     return undefined;
   }

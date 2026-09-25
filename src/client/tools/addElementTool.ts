@@ -12,71 +12,66 @@ import { AllElements, getElementByTypeName } from "../../elements/AllElements";
 import { KillerCagesElement } from "../../elements/cageElements";
 import { ThermometerElement } from "../../elements/lineElements";
 import { CosmeticSymbolElement } from "../../elements/cosmeticElements";
-import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
+import { type FrontendRunResult, SimpleFrontendToolImplementation } from "./SimpleFrontendToolImplementation";
+import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
+import type { BackendResources } from "../../BackendResources";
+import type { TabController } from "../../TabController";
+import { isCustomElement } from "../../elements/CustomElement";
+import { InitializationCodeTypescript } from "./InitializationCodeTypescript";
 
-export const addElementTool = new FrontendCallbackToolImplementation(
-  {
-    name: addElementToolName,
-    title: "Add SudokuMaker element",
-    description:
-      // language=markdown
-      `
-Create a new element (a constraint or a decorative/cosmetic element) in the puzzle and insert it
-into the element list at a chosen position.
-`.trim(),
-    inputSchema: z.object({
-      name: ElementMainSchema.shape.name,
-      enabled: ElementMainSchema.shape.enabled.default(true),
-      solverIgnored: ElementMainSchema.shape.solverIgnored.default(false),
-      element: withAdvertisedSchema(
-        z.union(
-          AllElements.flatMap((element) =>
-            [element.main, ...element.options].map((option) =>
-              z
-                .object({
-                  type: z.literal(element.typeName),
-                  subType: z.literal(option.title),
-                  ...(option.paramsSchema ? { params: option.paramsSchema } : {}),
-                  ...(element.globalSchema
-                    ? {
-                        overrides: ZodDeepPartial(element.globalSchema).optional(),
-                      }
-                    : {}),
-                })
-                .describe(option.description),
-            ),
-          ),
+const inputSchema = z.object({
+  name: ElementMainSchema.shape.name,
+  enabled: ElementMainSchema.shape.enabled.default(true),
+  solverIgnored: ElementMainSchema.shape.solverIgnored.default(false),
+  element: withAdvertisedSchema(
+    z.union(
+      AllElements.flatMap((element) =>
+        [element.main, ...element.options].map((option) =>
+          z
+            .object({
+              type: z.literal(element.typeName),
+              subType: z.literal(option.title),
+              ...(option.paramsSchema ? { params: option.paramsSchema } : {}),
+              ...(element.globalSchema
+                ? {
+                    overrides: ZodDeepPartial(element.globalSchema).optional(),
+                  }
+                : {}),
+            })
+            .describe(option.description),
         ),
-        z
-          .object({
-            type: z.string().describe(
-              // language=markdown
-              `The exact element type name to create, e.g. \`"${KillerCagesElement.typeName}"\`, \`"${ThermometerElement.typeName}"\`, \`"${CosmeticSymbolElement.typeName}"\` - browse valid type names in docs topic \`${elementsTopicName}\`.`,
-            ),
-            subType: z.string().describe(
-              // language=markdown
-              `The exact title of one of that type's variants - docs topic \`${elementTopicPattern}\`'s \`## Variants\` section lists them.`,
-            ),
-            params: z.record(z.string(), jsonValue).optional().describe(
-              // language=markdown
-              `Only for subtypes that need them: subtype-specific creation parameters, shape given alongside the variant in \`## Variants\` when it takes one.`,
-            ),
-            overrides: z
-              .record(z.string(), jsonValue)
-              .optional()
-              .describe(
-                // language=markdown
-                `
+      ),
+    ),
+    z
+      .object({
+        type: z.string().describe(
+          // language=markdown
+          `The exact element type name to create, e.g. \`"${KillerCagesElement.typeName}"\`, \`"${ThermometerElement.typeName}"\`, \`"${CosmeticSymbolElement.typeName}"\` - browse valid type names in docs topic \`${elementsTopicName}\`.`,
+        ),
+        subType: z.string().describe(
+          // language=markdown
+          `The exact title of one of that type's variants - docs topic \`${elementTopicPattern}\`'s \`## Variants\` section lists them.`,
+        ),
+        params: z.record(z.string(), jsonValue).optional().describe(
+          // language=markdown
+          `Only for subtypes that need them: subtype-specific creation parameters, shape given alongside the variant in \`## Variants\` when it takes one.`,
+        ),
+        overrides: z
+          .record(z.string(), jsonValue)
+          .optional()
+          .describe(
+            // language=markdown
+            `
 Only for types with a \`## Config\` section: initial config values to set instead of the type's defaults (e.g. \`{"style": {"color": "#ff0000"}}\`) -
 docs topic \`${elementTopicPattern}\`'s \`## Config\` section shows the full config JSON schema.
 
 ${partialUpdateNote}
 `.trim(),
-              ),
-          })
-          .describe(
-            // language=markdown
-            `
+          ),
+      })
+      .describe(
+        // language=markdown
+        `
 Which type/variant of element to create and its initial config.
 
 The new element's clue list (for multi-clue types) always starts empty regardless of \`overrides\` -
@@ -84,46 +79,60 @@ use \`${addCluesToolName}\` afterwards.
 
 Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerElement.typeName}", "overrides": {"style": {"color": "#888888"}}}\`.
 `.trim(),
-          ),
       ),
-      position: z
-        .union([
-          z
-            .object({
-              at: z.number().int().min(1).describe(
-                // language=markdown
-                `The 1-based position to insert at, e.g. \`1\` to place it as the first item.`,
-              ),
-            })
-            .describe(
-              // language=markdown
-              `Place the new element at the Nth position.`,
-            ),
-          z
-            .object({
-              at: z.literal("end"),
-            })
-            .describe(
-              // language=markdown
-              `Insert the new element at the end of the list.`,
-            ),
-          z
-            .object({
-              elementId: z.number().int().describe(`Target element ID. ${elementIdNote}`),
-              position: z.enum(["before", "after"]),
-            })
-            .describe(
-              // language=markdown
-              `Place the new element immediately before or after another element with the given ID.`,
-            ),
-        ])
+  ),
+  position: z
+    .union([
+      z
+        .object({
+          at: z.number().int().min(1).describe(
+            // language=markdown
+            `The 1-based position to insert at, e.g. \`1\` to place it as the first item.`,
+          ),
+        })
         .describe(
           // language=markdown
-          `Where to insert the new element in the puzzle's ordered element list (order affects layering).`,
+          `Place the new element at the Nth position.`,
         ),
-    }),
-  },
-  async function ({ name, enabled = true, solverIgnored = false, element, position }) {
+      z
+        .object({
+          at: z.literal("end"),
+        })
+        .describe(
+          // language=markdown
+          `Insert the new element at the end of the list.`,
+        ),
+      z
+        .object({
+          elementId: z.number().int().describe(`Target element ID. ${elementIdNote}`),
+          position: z.enum(["before", "after"]),
+        })
+        .describe(
+          // language=markdown
+          `Place the new element immediately before or after another element with the given ID.`,
+        ),
+    ])
+    .describe(
+      // language=markdown
+      `Where to insert the new element in the puzzle's ordered element list (order affects layering).`,
+    ),
+});
+type InputSchema = typeof inputSchema;
+
+class AddElementTool extends SimpleFrontendToolImplementation<InputSchema> {
+  private newElementIndex?: number;
+
+  getNewElementIndexOnFrontend() {
+    return this.newElementIndex;
+  }
+
+  async run({
+    name,
+    enabled = true,
+    solverIgnored = false,
+    element,
+    position,
+  }: z.input<InputSchema>): Promise<FrontendRunResult> {
     const {
       tabState,
       result: { index, id },
@@ -147,6 +156,8 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
             );
           }
         }
+        // Save the index on frontend
+        this.newElementIndex = index;
 
         // TODO: where's the validation of the advertised schema?
 
@@ -211,5 +222,42 @@ Example: \`{"type": "${ThermometerElement.typeName}", "subType": "${ThermometerE
         ],
       },
     };
-  },
-);
+  }
+
+  protected async checkPuzzleOnBackend(
+    puzzle: PuzzlePublic,
+    _params: z.input<InputSchema>,
+    resources: BackendResources,
+    tabController: TabController,
+  ): Promise<string | undefined> {
+    const indexResult = await this.callFrontend<AddElementTool, "getNewElementIndexOnFrontend">(
+      tabController,
+      1000,
+      "getNewElementIndexOnFrontend",
+    );
+    if (!indexResult.success || indexResult.result === undefined) {
+      // not really possible - just skip
+      return undefined;
+    }
+    const index = indexResult.result;
+
+    const element = puzzle.allElements[index];
+    if (isCustomElement(element)) {
+      return InitializationCodeTypescript.typecheckElement(element, resources);
+    }
+
+    return undefined;
+  }
+}
+
+export const addElementTool = new AddElementTool({
+  name: addElementToolName,
+  title: "Add SudokuMaker element",
+  description:
+    // language=markdown
+    `
+Create a new element (a constraint or a decorative/cosmetic element) in the puzzle and insert it
+into the element list at a chosen position.
+`.trim(),
+  inputSchema,
+});

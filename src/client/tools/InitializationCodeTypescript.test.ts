@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { InitializationCodeTypescript } from "./editInitializationCodeTool";
 import { backendResources } from "../../backendResourcesImpl";
+import { InitializationCodeTypescript } from "./InitializationCodeTypescript";
 
 const checkerNoComponents = new InitializationCodeTypescript(backendResources);
 

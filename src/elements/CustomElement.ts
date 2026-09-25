@@ -4,6 +4,8 @@ import { SudokuMakerElement } from "./SudokuMakerElement";
 import { z } from "zod";
 import { customComponentsTopicName, customConstraintsTopicName } from "../client/tools/docs/topicNames";
 import { editInitializationCodeToolName, updateElementToolName } from "../client/tools/toolNames";
+import type { ElementByType } from "./types";
+import type { PuzzlePublic } from "../SudokuMakerPuzzleSchema";
 
 export const CustomElement = new SudokuMakerElement({
   type: ElementType.Custom,
@@ -143,3 +145,8 @@ Use dedicated tools to modify the custom components, NOT the \`${updateElementTo
     },
   },
 });
+
+export type CustomElementPublic = ElementByType<ElementType.Custom>;
+
+export const isCustomElement = (element: PuzzlePublic["allElements"][number]): element is CustomElementPublic =>
+  element.config.type === CustomElement.typeName;

@@ -4,9 +4,7 @@ import { elementIdNote, operationDescriptionParam } from "./descriptionSnippets"
 import { addElementToolName, getPuzzleToolName } from "./toolNames";
 import { formatStandardComponent, getStandardComponentByName } from "./standardComponents";
 import { elementsDiffSummary } from "../format/puzzle/diffSummary";
-import { CustomElement } from "../../elements/CustomElement";
-import type { ElementByType } from "../../elements/types";
-import { ElementType } from "../../elements/ElementType";
+import { CustomElement, type CustomElementPublic, isCustomElement } from "../../elements/CustomElement";
 import type { PuzzlePublic } from "../../SudokuMakerPuzzleSchema";
 import type { BackendResources } from "../../BackendResources";
 
@@ -15,8 +13,6 @@ import {
   type FrontendToolOptions,
   SimpleFrontendToolImplementation,
 } from "./SimpleFrontendToolImplementation";
-
-type CustomElementPublic = ElementByType<ElementType.Custom>;
 
 /** The input fields every tool targeting a `Custom` element takes, on top of its own. */
 const customElementBaseShape = {
@@ -92,7 +88,7 @@ export class CustomElementToolImplementation<
     const { index, targetElement } = getElementById(puzzle, elementId);
     const { typeName } = CustomElement;
 
-    if (targetElement.config.type !== typeName) {
+    if (!isCustomElement(targetElement)) {
       // The puzzle's actual Custom elements travel with the error, so retrying costs no extra read.
       const available = puzzle.allElements
         .filter((element) => element.config.type === typeName)
@@ -105,7 +101,7 @@ export class CustomElementToolImplementation<
       );
     }
 
-    return { index, targetElement: targetElement as CustomElementPublic };
+    return { index, targetElement };
   }
 
   /**
