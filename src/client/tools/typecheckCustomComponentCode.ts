@@ -8,6 +8,7 @@ import {
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
 import { TypescriptProgram } from "../../typescript/TypescriptProgram";
+import { customComponentsTopicName, typesReferenceTopicName } from "./docs/topicNames";
 
 const allHookNames = ["getAffectedCells", "setParams", "initialize", "validate", "update"];
 
@@ -188,7 +189,7 @@ export class CustomComponentCodeTypescript extends SnippetTypescript {
     /** Custom components map: name => code */
     private readonly customComponents: Record<string, string>,
   ) {
-    super(backendResources, "component code");
+    super(backendResources, "component code", [customComponentsTopicName, typesReferenceTopicName]);
   }
 
   typecheckComponent(name: string) {

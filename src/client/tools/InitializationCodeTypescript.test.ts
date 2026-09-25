@@ -229,7 +229,9 @@ describe("problems in the snippet", () => {
 line 1 - error TS2339: Property 'thisDoesNotExist' does not exist on type 'NamingHelper'.
 
 1 helpers.naming.thisDoesNotExist();
-                 ~~~~~~~~~~~~~~~~`,
+                 ~~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -240,7 +242,9 @@ line 1 - error TS2339: Property 'thisDoesNotExist' does not exist on type 'Namin
 line 1 - error TS2554: Expected 3 arguments, but got 2.
 
 1 new BetweenComponent("b", [1, 2]);
-  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`,
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -251,7 +255,9 @@ line 1 - error TS2554: Expected 3 arguments, but got 2.
 line 1 - error TS2552: Cannot find name 'noSuchComponent'. Did you mean 'SumComponent'?
 
 1 noSuchComponent();
-  ~~~~~~~~~~~~~~~`,
+  ~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -264,7 +270,9 @@ line 1 - error TS2552: Cannot find name 'noSuchComponent'. Did you mean 'SumComp
 line 1 - error TS2345: Argument of type 'number[]' is not assignable to parameter of type 'number | SmallNumberSet'.   Type 'number[]' is missing the following properties from type 'SmallNumberSet': mask, add, clear, delete, and 13 more.
 
 1 const set = new DigitSet([1, 2, 3]);
-                           ~~~~~~~~~`,
+                           ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -319,7 +327,9 @@ describe("the element's custom components", () => {
 line 1 - error TS2554: Expected 4 arguments, but got 5.
 
 1 new MyCage("name", 1, 2, 3, 4);
-                              ~`);
+                              ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`);
 
     expect(checker.typecheck('new MyCage("name", 1, 2, 3);'))
       .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
@@ -327,7 +337,9 @@ line 1 - error TS2554: Expected 4 arguments, but got 5.
 line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'CellId[]'.
 
 1 new MyCage("name", 1, 2, 3);
-                     ~`);
+                     ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`);
 
     expect(checker.typecheck('new MyCage("name", [1], 2, 3);'))
       .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
@@ -335,7 +347,9 @@ line 1 - error TS2345: Argument of type 'number' is not assignable to parameter 
 line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
 
 1 new MyCage("name", [1], 2, 3);
-                             ~`);
+                             ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`);
 
     expect(checker.typecheck('new MyCage("name", [1], { any: true }, "3");')).toBeUndefined();
   });
@@ -351,7 +365,9 @@ line 1 - error TS2345: Argument of type 'number' is not assignable to parameter 
 line 1 - error TS2554: Expected 2 arguments, but got 3.
 
 1 new MyCage(1, 2, 3);
-                   ~`);
+                   ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`);
 
     expect(checker.typecheck("new MyCage(1, 2);"))
       .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
@@ -359,7 +375,9 @@ line 1 - error TS2554: Expected 2 arguments, but got 3.
 line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
 
 1 new MyCage(1, 2);
-             ~`);
+             ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`);
 
     expect(checker.typecheck('new MyCage("1", 2);'))
       .toBe(`[WARNING] TypeScript found 1 problem(s) in the new initialization code. The change WAS applied.
@@ -367,7 +385,9 @@ line 1 - error TS2345: Argument of type 'number' is not assignable to parameter 
 line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'CellId[]'.
 
 1 new MyCage("1", 2);
-                  ~`);
+                  ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints\` and \`custom-constraints:types-reference\`.`);
 
     expect(checker.typecheck('new MyCage("1", [2]);')).toBeUndefined();
   });

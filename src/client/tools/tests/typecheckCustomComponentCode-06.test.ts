@@ -21,7 +21,9 @@ describe("the second argument of setParams without getAffectedCells", () => {
 line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
 2   instance.first = cells.toUpperCase()
-                           ~~~~~~~~~~~`,
+                           ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -34,7 +36,9 @@ line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 2   instance.first = cells[0].toUpperCase()
-                              ~~~~~~~~~~~`,
+                              ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -62,7 +66,9 @@ line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 line 1 - error TS2322: Type 'string' is not assignable to type 'number[]'.
 
 1 function setParams (instance, cells = "none") {
-                                ~~~~~~~~~~~~~~`,
+                                ~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -124,7 +130,9 @@ function setParams (instance, cells) {
 line 8 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
 8   instance.first = cells.toUpperCase()
-                           ~~~~~~~~~~~`,
+                           ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -164,7 +172,9 @@ function setParams (instance, cells) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
 3   instance.first = cells.toUpperCase()
-                           ~~~~~~~~~~~`,
+                           ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -183,7 +193,9 @@ function setParams (instance, cells) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
 3   instance.first = cells.toUpperCase()
-                           ~~~~~~~~~~~`,
+                           ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -202,7 +214,9 @@ function setParams (instance, cells) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
 3   instance.first = cells.toUpperCase()
-                           ~~~~~~~~~~~`,
+                           ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -231,7 +245,9 @@ line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 line 4 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 4   instance.size = size.toUpperCase()
-                         ~~~~~~~~~~~`,
+                         ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -250,7 +266,9 @@ function setParams (instance, cells) {
 line 3 - error TS2322: Type 'number[]' is not assignable to type 'number'.
 
 3   instance.first = cells
-    ~~~~~~~~~~~~~~`,
+    ~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -288,7 +306,9 @@ function setParams (instance, sequence) {
 line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 7   instance.first = sequence.toFixed(2)
-                              ~~~~~~~`,
+                              ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });

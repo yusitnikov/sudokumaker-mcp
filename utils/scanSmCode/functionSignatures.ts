@@ -1979,6 +1979,10 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     },
     intersect: {
       processed: true,
+      comment: [
+        "Removes from this set every digit that is not in `other`, in place, and returns this set.",
+        "Unlike `Set.prototype.intersection`, it does not create a new set.",
+      ],
       arguments: [
         {
           name: "other",
@@ -2029,6 +2033,10 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     },
     subtract: {
       processed: true,
+      comment: [
+        "Removes the digits of `other` from this set, in place, and returns this set.",
+        "Unlike `Set.prototype.difference`, it does not create a new set.",
+      ],
       arguments: [
         {
           name: "other",
@@ -2039,6 +2047,10 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     },
     union: {
       processed: true,
+      comment: [
+        "Adds the digits of `other` to this set, in place, and returns this set.",
+        "Unlike `Set.prototype.union`, it does not create a new set.",
+      ],
       arguments: [
         {
           name: "other",
@@ -2049,6 +2061,10 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     },
     xor: {
       processed: true,
+      comment: [
+        "Toggles the digits of `other` in this set, in place, and returns this set.",
+        "Unlike `Set.prototype.symmetricDifference`, it does not create a new set.",
+      ],
       arguments: [
         {
           name: "other",
@@ -2074,6 +2090,10 @@ export const functionSignatures: Record<string, Record<string, FunctionSignature
     },
     getIntersection: {
       processed: true,
+      comment: [
+        "Returns a set of the digits that every one of `sets` has.",
+        "For an empty `sets`, the result has every bit of the mask set, not no digits.",
+      ],
       typeParams: ["T extends SmallNumberSet"],
       arguments: [
         {

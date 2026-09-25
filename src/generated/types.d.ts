@@ -277,8 +277,10 @@ export declare class PuzzleSpecSize {
 
 export declare class SmallNumberSet {
   constructor(value?: DigitSetMask | SmallNumberSet);
+  /** Bit `n` is set when the set contains `n`, e.g. `{0, 1, 3, 6}` is `0b1001011` (75). */
   mask: DigitSetMask;
   valueOf(): DigitSetMask;
+  /** Yields the numbers in the set from smallest to largest. */
   [Symbol.iterator](): Generator<number, void, undefined>;
   add: (value: number) => void;
   clear: () => void;
@@ -287,16 +289,36 @@ export declare class SmallNumberSet {
   getLargestNumber: () => number | undefined;
   getSmallestNumber: () => number | undefined;
   has: (value: number) => boolean;
+  /**
+   * Removes from this set every digit that is not in `other`, in place, and returns this set.
+   * Unlike `Set.prototype.intersection`, it does not create a new set.
+   */
   intersect: (other: DigitSetMask | SmallNumberSet) => this;
   intersects: (other: DigitSetMask | SmallNumberSet) => boolean;
   isDisjointFrom: (other: DigitSetMask | SmallNumberSet) => boolean;
   isSubsetOf: (other: DigitSetMask | SmallNumberSet) => boolean;
   isSupersetOf: (other: DigitSetMask | SmallNumberSet) => boolean;
   get size(): number;
+  /**
+   * Removes the digits of `other` from this set, in place, and returns this set.
+   * Unlike `Set.prototype.difference`, it does not create a new set.
+   */
   subtract: (other: DigitSetMask | SmallNumberSet) => this;
+  /**
+   * Adds the digits of `other` to this set, in place, and returns this set.
+   * Unlike `Set.prototype.union`, it does not create a new set.
+   */
   union: (other: DigitSetMask | SmallNumberSet) => this;
+  /**
+   * Toggles the digits of `other` in this set, in place, and returns this set.
+   * Unlike `Set.prototype.symmetricDifference`, it does not create a new set.
+   */
   xor: (other: DigitSetMask | SmallNumberSet) => this;
   static from: <T extends SmallNumberSet>(this: new (...args: any[]) => T, values: Iterable<number>) => T;
+  /**
+   * Returns a set of the digits that every one of `sets` has.
+   * For an empty `sets`, the result has every bit of the mask set, not no digits.
+   */
   static getIntersection: <T extends SmallNumberSet>(
     this: new (...args: any[]) => T,
     sets: Iterable<DigitSetMask | SmallNumberSet>,

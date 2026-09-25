@@ -80,7 +80,9 @@ function* update (instance, puzzle) {
 line 15 - error TS2339: Property 'maxSize' does not exist on type 'Instance & { sequences: number[][]; }'.
 
 15   const { cells, sequences, maxSize } = instance
-                               ~~~~~~~`);
+                               ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`);
   });
 
   test('"Parity Party"\'s OneOfSequencesComponent with flipped params order reports only unused parameter', () => {
@@ -117,7 +119,9 @@ function* update (instance, puzzle) {
 line 10 - error TS2339: Property 'maxSize' does not exist on type 'Instance & { sequences: number[][]; }'.
 
 10   const { cells, sequences, maxSize } = instance
-                               ~~~~~~~`);
+                               ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`);
   });
 
   /* The bodies of the boilerplate the app seeds every new component with. */
@@ -223,7 +227,9 @@ describe("problems in a hook body", () => {
 line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'Puzzle'. Did you mean 'getCandidates'?
 
 2   yield puzzle.getCandidatez(instance.cellIds[0])
-                 ~~~~~~~~~~~~~`,
+                 ~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -240,7 +246,9 @@ line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'Puzzle'.
 line 2 - error TS2551: Property 'getCellsDescriptionz' does not exist on type 'NamingHelper'. Did you mean 'getCellsDescription'?
 
 2   yield puzzle.stop(helpers.naming.getCellsDescriptionz([1]))
-                                     ~~~~~~~~~~~~~~~~~~~~`,
+                                     ~~~~~~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -251,7 +259,9 @@ line 2 - error TS2551: Property 'getCellsDescriptionz' does not exist on type 'N
 line 2 - error TS2304: Cannot find name 'totallyUnknownThing'.
 
 2   return totallyUnknownThing
-           ~~~~~~~~~~~~~~~~~~~`,
+           ~~~~~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -264,7 +274,9 @@ line 2 - error TS2304: Cannot find name 'totallyUnknownThing'.
 line 2 - error TS2554: Expected 2 arguments, but got 1.
 
 2   yield puzzle.removeCandidateFromCell(1)
-                 ~~~~~~~~~~~~~~~~~~~~~~~`,
+                 ~~~~~~~~~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -284,7 +296,9 @@ line 2 - error TS2554: Expected 2 arguments, but got 1.
 line 2 - error TS2345: Argument of type 'number[]' is not assignable to parameter of type 'number | SmallNumberSet'.   Type 'number[]' is missing the following properties from type 'SmallNumberSet': mask, add, clear, delete, and 13 more.
 
 2   yield puzzle.filterCandidatesInCell([1, 2, 3], instance.cells[0])
-                                        ~~~~~~~~~`,
+                                        ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -307,7 +321,9 @@ line 2 - error TS2345: Argument of type 'number[]' is not assignable to paramete
 line 3 - error TS2345: Argument of type 'number[]' is not assignable to parameter of type 'number | SmallNumberSet'.   Type 'number[]' is missing the following properties from type 'SmallNumberSet': mask, add, clear, delete, and 13 more.
 
 3     [1, 2, 3],
-      ~~~~~~~~~`,
+      ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -326,7 +342,9 @@ line 3 - error TS2345: Argument of type 'number[]' is not assignable to paramete
 line 3 - error TS2353: Object literal may only specify known properties, and 'alpha' does not exist in type 'SmallNumberSet'.
 
 3     alpha: 1,
-      ~~~~~`,
+      ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -349,7 +367,9 @@ second\`
 line 3 - error TS2322: Type '"first\\nsecond"' is not assignable to type '"only"'.
 
 3   const s = \`first
-          ~`,
+          ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -362,7 +382,9 @@ line 3 - error TS2322: Type '"first\\nsecond"' is not assignable to type '"only"
 line 5 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 5   return puzzle.nope()
-                  ~~~~`,
+                  ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -377,7 +399,9 @@ line 5 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 line 5 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 5   yield puzzle.nope()
-                 ~~~~`,
+                 ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -388,7 +412,9 @@ line 5 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 line 3 - error TS1005: '}' expected.
 
 3 
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });

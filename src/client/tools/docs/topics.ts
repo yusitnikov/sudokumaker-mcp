@@ -10,7 +10,7 @@ import { elementsTopic } from "./elements";
 import { solvingTopic } from "./solving";
 import { customConstraintsTopic } from "./customConstraints";
 import { customComponentsTopic } from "./customComponents";
-import { digitSetTopic } from "./digitSet";
+import { typesReferenceTopic } from "./typesReference";
 import { cosmeticsTopic } from "./cosmetics";
 import { gridNotationTopic } from "./gridNotation";
 import { elementsTopicName, elementTopicPattern } from "./topicNames";
@@ -31,7 +31,7 @@ export const topics: DocsTopic[] = [
   solvingTopic,
   customConstraintsTopic,
   customComponentsTopic,
-  digitSetTopic,
+  typesReferenceTopic,
   cosmeticsTopic,
   gridNotationTopic,
 ];

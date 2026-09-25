@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { type SnippetProblem, SnippetTypescript, type SnippetTypescriptAnnotatorResult } from "./typecheckSnippet";
 import { backendResources } from "../../backendResourcesImpl";
 
-const checker = new SnippetTypescript(backendResources, "generic code");
+const checker = new SnippetTypescript(backendResources, "generic code", ["generic-topic"]);
 
 describe("what the worker environment provides", () => {
   test("console is available", () => {
@@ -16,7 +16,9 @@ describe("what the worker environment provides", () => {
 line 1 - error TS2584: Cannot find name 'document'. Do you need to change your target library? Try changing the 'lib' compiler option to include 'dom'.
 
 1 document.querySelector("div");
-  ~~~~~~~~`,
+  ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -27,7 +29,9 @@ line 1 - error TS2584: Cannot find name 'document'. Do you need to change your t
 line 1 - error TS1375: 'await' expressions are only allowed at the top level of a file when that file is a module, but this file has no imports or exports. Consider adding an empty 'export {}' to make this file a module.
 
 1 const x = await Promise.resolve(1);
-            ~~~~~`,
+            ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -38,7 +42,9 @@ line 1 - error TS1375: 'await' expressions are only allowed at the top level of 
 line 1 - error TS1108: A 'return' statement can only be used within a function body.
 
 1 return 5;
-  ~~~~~~`,
+  ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -55,7 +61,9 @@ describe("how a problem is reported", () => {
 line 1 - error TS1109: Expression expected.
 
 1 const x = ;
-            ~`,
+            ~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -66,7 +74,9 @@ line 1 - error TS1109: Expression expected.
 line 3 - error TS1005: '}' expected.
 
 3 
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -77,7 +87,9 @@ line 3 - error TS1005: '}' expected.
 line 2 - error TS1128: Declaration or statement expected.
 
 2 }
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -94,7 +106,9 @@ line 1 - error TS1109: Expression expected.
 line 2 - error TS2304: Cannot find name 'noSuchName'.
 
 2 noSuchName();
-  ~~~~~~~~~~`,
+  ~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -105,7 +119,9 @@ line 2 - error TS2304: Cannot find name 'noSuchName'.
 line 3 - error TS2304: Cannot find name 'noSuchName'.
 
 3 noSuchName();
-  ~~~~~~~~~~`,
+  ~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 });
@@ -128,13 +144,17 @@ describe("mapping lines back to the author's", () => {
       }
     }
 
-    expect(new CheckerWithAnnotator(backendResources, "generic code").typecheck("noSuchName();")).toBe(
+    expect(
+      new CheckerWithAnnotator(backendResources, "generic code", ["generic-topic"]).typecheck("noSuchName();"),
+    ).toBe(
       `[WARNING] TypeScript found 1 problem(s) in the new generic code. The change WAS applied.
 
 line 1 - error TS2304: Cannot find name 'noSuchName'.
 
 1 noSuchName();
-  ~~~~~~~~~~`,
+  ~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 });
@@ -182,7 +202,9 @@ lines 1-10 - error TS9999: Something is wrong.
  9 aaa
    ~~~
 10 aaa
-   ~~~`,
+   ~~~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -213,7 +235,9 @@ lines 1-13 - error TS9999: Something is wrong.
    ~~~
 10 aaa
    ~~~
-   ... 3 more line(s)`,
+   ... 3 more line(s)
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -241,7 +265,9 @@ lines 1-9 - error TS9999: Something is wrong.
 8 aaa
   ~~~
 9 aaa
-  ~~~`,
+  ~~~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 });
@@ -267,7 +293,11 @@ describe("how many problems are reported", () => {
 20 a
    ~`);
     expect(formatted).not.toContain("line 21 -");
-    expect(formatted?.endsWith("(... and 3 more)")).toBe(true);
+    expect(
+      formatted?.endsWith(
+        "(... and 3 more)\n\nThe variables, classes and types this code can use are explained in docs topics `generic-topic`.",
+      ),
+    ).toBe(true);
   });
 });
 
@@ -301,7 +331,9 @@ describe("checked as JavaScript", () => {
 line 2 - error TS2322: Type 'string' is not assignable to type 'number'.
 
 2 v = "two";
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 
@@ -316,7 +348,9 @@ line 2 - error TS2322: Type 'string' is not assignable to type 'number'.
 line 3 - error TS2322: Type 'boolean' is not assignable to type 'string | number'.
 
 3 v = true;
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`generic-topic\`.`,
     );
   });
 });

@@ -130,6 +130,8 @@ export interface ArgumentDraftInfo {
 export interface ArgumentProcessedInfo extends ArgumentDraftInfo {
   name: string;
   type: string;
+  /** Emitted as the argument's `@param` description. */
+  comment?: string;
 }
 export interface FunctionSignatureDraftInfo {
   processed: false;
@@ -142,5 +144,7 @@ export interface FunctionSignatureProcessedInfo {
   typeParams?: string[];
   arguments: ArgumentProcessedInfo[];
   returnType?: string;
+  /** Emitted as the method's JSDoc description, one line per item. */
+  comment?: string[];
 }
 export type FunctionSignatureInfo = FunctionSignatureDraftInfo | FunctionSignatureProcessedInfo;

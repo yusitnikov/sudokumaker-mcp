@@ -3,7 +3,7 @@ export const elementsTopicName = "elements";
 export const solvingTopicName = "solving";
 export const customConstraintsTopicName = "custom-constraints";
 export const customComponentsTopicName = "custom-constraints:custom-components";
-export const digitSetTopicName = "custom-constraints:digit-set";
+export const typesReferenceTopicName = "custom-constraints:types-reference";
 export const cosmeticsTopicName = "cosmetics";
 export const gridNotationTopicName = "grid-notation";
 

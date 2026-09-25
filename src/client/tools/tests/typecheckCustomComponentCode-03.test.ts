@@ -18,7 +18,9 @@ describe("broken syntax", () => {
 line 2 - error TS1109: Expression expected.
 
 2   const x = ;
-              ~`,
+              ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -37,7 +39,9 @@ line 2 - error TS1109: Expression expected.
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 2   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -48,7 +52,9 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
 line 1 - error TS1138: Parameter declaration expected.
 
 1 function validate (, puzzle) {
-                     ~`,
+                     ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -115,7 +121,9 @@ line 3 - error TS1005: ':' expected.
 line 3 - error TS1005: ')' expected.
 
 3 }
-   ~`,
+   ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -126,7 +134,9 @@ line 3 - error TS1005: ')' expected.
 line 1 - error TS1003: Identifier expected.
 
 1 function (instance, puzzle) {
-           ~`,
+           ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -144,7 +154,9 @@ line 1 - error TS1109: Expression expected.
 line 4 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 4   return puzzle.nope()
-                  ~~~~`,
+                  ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -161,7 +173,9 @@ line 1 - error TS1109: Expression expected.
 line 3 - error TS2322: Type 'number' is not assignable to type 'boolean'.
 
 3   return 1
-    ~~~~~~`,
+    ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -177,7 +191,9 @@ line 2 - error TS1002: Unterminated string literal.
 line 3 - error TS1005: ',' expected.
 
 3 }
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -190,7 +206,9 @@ describe("what each hook must return", () => {
 line 2 - error TS2322: Type 'string' is not assignable to type 'boolean'.
 
 2   return "nope"
-    ~~~~~~`,
+    ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -201,7 +219,9 @@ line 2 - error TS2322: Type 'string' is not assignable to type 'boolean'.
 line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 
 2   yield 42
-          ~~`,
+          ~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -215,7 +235,9 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 
 2   yield puzzle.getValue(instance.cells[0])
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`,
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -226,7 +248,9 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
 
 2   return "nope"
-    ~~~~~~`,
+    ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -241,7 +265,9 @@ lines 1-3 - error TS2355: A function whose declared type is neither 'undefined',
 2   cells.filter(c => c > 0)
   ~~~~~~~~~~~~~~~~~~~~~~~~~~
 3 }
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -261,7 +287,9 @@ lines 1-2 - error TS2355: A function whose declared type is neither 'undefined',
 1 function getAffectedCells (param1, param2) {
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 2 }
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -274,7 +302,9 @@ lines 3-4 - error TS2355: A function whose declared type is neither 'undefined',
 3 function validate (instance, puzzle) {
   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 4 }
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -298,7 +328,9 @@ describe("which hooks a component declares, and in what order", () => {
 line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
 
 2   return "not cells"
-    ~~~~~~`,
+    ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -309,7 +341,9 @@ line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
 line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only property.
 
 2   instance.cells = p
-             ~~~~~`,
+             ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -320,7 +354,9 @@ line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only proper
 line 2 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 2   yield puzzle.nope()
-                 ~~~~`,
+                 ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -331,7 +367,9 @@ line 2 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 line 2 - error TS2322: Type 'number' is not assignable to type 'boolean'.
 
 2   return 1
-    ~~~~~~`,
+    ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -342,7 +380,9 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'boolean'.
 line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 
 2   yield 42
-          ~~`,
+          ~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -378,7 +418,9 @@ function getAffectedCells (cells) {
 line 5 - error TS2322: Type 'number' is not assignable to type 'boolean'.
 
 5   return 1
-    ~~~~~~`,
+    ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -398,7 +440,9 @@ line 2 - error TS2322: Type 'number' is not assignable to type 'Change'.
 line 5 - error TS2322: Type 'number' is not assignable to type 'boolean'.
 
 5   return 1
-    ~~~~~~`,
+    ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -415,7 +459,9 @@ describe("hook parameters named differently", () => {
 line 2 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 2   yield p.nope()
-            ~~~~`,
+            ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -426,7 +472,9 @@ line 2 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 2   return self.name.toFixed(2)
-                     ~~~~~~~`,
+                     ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -447,7 +495,9 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
 line 2 - error TS2339: Property 'cells' does not exist on type 'Puzzle'.
 
 2   return puzzle.getCellsAreFilled(instance.cells)
-                                             ~~~~~`,
+                                             ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });

@@ -3,8 +3,8 @@ import {
   cosmeticsTopicName,
   customComponentsTopicName,
   customConstraintsTopicName,
-  digitSetTopicName,
   elementTopicPrefix,
+  typesReferenceTopicName,
 } from "./topicNames";
 import { addCluesToolName, removeCluesToolName, updateCluesToolName } from "../toolNames";
 import { CustomElement } from "../../../elements/CustomElement";
@@ -92,7 +92,7 @@ Input groups are objects that specify where to apply the constraint - the user d
 and you edit them as the element's clues with \`${addCluesToolName}\`, \`${updateCluesToolName}\` and \`${removeCluesToolName}\`
 (topic \`${elementTopicPrefix}${CustomElement.typeName}\` gives their exact shape).
 Each input group consists of an array of \`cells\` in the grid and optional string \`value\` that describes the constraint's parameters in a user-defined way.
-The initialization code should go over all input groups (they are available as \`input.groups\` global variable),
+The initialization code should go over all input groups (it reads them from \`input.groups\`),
 interpret them according to the pre-defined convention, and add components to the grid accordingly.
 
 The convention of how the input groups define where to apply constraint could be different depending on the constraint.
@@ -212,13 +212,11 @@ SudokuMaker uses unique numeric IDs to reference cells. It uses it everywhere:
 
 You don't need to know what exactly is this format, just use tools that already produce and accept these IDs.
 
-However, if absolutely necessary, you can create a cell ID from coordinates by calling the \`getIdFromCoords\` helper:
-\`helpers.cellIds.getIdFromCoords(coords: { x: number, y: number }): CellId\`.
+However, if absolutely necessary, you can create a cell ID from coordinates with \`helpers.cellIds.getIdFromCoords({ x, y })\`.
 Note that it uses **zero-based coordinates system**: x = 0 is the leftmost column of the grid, y = 0 is the topmost row.
 So \`helpers.cellIds.getIdFromCoords({ x: 0, y: 0 })\` will return the ID of r1c1,
 \`helpers.cellIds.getIdFromCoords({ x: 4, y: 7 })\` will return the ID of r8c5.
-There is also a reverse function for getting coordinates (also zero-based) by cell ID -
-\`helpers.cellIds.getCoordsFromId(cell: CellId): { x: number, y: number }\`.
+\`helpers.cellIds.getCoordsFromId(cellId)\` does the reverse, and returns zero-based coordinates as well.
 
 There are helpers for getting human-readable descriptions of cells by IDs:
 - \`helpers.naming.getCellName\` - get description of one cell.
@@ -232,7 +230,25 @@ and also accepts it in some component arguments, like \`PredefinedCandidatesComp
 
 The easiest way to create a \`DigitSet\` object is from an array of digits, e.g. \`DigitSet.from([1, 3, 6])\`.
 
-Fetch the \`${digitSetTopicName}\` topic if you need to learn more
-(you likely don't need it unless you work on a custom component).
+Its methods are declared in the \`DigitSet\` and \`SmallNumberSet\` classes of topic \`${typesReferenceTopicName}\`.
+
+### Variables and classes the initialization code can use
+
+SudokuMaker defines these variables before running the initialization code,
+so the code uses them directly, without declaring them:
+- \`puzzle\` (the same object is also available as \`sudoku\`), TypeScript type \`InitialCodePuzzle\`.
+  Holds the grid's size, digit range and regions,
+  and has the methods that add, find and remove components, and the method that replaces the regions.
+- \`helpers\`, TypeScript type \`InitialCodeScopeHelpers\`.
+  Groups of helper functions: the groups the \`Helpers\` type declares, plus \`geometry\`, \`lines\` and \`misc\`.
+- \`input\`, defined only when the constraint is not global.
+  \`input.groups\` is the array of input groups; each group has \`cells\` (an array of cell IDs) and \`value\` (a string).
+
+The code can create components with \`new\` from every standard component class,
+and from every custom component of the same element, under the component's name.
+
+The code can also use the classes, enums and utility objects in \`globals.d.ts\`, such as \`DigitSet\`.
+
+Topic \`${typesReferenceTopicName}\` declares all of them, and every TypeScript type named above.
     `,
 };

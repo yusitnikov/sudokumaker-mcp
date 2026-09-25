@@ -32,7 +32,9 @@ function setParams (instance, sequence) {
 line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 7   instance.first = sequence.toFixed(2)
-                              ~~~~~~~`,
+                              ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -54,7 +56,9 @@ function setParams (instance, sequence) {
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 2   return sequence.toFixed(2)
-                    ~~~~~~~`,
+                    ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -77,7 +81,9 @@ function setParams (instance, seq) {
 line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 7   instance.first = seq.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -110,7 +116,9 @@ line 8 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
 line 9 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 9   instance.size = size.toUpperCase()
-                         ~~~~~~~~~~~`,
+                         ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -154,7 +162,9 @@ function setParams (instance, sequence) {
 line 8 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 8   instance.first = sequence.toFixed(2)
-                              ~~~~~~~`,
+                              ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -178,7 +188,9 @@ function setParams (instance, sequence) {
 line 8 - error TS2339: Property 'toFixed' does not exist on type 'never'.
 
 8   instance.first = sequence.toFixed(2)
-                              ~~~~~~~`,
+                              ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -203,7 +215,9 @@ function setParams (instance, options) {
 line 10 - error TS2339: Property 'c' does not exist on type '{ a: string; } & { b: number; }'.
 
 10   instance.third = options.c
-                              ~`,
+                              ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -232,7 +246,9 @@ function setParams (instance, first, second) {
 line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 7   instance.first = first.toFixed(2)
-                           ~~~~~~~`,
+                           ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -255,7 +271,9 @@ function setParams (instance, first, second) {
 line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 7   instance.second = second.toFixed(2)
-                             ~~~~~~~`,
+                             ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -277,7 +295,9 @@ function setParams (instance, first) {
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 2   return sequences[0].toFixed(2)
-                        ~~~~~~~`,
+                        ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -300,7 +320,9 @@ function setParams (instance, ...sequences) {
 line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 7   instance.first = sequences[0].toFixed(2)
-                                  ~~~~~~~`,
+                                  ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -330,7 +352,9 @@ function validate (instance, puzzle) {
 line 7 - error TS2339: Property 'toFixed' does not exist on type 'number[]'.
 
 7   return instance.sequences.toFixed(2)
-                              ~~~~~~~`,
+                              ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -353,7 +377,9 @@ function validate (instance, puzzle) {
 line 7 - error TS2339: Property 'maxSize' does not exist on type 'Instance & { sequences: number[]; }'.
 
 7   return instance.maxSize > 0
-                    ~~~~~~~`,
+                    ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -375,7 +401,9 @@ function validate (instance, puzzle) {
 line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 7   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -413,7 +441,9 @@ line 8 - error TS2339: Property 'toFixed' does not exist on type 'number[]'.
 line 12 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 12   instance.maxSize.toUpperCase()
-                      ~~~~~~~~~~~`,
+                      ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -436,7 +466,9 @@ function validate (instance, puzzle) {
 line 8 - error TS2339: Property 'minSize' does not exist on type 'Instance & { sequences: number[]; } & { maxSize: number; }'.
 
 8   return instance.minSize > 0
-                    ~~~~~~~`,
+                    ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });

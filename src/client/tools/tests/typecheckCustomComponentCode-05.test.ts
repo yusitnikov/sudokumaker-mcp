@@ -19,7 +19,9 @@ describe("a constructor argument with a default value", () => {
 line 2 - error TS2339: Property 'anything' does not exist on type 'any[]'.
 
 2   return extraCells.anything()
-                      ~~~~~~~~`,
+                      ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -39,7 +41,9 @@ line 2 - error TS2339: Property 'anything' does not exist on type 'any[]'.
 line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 2   return [cell, size.toUpperCase()]
-                       ~~~~~~~~~~~`,
+                       ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -52,7 +56,9 @@ line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 line 2 - error TS2339: Property 'anything' does not exist on type 'number[]'.
 
 2   return extraCells.anything()
-                      ~~~~~~~~`,
+                      ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -71,7 +77,9 @@ function getAffectedCells (cell, size = 3) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 3   return [cell, size.toUpperCase()]
-                       ~~~~~~~~~~~`,
+                       ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -100,7 +108,9 @@ function getAffectedCells (cell, size = 3) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 3   return [cell, size.toUpperCase()]
-                       ~~~~~~~~~~~`,
+                       ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -134,7 +144,9 @@ function getAffectedCells (cell, size = "big") {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'string | number'.   Property 'toUpperCase' does not exist on type 'number'.
 
 3   return [cell, size.toUpperCase()]
-                       ~~~~~~~~~~~`,
+                       ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -152,7 +164,9 @@ function getAffectedCells (cell, extraCells = []) {
 line 3 - error TS2339: Property 'anything' does not exist on type 'number'.
 
 3   return [cell, extraCells[0].anything()]
-                                ~~~~~~~~`,
+                                ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -170,7 +184,9 @@ function getAffectedCells (cell, extraCells = "none") {
 line 2 - error TS2322: Type 'string' is not assignable to type 'number[]'.
 
 2 function getAffectedCells (cell, extraCells = "none") {
-                                   ~~~~~~~~~~~~~~~~~~~`,
+                                   ~~~~~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -216,7 +232,9 @@ describe("destructured parameters", () => {
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 2   yield puzzle.stop(name.toFixed(2))
-                           ~~~~~~~`,
+                           ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -229,7 +247,9 @@ line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did y
 line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
 2   yield puzzle.stop(c.toUpperCase())
-                        ~~~~~~~~~~~`,
+                        ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -252,7 +272,9 @@ line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'Puzzle'.
 
 1 function* update (instance, { getCandidatez }) {
-                                ~~~~~~~~~~~~~`,
+                                ~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -267,7 +289,9 @@ line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'Puzzle'.
 line 2 - error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
 
 2   if (hasValue('r1c1')) { yield stop('x') }
-                 ~~~~~~`,
+                 ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -280,7 +304,9 @@ line 2 - error TS2345: Argument of type 'string' is not assignable to parameter 
 line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'Puzzle'.
 
 1 function* update ({ cells }, { getCandidatez }) {
-                                 ~~~~~~~~~~~~~`,
+                                 ~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -291,7 +317,9 @@ line 1 - error TS2339: Property 'getCandidatez' does not exist on type 'Puzzle'.
 line 2 - error TS2304: Cannot find name 'options0'.
 
 2   yield puzzle.stop(String(options0))
-                             ~~~~~~~~`,
+                             ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -325,7 +353,9 @@ describe("the instance's own members", () => {
 line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only property.
 
 2   instance.cells = p
-             ~~~~~`,
+             ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -338,7 +368,9 @@ line 2 - error TS2540: Cannot assign to 'cells' because it is a read-only proper
 line 2 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
 2   yield puzzle.stop(instance.cells.toUpperCase())
-                                     ~~~~~~~~~~~`,
+                                     ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 

@@ -75,6 +75,20 @@ learn which cells a clue's line touches. Also worth deciding, once the lookup ex
 counting convention (a point exactly on a shared corner touches all 4 adjacent cells) should be documented plainly at
 the point it's shown, since it is the one convention a purely geometric reading gets wrong even when done carefully.
 
+### Response headings name a Custom element by its type, not its name
+
+Reproduced live on the "test here" tab, with a `Custom` element named "New constraint" (ID 10).
+The opening sentence of these responses called it "Custom":
+
+- `add_custom_component`: `Added custom component "TestComponent" to "Custom" in puzzle "test here".`
+- `edit_initialization_code`: `Updated "Custom"'s initialization code in puzzle "test here".`
+- `remove_element`: `Element "Custom" of type "Custom" removed from position 3 in puzzle "test here".`
+
+The diff below each of them shows the same element as `"New constraint" (type Custom, ID 10)`.
+The heading exists so that a write to the wrong element or tab is visible at once, and naming the type defeats that
+when a puzzle has more than one `Custom` element.
+Other element types and the other code-editing tools weren't checked.
+
 ## Low priority
 
 ### Make the site meta description reach the intro topic

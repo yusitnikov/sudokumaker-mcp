@@ -3,6 +3,7 @@ import { SnippetTypescript } from "./typecheckSnippet";
 import type { BackendResources } from "../../BackendResources";
 import { CustomComponentCodeTypescript } from "./typecheckCustomComponentCode";
 import type { CustomElementPublic } from "../../elements/CustomElement";
+import { customConstraintsTopicName, typesReferenceTopicName } from "./docs/topicNames";
 
 let baseProgram: TypescriptProgram | undefined;
 let baseProgramWithInputGroups: TypescriptProgram | undefined;
@@ -14,7 +15,7 @@ export class InitializationCodeTypescript extends SnippetTypescript {
     /** Custom components map: name => code */
     private readonly customComponents: Record<string, string> = {},
   ) {
-    super(backendResources, "initialization code");
+    super(backendResources, "initialization code", [customConstraintsTopicName, typesReferenceTopicName]);
   }
 
   static typecheckElement(

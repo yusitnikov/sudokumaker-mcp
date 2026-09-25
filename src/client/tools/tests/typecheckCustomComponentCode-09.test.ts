@@ -13,7 +13,9 @@ describe("customComponents prop", () => {
 line 1 - error TS2554: Expected 2 arguments, but got 3.
 
 1 new customComponents.MyComponent(1, 2, 3)
-                                         ~`);
+                                         ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`);
 
     expect(
       new CustomComponentCodeTypescript(backendResources, {
@@ -24,7 +26,9 @@ line 1 - error TS2554: Expected 2 arguments, but got 3.
 line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
 
 1 new customComponents.MyComponent(1, 2)
-                                   ~`);
+                                   ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`);
 
     expect(
       new CustomComponentCodeTypescript(backendResources, {
@@ -35,7 +39,9 @@ line 1 - error TS2345: Argument of type 'number' is not assignable to parameter 
 line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'number[]'.
 
 1 new customComponents.MyComponent("1", 2)
-                                        ~`);
+                                        ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`);
 
     expect(
       new CustomComponentCodeTypescript(backendResources, {
@@ -54,7 +60,9 @@ line 1 - error TS2345: Argument of type 'number' is not assignable to parameter 
 line 1 - error TS2339: Property 'UndefinedComponent' does not exist on type 'CustomComponents'.
 
 1 new customComponents.UndefinedComponent("1", [2])
-                       ~~~~~~~~~~~~~~~~~~`);
+                       ~~~~~~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`);
   });
 
   test("component can access another component with customComponents", () => {
@@ -83,6 +91,8 @@ line 1 - error TS2339: Property 'UndefinedComponent' does not exist on type 'Cus
 line 1 - error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
 
 1 new customComponents.Component1("1", 2, 3)
-                                       ~`);
+                                       ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`);
   });
 });

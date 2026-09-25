@@ -35,6 +35,17 @@ export const solvingTopic: DocsTopic = {
   all reachable steps. They may miss eliminations that are logically valid but too hard to deduce this way — a step
   finding nothing doesn't mean the puzzle is broken, only that this method didn't find anything (yet).
 
+The app's logical solver settings decide whether \`${doLogicalStepToolName}\` / \`${doAllLogicalStepsToolName}\` may make deductions
+by contradiction - placing a digit as a trial and eliminating it when that breaks a rule. Their responses say which way
+it is set. No tool changes this setting: when a run needs it the other way, ask the user to switch it in the app's
+logical solver settings, and afterwards to switch it back if they want.
+
+The solver tries a contradiction only when no other kind of deduction finds anything,
+and its log marks each deduction made by contradiction.
+So the first deduction by contradiction in the log is where the puzzle stopped being solvable by other deductions,
+and everything after it depends on that contradiction.
+Say so when reporting a run: a user who sees only the resulting grid would take it all for progress made without contradictions.
+
 Every check treats already-entered cell values and center marks as constraints — the app's own solve log says as much
 ("making use of the filled-in values") when they're present. A verdict returned while the grid has test-solve marks
 on it is therefore conditional on those marks, not a verdict on the puzzle's rules alone. To judge the puzzle itself:

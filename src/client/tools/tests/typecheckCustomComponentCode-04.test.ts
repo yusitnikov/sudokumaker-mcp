@@ -17,7 +17,9 @@ describe("a hook declaring a parameter the app never passes", () => {
 line 1 - error: 'validate' must have exactly 2 arguments
 
 1 function validate (instance, puzzle, extra) {
-                                       ~~~~~`,
+                                       ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -30,7 +32,9 @@ line 1 - error: 'validate' must have exactly 2 arguments
 line 1 - error: 'update' must have exactly 2 arguments
 
 1 function* update (instance, puzzle, extra) {
-                                      ~~~~~`,
+                                      ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -45,7 +49,9 @@ line 1 - error: 'update' must have exactly 2 arguments
 line 1 - error: 'initialize' must have exactly 2 arguments
 
 1 function* initialize (instance, puzzle, extra) {
-                                          ~~~~~`,
+                                          ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -56,7 +62,9 @@ line 1 - error: 'initialize' must have exactly 2 arguments
 line 1 - error: 'validate' must have exactly 2 arguments
 
 1 function validate (instance, puzzle, a, b, c) {
-                                       ~~~~~~~`,
+                                       ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -79,7 +87,9 @@ lines 4-5 - error: 'validate' must have exactly 2 arguments
 4   extra,
     ~~~~~~
 5   another,
-  ~~~~~~~~~`,
+  ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -110,7 +120,9 @@ lines 6-8 - error: 'validate' must have exactly 2 arguments
 7 
   ~
 8   extra2
-  ~~~~~~~~`,
+  ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -126,7 +138,9 @@ line 1 - error: 'validate' must have exactly 2 arguments
 line 2 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 2   return puzzle.nope()
-                  ~~~~`,
+                  ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -152,7 +166,9 @@ line 5 - error: 'validate' must have exactly 2 arguments
 line 6 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 6   return puzzle.nope() && !!extra
-                  ~~~~`,
+                  ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -177,7 +193,9 @@ lines 1-4 - error: 'validate' must have exactly 2 arguments
 3   second,
   ~~~~~~~~~
 4 }) {
-  ~`,
+  ~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -196,7 +214,9 @@ lines 1-4 - error: 'validate' must have exactly 2 arguments
 line 1 - error: 'validate' must have exactly 2 arguments
 
 1 const validate = (instance, puzzle, extra) => !!extra;
-                                      ~~~~~`,
+                                      ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -213,7 +233,9 @@ describe("the shapes a component may be written in", () => {
 line 1 - error TS2551: Property 'getCandidatez' does not exist on type 'Puzzle'. Did you mean 'getCandidates'?
 
 1 const validate = (instance, puzzle) => puzzle.getCandidatez(instance.cellIds[0]);
-                                                ~~~~~~~~~~~~~`,
+                                                ~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -228,7 +250,9 @@ line 1 - error TS2551: Property 'getCandidatez' does not exist on type 'Puzzle'.
 line 2 - error TS2551: Property 'getCandidatez' does not exist on type 'Puzzle'. Did you mean 'getCandidates'?
 
 2   yield puzzle.getCandidatez(instance.cellIds[0])
-                 ~~~~~~~~~~~~~`,
+                 ~~~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -265,7 +289,9 @@ const update = function*() {};`),
 line 3 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 3   return puzzle.nope()
-                  ~~~~`,
+                  ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -296,7 +322,9 @@ function setParams (instance, cells, param1) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   instance.param1 = param1.toFixed(2)
-                             ~~~~~~~`,
+                             ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -335,7 +363,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'toFixed' does not exist on type 'boolean'.
 
 3   return puzzle.getCellsAreFilled(instance.cells).toFixed(2)
-                                                    ~~~~~~~`,
+                                                    ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -353,7 +383,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2322: Type 'string' is not assignable to type 'boolean'.
 
 3   return "nope"
-    ~~~~~~`,
+    ~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -384,7 +416,9 @@ function setParams (instance, cells, param1) {
 line 8 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 8   instance.param1 = param1.toFixed(2)
-                             ~~~~~~~`,
+                             ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -407,7 +441,9 @@ function setParams (instance, cells, param1) {
 line 8 - error TS2339: Property 'depth' does not exist on type '{ width: number; height: number; }'.
 
 8   instance.area = param1.width * param1.depth
-                                          ~~~~~`,
+                                          ~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -430,7 +466,9 @@ function setParams (instance, cells, param1) {
 line 8 - error TS2551: Property 'toFixed' does not exist on type '"row" | "column"'. Did you mean 'fixed'?   Property 'toFixed' does not exist on type '"row"'.
 
 8   instance.axis = param1.toFixed(2)
-                           ~~~~~~~`,
+                           ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -456,7 +494,9 @@ function validate (instance, puzzle) {
 line 11 - error TS2339: Property 'nope' does not exist on type 'Puzzle'.
 
 11   return puzzle.nope()
-                   ~~~~`,
+                   ~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });
@@ -480,7 +520,9 @@ describe("a variadic hook's rest parameter", () => {
 line 2 - error TS2339: Property 'anything' does not exist on type 'any[]'.
 
 2   return cells.anything()
-                 ~~~~~~~~`);
+                 ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`);
   });
 
   test("the author's type applies to one argument, not to the list", () => {
@@ -498,7 +540,9 @@ function getAffectedCells (...cells) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 3   return cells[0].toUpperCase()
-                    ~~~~~~~~~~~`,
+                    ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -516,7 +560,9 @@ function getAffectedCells (...cells) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number[]'.
 
 3   return cells.toUpperCase()
-                 ~~~~~~~~~~~`,
+                 ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -536,7 +582,9 @@ function getAffectedCells (...cells) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 3   return cells[0].toUpperCase()
-                    ~~~~~~~~~~~`,
+                    ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -549,7 +597,9 @@ line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 line 2 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 2   instance.first = instance.name.toFixed(2)
-                                   ~~~~~~~`,
+                                   ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -567,7 +617,9 @@ function setParams (instance, cellIds, ...names) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   instance.first = names[0].toFixed(2)
-                              ~~~~~~~`,
+                              ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });

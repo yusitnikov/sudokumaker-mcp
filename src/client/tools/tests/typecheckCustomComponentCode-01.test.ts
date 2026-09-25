@@ -30,7 +30,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -48,7 +50,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'sequences' does not exist on type 'Instance'.
 
 3   return instance.sequences.anything()
-                    ~~~~~~~~~`,
+                    ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -70,7 +74,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -100,7 +106,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -118,7 +126,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'sequences' does not exist on type 'Instance'.
 
 3   return instance.sequences.anything()
-                    ~~~~~~~~~`,
+                    ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -136,7 +146,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'anything' does not exist on type 'string[]'.
 
 3   return instance.sequences.anything()
-                              ~~~~~~~~`,
+                              ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -165,7 +177,9 @@ function validate (instance, puzzle) {
 line 7 - error TS2339: Property 'anything' does not exist on type 'string[]'.
 
 7   return instance.sequences.anything()
-                              ~~~~~~~~`,
+                              ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -187,7 +201,9 @@ function validate (instance, puzzle) {
 line 7 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 7   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -209,7 +225,9 @@ function validate (instance, puzzle) {
 line 7 - error TS2339: Property 'anything' does not exist on type 'string[]'.
 
 7   return instance.sequences.anything()
-                              ~~~~~~~~`,
+                              ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -231,7 +249,9 @@ function validate (instance, puzzle) {
 line 7 - error TS2339: Property 'maxSize' does not exist on type 'Instance & MyInstance'.
 
 7   return !!instance.maxSize
-                      ~~~~~~~`,
+                      ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -258,7 +278,9 @@ function validate (instance, puzzle) {
 line 7 - error TS2339: Property 'maxSize' does not exist on type 'Instance & { sequences: string[]; }'.
 
 7   return !!instance.maxSize
-                      ~~~~~~~`,
+                      ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -280,7 +302,9 @@ function validate (instance, puzzle) {
 line 6 - error TS2339: Property 'anything' does not exist on type 'string[]'.
 
 6   return instance.sequences.anything()
-                              ~~~~~~~~`,
+                              ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -301,7 +325,9 @@ function validate (instance, puzzle) {
 line 6 - error TS2339: Property 'anything' does not exist on type 'string[]'.
 
 6   return instance.sequences.anything()
-                              ~~~~~~~~`,
+                              ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -320,7 +346,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -338,7 +366,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -356,7 +386,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'anything' does not exist on type 'string[]'.
 
 3   return instance.sequences.anything()
-                              ~~~~~~~~`,
+                              ~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -374,7 +406,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'maxSize' does not exist on type 'Instance & { sequences: string[]; }'.
 
 3   return !!instance.maxSize
-                      ~~~~~~~`,
+                      ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -392,7 +426,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -410,7 +446,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'toUpperCase' does not exist on type 'number'.
 
 3   return !!instance.length.toUpperCase()
-                             ~~~~~~~~~~~`,
+                             ~~~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -428,7 +466,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'sequences' does not exist on type 'Instance & string'.
 
 3   return instance.sequences.anything()
-                    ~~~~~~~~~`,
+                    ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -446,7 +486,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -464,7 +506,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'sequences' does not exist on type 'Instance'.
 
 3   return instance.sequences.anything()
-                    ~~~~~~~~~`,
+                    ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -483,7 +527,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -501,7 +547,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'sequences' does not exist on type 'Instance'.
 
 3   return instance.sequences.anything()
-                    ~~~~~~~~~`,
+                    ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -519,7 +567,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -537,7 +587,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'sequences' does not exist on type 'Instance'.
 
 3   return instance.sequences.anything()
-                    ~~~~~~~~~`,
+                    ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -555,7 +607,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2551: Property 'toFixed' does not exist on type 'string'. Did you mean 'fixed'?
 
 3   return instance.name.toFixed(2)
-                         ~~~~~~~`,
+                         ~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 
@@ -573,7 +627,9 @@ function validate (instance, puzzle) {
 line 3 - error TS2339: Property 'sequences' does not exist on type 'Instance'.
 
 3   return instance.sequences.anything()
-                    ~~~~~~~~~`,
+                    ~~~~~~~~~
+
+The variables, classes and types this code can use are explained in docs topics \`custom-constraints:custom-components\` and \`custom-constraints:types-reference\`.`,
     );
   });
 });

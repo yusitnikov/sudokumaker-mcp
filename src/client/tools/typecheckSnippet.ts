@@ -2,6 +2,7 @@ import type { BackendResources } from "../../BackendResources";
 // Types only - erased by `verbatimModuleSyntax`, so the compiler never reaches the page bundle.
 import type * as ts from "typescript";
 import { TypescriptProgram } from "../../typescript/TypescriptProgram";
+import { docsToolName } from "./toolNames";
 
 /** One end of a problem's span, in the author's own source. */
 export interface SnippetPosition {
@@ -55,6 +56,8 @@ export class SnippetTypescript {
   constructor(
     readonly backendResources: BackendResources,
     readonly subject: string,
+    /** The docs topics that explain what this code can use, named at the end of every problem report. */
+    readonly topicNames: string[],
   ) {}
 
   getProgram() {
@@ -161,6 +164,7 @@ export class SnippetTypescript {
     return [
       `[WARNING] TypeScript found ${ordered.length} problem(s) in the new ${this.subject}. The change WAS applied.`,
       ...reported,
+      `The variables, classes and types this code can use are explained in ${docsToolName} topics ${this.topicNames.map((name) => `\`${name}\``).join(" and ")}.`,
     ].join("\n\n");
   }
 

@@ -14,6 +14,7 @@ import { SmCodeValueResolver } from "./scanSmCode/SmCodeValueResolver";
 import type {
   ArgumentDraftInfo,
   FunctionSignatureInfo,
+  FunctionSignatureProcessedInfo,
   IndexFunction,
   IndexPropertiesMap,
   IndexReferencable,
@@ -296,6 +297,22 @@ program
         minDigit: "Digit",
       };
 
+      /** The JSDoc block for a reviewed signature's comments, or nothing when it has none. */
+      const formatJsDoc = ({ comment, arguments: args }: FunctionSignatureProcessedInfo, offset: string) => {
+        const lines = [...(comment ?? [])];
+        for (const { name, comment: argComment } of args) {
+          if (argComment) {
+            lines.push(`@param ${name} - ${argComment}`);
+          }
+        }
+
+        if (lines.length === 0) {
+          return "";
+        }
+
+        return `${offset}/**\n${lines.map((line) => `${offset} * ${line}\n`).join("")}${offset} */\n`;
+      };
+
       const formatOwnProperties = (
         props: IndexPropertiesMap<true> | undefined,
         offset: string,
@@ -322,6 +339,9 @@ program
             const valueTypeCode =
               (val.type === "scalar" ? scalarPropertyTypes[key] : undefined) ??
               format(val, offset, typePrefix, signature);
+            if (signature?.processed) {
+              code += formatJsDoc(signature, offset);
+            }
             code += `${offset}${modifiers}${key}: ${valueTypeCode};\n`;
           }
         }
@@ -436,8 +456,10 @@ program
         declarations += " {\n";
         if (name === "SmallNumberSet") {
           declarations += "  constructor(value?: DigitSetMask | SmallNumberSet);\n";
+          declarations += "  /** Bit `n` is set when the set contains `n`, e.g. `{0, 1, 3, 6}` is `0b1001011` (75). */\n";
           declarations += "  mask: DigitSetMask;\n";
           declarations += "  valueOf(): DigitSetMask;\n";
+          declarations += "  /** Yields the numbers in the set from smallest to largest. */\n";
           declarations += "  [Symbol.iterator](): Generator<number, void, undefined>;\n";
         }
         declarations += formatOwnProperties(value.ownProperties, "  ", false, "", name);
