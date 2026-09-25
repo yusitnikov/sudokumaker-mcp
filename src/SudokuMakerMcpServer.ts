@@ -7,6 +7,7 @@ import { introTopicName } from "./client/tools/docs/topicNames";
 import { TabController } from "./TabController";
 import { BackendToolImplementation } from "./client/tools/BackendToolImplementation";
 import { backendResources } from "./backendResourcesImpl";
+import { version } from "../package.json";
 
 const sudokuMakerHostname = "sudokumaker.app";
 
@@ -22,7 +23,7 @@ export class SudokuMakerMcpServer extends BrowserMcpServer {
     super({
       serverInfo: {
         name: "sudokumaker",
-        version: "1.0.0",
+        version,
         title: "SudokuMaker",
         description: "MCP for controlling SudokuMaker tabs in the browser",
       },

@@ -2,11 +2,12 @@
 import { program } from "commander";
 // noinspection ES6PreferShortImport
 import { SudokuMakerMcpServer } from "../src/SudokuMakerMcpServer";
+import { version } from "../package.json";
 
 program
   .name("sudokumaker-mcp")
   .description("MCP server for SudokuMaker via browser automation")
-  .version("0.0.4")
+  .version(version)
   .option(
     "--broker <url>",
     "WebSocket URL of the connection broker",

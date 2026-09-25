@@ -1,6 +1,16 @@
 {
   "name": "sudokumaker-mcp",
-  "version": "0.0.4",
+  "version": "1.0.1",
+  "description": "MCP server for editing SudokuMaker puzzles open in the browser",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "sudoku",
+    "sudokumaker",
+    "puzzle"
+  ],
+  "license": "MIT",
+  "author": "Yuri Sitnikov <https://github.com/yusitnikov>",
   "type": "module",
   "main": "./dist/index.js",
   "exports": {
@@ -24,6 +34,7 @@
     "@modelcontextprotocol/sdk": "^1.18.1",
     "@sitnikov/browser-automation": "^2.0.0",
     "commander": "^14.0.1",
+    "typescript": "^6.0.3",
     "zod": "^4.1.11"
   },
   "devDependencies": {
@@ -34,7 +45,6 @@
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import-x": "^4.17.1",
     "prettier": "^3.6.2",
-    "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"
