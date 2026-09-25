@@ -117,7 +117,7 @@ program
       const { standardComponents, objectsIndex, roots }: Awaited<ReturnType<SmCodeScanner["processOnMainThread"]>> =
         JSON.parse(response.result);
 
-      const header = "// noinspection JSUnusedGlobalSymbols\n\n";
+      const header = "// noinspection JSUnusedGlobalSymbols,ES6UnusedImports\n\n";
 
       let classesCode =
         "/* eslint-disable @typescript-eslint/no-unused-expressions,@typescript-eslint/no-unused-vars,no-undef */\n" +
@@ -521,9 +521,11 @@ program
         ),
       );
 
+      const { input, ...otherGlobals } = groupedIndex.object[initialCodeScopeHandle].ownProperties!;
+      await writeFile("src/generated/initialCodeGlobals.d.ts", formatGlobals(otherGlobals));
       await writeFile(
-        "src/generated/initialCodeGlobals.d.ts",
-        formatGlobals(groupedIndex.object[initialCodeScopeHandle].ownProperties),
+        "src/generated/inputGroupsGlobals.d.ts",
+        "/* eslint-disable @typescript-eslint/no-unused-vars */\n" + formatGlobals({ input }),
       );
 
       await writeFile(
@@ -552,7 +554,7 @@ program
        * skip declaration files entirely, which is all of them, and the worker has no DOM.
        * The two scope files both declare `helpers`, so each is checked against its own program.
        */
-      for (const scopeFile of ["initialCodeGlobals", "customComponentGlobals"]) {
+      for (const scopeFile of ["initialCodeGlobals", "inputGroupsGlobals", "customComponentGlobals"]) {
         const files = ["types", "globals", "standardComponentsGlobals", scopeFile].map(
           (name) => `src/generated/${name}.d.ts`,
         );

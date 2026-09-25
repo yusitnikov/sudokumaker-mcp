@@ -17,6 +17,7 @@ export interface BackendResources {
     globals: string;
     standardComponentsGlobals: string;
     initialCodeGlobals: string;
+    inputGroupsGlobals: string;
     customComponentGlobals: string;
   };
 }

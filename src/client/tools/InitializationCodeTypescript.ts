@@ -5,10 +5,12 @@ import { CustomComponentCodeTypescript } from "./typecheckCustomComponentCode";
 import type { CustomElementPublic } from "../../elements/CustomElement";
 
 let baseProgram: TypescriptProgram | undefined;
+let baseProgramWithInputGroups: TypescriptProgram | undefined;
 
 export class InitializationCodeTypescript extends SnippetTypescript {
   constructor(
     backendResources: BackendResources,
+    private readonly isGlobal: boolean,
     /** Custom components map: name => code */
     private readonly customComponents: Record<string, string> = {},
   ) {
@@ -16,10 +18,10 @@ export class InitializationCodeTypescript extends SnippetTypescript {
   }
 
   static typecheckElement(
-    { config: { initializationCode, customComponents } }: CustomElementPublic,
+    { config: { initializationCode, isGlobal, customComponents } }: CustomElementPublic,
     backendResources: BackendResources,
   ) {
-    return new InitializationCodeTypescript(backendResources, customComponents).typecheck(initializationCode);
+    return new InitializationCodeTypescript(backendResources, isGlobal, customComponents).typecheck(initializationCode);
   }
 
   getProgram() {
@@ -27,11 +29,24 @@ export class InitializationCodeTypescript extends SnippetTypescript {
       "/initialCodeGlobals.d.ts": this.backendResources.declarations.initialCodeGlobals,
     });
 
-    const componentsParser = new CustomComponentCodeTypescript(this.backendResources, this.customComponents);
-    const declarations = componentsParser.getClassesCode("  ");
+    let program = baseProgram;
 
-    return baseProgram.withFiles({
-      "/components.d.ts": `import { Component } from "./types";\n\ndeclare global {\n${declarations}}\n`,
-    });
+    if (!this.isGlobal) {
+      baseProgramWithInputGroups ??= baseProgram.withFiles({
+        "/inputGroupsGlobals.d.ts": this.backendResources.declarations.inputGroupsGlobals,
+      });
+
+      program = baseProgramWithInputGroups;
+    }
+
+    if (Object.keys(this.customComponents).length !== 0) {
+      const componentsParser = new CustomComponentCodeTypescript(this.backendResources, this.customComponents);
+      const declarations = componentsParser.getClassesCode("  ");
+      program = program.withFiles({
+        "/components.d.ts": `import { Component } from "./types";\n\ndeclare global {\n${declarations}}\n`,
+      });
+    }
+
+    return program;
   }
 }

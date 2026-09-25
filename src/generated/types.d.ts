@@ -1,4 +1,4 @@
-// noinspection JSUnusedGlobalSymbols
+// noinspection JSUnusedGlobalSymbols,ES6UnusedImports
 
 export type PuzzleState = never;
 
