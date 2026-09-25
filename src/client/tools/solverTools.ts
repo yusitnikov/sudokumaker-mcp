@@ -22,6 +22,7 @@ import { ElementType } from "../../elements/ElementType";
 import type { ElementPublic } from "../../elements/types";
 import { getElementByTypeName } from "../../elements/AllElements";
 import { FrontendCallbackToolImplementation } from "./FrontendCallbackToolImplementation";
+import { areContradictionsAllowed, readBruteForceSolverSettings } from "../../SudokuMakerSettings";
 
 const singleStepTimeout = 5000;
 const solverMaxTimeout = 30000;
@@ -37,14 +38,18 @@ const appendedLogResultText = ({ solverLogsChanged, solverLogs, previousSolverLo
     : `No new solver log entries - this run didn't add or change anything (e.g. a no-op on an already-solved grid). Use \`${getLogsToolName}\` to see the full log if needed.`;
 
 /**
- * A solver/check response: status line, log,
+ * A solver/check response: status line, log, the solver settings note when given,
  * the grid diff when the tool writes (`puzzleBefore` given),
  * and the closing notes once the run has finished.
  *
  * An unfinished run keeps the diff, labelled as progress - the cells really do hold those values.
  * It drops the closing notes: they all speak about an outcome that doesn't exist yet.
  */
-const solverResultText = ({ finished, message, tabState }: SolverWaitResult, logText: string) => {
+const solverResultText = (
+  { finished, message, tabState }: SolverWaitResult,
+  logText: string,
+  settingsNote?: string,
+) => {
   const { previousPuzzle: puzzleBefore, puzzle: puzzleAfter } = tabState;
 
   return [
@@ -52,6 +57,7 @@ const solverResultText = ({ finished, message, tabState }: SolverWaitResult, log
     "",
     logText,
     "",
+    ...(settingsNote ? [settingsNote, ""] : []),
     ...(puzzleBefore
       ? [
           cellsDiffSummary(
@@ -79,6 +85,12 @@ const solverResultText = ({ finished, message, tabState }: SolverWaitResult, log
 /** The text block for a replace-style tool's response: the full current log, which this call itself just replaced. */
 const replacedLogResultText = ({ solverLogs }: TabState) =>
   `Solver logs: ${new RootObjectNode(solverLogs, solverLogsDescriptor).format()}`;
+
+/** Whether the logical solver may reason by contradiction, read off the app's settings. */
+const contradictionsNote = () =>
+  areContradictionsAllowed()
+    ? "Note: the app's logical solver settings allow deductions by contradiction."
+    : "Note: the app's logical solver settings don't allow deductions by contradiction.";
 
 export const doLogicalStepTool = new FrontendCallbackToolImplementation(
   {
@@ -110,7 +122,7 @@ ${reversibleActionNote}
         content: [
           {
             type: "text",
-            text: solverResultText(result, appendedLogResultText(tabState)),
+            text: solverResultText(result, appendedLogResultText(tabState), contradictionsNote()),
           },
         ],
       },
@@ -149,7 +161,7 @@ ${reversibleActionNote} - all steps taken in this call are undone/redone togethe
         content: [
           {
             type: "text",
-            text: solverResultText(result, appendedLogResultText(tabState)),
+            text: solverResultText(result, appendedLogResultText(tabState), contradictionsNote()),
           },
         ],
       },
@@ -185,7 +197,8 @@ ${reversibleActionNote}
 
     window.Api.triggerAction("findSolutions");
     const result = await waitForSolver(solverMaxTimeout);
-    const { tabState } = result;
+    const { tabState, finished } = result;
+    const settings = readBruteForceSolverSettings();
 
     return {
       updatedPuzzle: tabState.puzzle,
@@ -193,7 +206,14 @@ ${reversibleActionNote}
         content: [
           {
             type: "text",
-            text: solverResultText(result, replacedLogResultText(tabState)),
+            text: solverResultText(
+              result,
+              replacedLogResultText(tabState),
+              // The caps are worth knowing only while the run is still going.
+              finished
+                ? undefined
+                : `The app's brute-force solver settings cap this run at ${settings.solutionCountLimit} solutions and ${settings.solveTimeLimit} seconds.`,
+            ),
           },
         ],
       },
