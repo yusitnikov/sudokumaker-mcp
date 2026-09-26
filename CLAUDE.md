@@ -211,6 +211,9 @@ carried only by the tools it applies to, and only once the run has actually fini
 
 The code-editing tools close with the problems the snippet checker found, as a `[WARNING]`.
 
+Every frontend tool also reports, as a `[WARNING]`, what the app published on `window.errorBus` during the call
+(`src/SudokuMakerErrors.ts`): errors thrown by custom constraint code, which the solver itself swallows.
+
 `runOnFrontend` catches whatever a tool throws and returns it as an `isError: true` result, so a
 failure arrives as readable text instead of a rejected `execute_js` carrying a stack trace through
 the minified bundle; `runOnBackend` does the same for a failed round trip. That is the only way a

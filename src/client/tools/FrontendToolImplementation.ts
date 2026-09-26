@@ -8,6 +8,7 @@ import { getByPath, setByPath } from "../../PathToObject";
 import { ToolImplementation } from "./ToolImplementation";
 import type { ParsedExecuteJsResponse } from "../../ParsedExecuteJsResponse";
 import type { BackendResources } from "../../BackendResources";
+import { clearSudokuMakerErrors, getSudokuMakerErrors } from "../../SudokuMakerErrors";
 
 /**
  * The callable members of `T`, keyed by name.
@@ -59,8 +60,8 @@ export abstract class FrontendToolImplementation<SchemaT extends z.ZodSchema> ex
     if (!diffResult.success) {
       return this.formatErrorResponse(diffResult.message);
     }
-    if (diffResult.result) {
-      const warningText = `[WARNING] The tab state changed since the last tool call: ${diffResult.result}`;
+    const { diff, errors } = diffResult.result;
+    const addWarningText = (warningText: string) => {
       if (result.isError) {
         result.content.push({
           type: "text",
@@ -72,6 +73,15 @@ export abstract class FrontendToolImplementation<SchemaT extends z.ZodSchema> ex
           text: warningText + "\n\n",
         });
       }
+    };
+    if (diff) {
+      addWarningText(`[WARNING] The tab state changed since the last tool call: ${diff}`);
+    }
+    if (errors.length) {
+      addWarningText(
+        "[WARNING] SudokuMaker reported errors while running this tool:\n" +
+          errors.map(({ context, message }) => `- ${context}: ${message}`).join("\n"),
+      );
     }
 
     return result;
@@ -84,12 +94,23 @@ export abstract class FrontendToolImplementation<SchemaT extends z.ZodSchema> ex
   ): Promise<ParsedExecuteJsResponse<CallToolResult>>;
 
   initOnFrontend(params: unknown) {
+    clearSudokuMakerErrors();
     this.prevTabState = undefined;
     return this.validateParams(params);
   }
 
-  getTabStateDiffOnFrontend() {
-    return this.prevTabState?.puzzleChanged ? (this.prevTabState.formattedDiff ?? "") : "";
+  async getTabStateDiffOnFrontend() {
+    // Wait a bit to ensure that the errors arrive if any
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    return {
+      diff: this.prevTabState?.puzzleChanged ? (this.prevTabState.formattedDiff ?? "") : "",
+      // Flattened here, because an `Error` doesn't survive the JSON trip to the backend
+      errors: getSudokuMakerErrors().map(({ context, error }) => ({
+        context,
+        message: error instanceof Error ? error.message : String(error),
+      })),
+    };
   }
 
   private prevTabState?: TabState;

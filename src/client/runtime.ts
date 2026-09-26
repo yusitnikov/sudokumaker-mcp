@@ -2,6 +2,7 @@ import { frontendTools } from "./tools/frontendTools";
 import { runtimeGlobal } from "./runtimeGlobal";
 import type { ToolImplementation } from "./tools/ToolImplementation";
 import type { TabStateSnapshot } from "./tabState";
+import { subscribeToSudokuMakerErrors } from "../SudokuMakerErrors";
 
 /**
  * The page-side entry point. This module is bundled by the `injected` plugin (see vite.config.ts)
@@ -43,3 +44,5 @@ window.__smMcp = {
     return tool;
   },
 };
+
+subscribeToSudokuMakerErrors();
