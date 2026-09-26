@@ -250,5 +250,15 @@ and from every custom component of the same element, under the component's name.
 The code can also use the classes, enums and utility objects in \`globals.d.ts\`, such as \`DigitSet\`.
 
 Topic \`${typesReferenceTopicName}\` declares all of them, and every TypeScript type named above.
+
+## Other reading
+
+If you already fetched all MCP topics related to the custom constraints (including the types reference)
+and you're still missing some essential information about how custom constraints work or what specific methods do,
+you can get additional answers from this artifact: https://claude.ai/artifact/Eicq4JC31iXnw9a7sP3ffu
+Notes:
+- The artifact was auto-generated, so take it with a grain of salt.
+- Reading an artifact is a heavy operation. Don't do it in vain, and remember the result
+  if you have a memory system and authorized to use it for this purpose.
     `,
 };
