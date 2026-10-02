@@ -15,13 +15,31 @@ export const customComponentsTopic: DocsTopic = {
     `
 # Custom components
 
-A custom component is a piece of solver logic written in JavaScript,
-for a rule that no standard component covers.
+A component is one unit of a constraint's logic, applied to a set of cells
+(topic \`${customConstraintsTopicName}\` explains how a constraint is composed of components).
+A custom component is one whose logic is written in JavaScript, for a rule that no standard component covers.
 The name given to \`${addCustomComponentToolName}\` becomes a class name,
-and the initialization code (topic \`${customConstraintsTopicName}\`) creates instances of it with \`new\`, the same way as standard components:
+and the initialization code creates instances of it with \`new\`, the same way as standard components:
 \`\`\`
 puzzle.addConstraintComponent(new MyComponent(name, cells));
 \`\`\`
+
+## Choosing what a component covers
+
+Leave to standard components every part of the rule they can express,
+and write a custom component only for the rest.
+A constraint can add both kinds for the same cells, as the killer cage example in topic \`${customConstraintsTopicName}\` adds two standard ones.
+
+Make one instance per clue rather than one instance for the whole grid:
+- The solver's log names the instance that made a deduction, so a per-clue name says which clue it was.
+- The fewer cells an instance covers, the cheaper its \`update\`, and the more practical it is to try every candidate (see "Patterns" below).
+- An instance can remove itself or hand over to standard components once its own clue is settled,
+  so the solver stops running code for that clue while the others still need it.
+
+Split a clue further, into one instance per part, only when the rule itself is a set of independent conditions on those parts,
+as with a rule about every pair of adjacent cells on a line.
+When the rule ties all the clue's cells together, one instance has to see all of them:
+an instance only knows the cells it was given, and can't deduce anything that depends on the others.
 
 ## The hooks
 
