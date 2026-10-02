@@ -49,6 +49,7 @@ const solverResultText = (
   { finished, message, tabState }: SolverWaitResult,
   logText: string,
   settingsNote?: string,
+  modifiesTheGrid = true,
 ) => {
   const { previousPuzzle: puzzleBefore, puzzle: puzzleAfter } = tabState;
 
@@ -58,7 +59,7 @@ const solverResultText = (
     logText,
     "",
     ...(settingsNote ? [settingsNote, ""] : []),
-    ...(puzzleBefore
+    ...(puzzleBefore && modifiesTheGrid
       ? [
           cellsDiffSummary(
             tabState,
@@ -73,6 +74,7 @@ const solverResultText = (
       ? [
           solverBlindSpotWarning(puzzleAfter),
           puzzleBefore &&
+            modifiesTheGrid &&
             `This run replaced the center marks in the affected cells, including any the user had entered by hand. If the run was diagnostic (done only to get a verdict, not because the user asked for the deduced marks), call \`${undoToolName}\` to put the previous marks back.`,
           solvingTopicNote,
         ]
@@ -253,7 +255,7 @@ Blind to free-text rules and cosmetic-only elements.
         content: [
           {
             type: "text",
-            text: solverResultText(result, replacedLogResultText(tabState)),
+            text: solverResultText(result, replacedLogResultText(tabState), undefined, false),
           },
         ],
       },
