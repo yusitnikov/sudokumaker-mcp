@@ -1,6 +1,6 @@
 {
   "name": "sudokumaker-mcp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "MCP server for editing SudokuMaker puzzles open in the browser",
   "keywords": [
     "mcp",
